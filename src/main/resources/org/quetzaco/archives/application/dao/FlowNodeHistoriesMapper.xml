@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.FlowNodeHistoriesMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.FlowNodeHistories">
+    <result column="node_id" jdbcType="BIGINT" property="nodeId" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="flow_id" jdbcType="BIGINT" property="flowId" />
+    <result column="action" jdbcType="VARCHAR" property="action" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="assignee_id" jdbcType="BIGINT" property="assigneeId" />
+    <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt" />
+    <result column="dead_line" jdbcType="TIMESTAMP" property="deadLine" />
+    <result column="assignee_by" jdbcType="BIGINT" property="assigneeBy" />
+    <result column="record_flag" jdbcType="BIT" property="recordFlag" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    node_id, type, flow_id, action, description, assignee_id, created_dt, dead_line, 
+    assignee_by, record_flag
+  </sql>
+  <select id="selectByExample" parameterType="org.quetzaco.archives.model.FlowNodeHistoriesExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from flow_node_histories
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.FlowNodeHistoriesExample">
+    delete from flow_node_histories
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.FlowNodeHistories">
+    insert into flow_node_histories (node_id, type, flow_id, 
+      action, description, assignee_id, 
+      created_dt, dead_line, assignee_by, 
+      record_flag)
+    values (#{nodeId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, #{flowId,jdbcType=BIGINT}, 
+      #{action,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{assigneeId,jdbcType=BIGINT}, 
+      #{createdDt,jdbcType=TIMESTAMP}, #{deadLine,jdbcType=TIMESTAMP}, #{assigneeBy,jdbcType=BIGINT}, 
+      #{recordFlag,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.FlowNodeHistories">
+    insert into flow_node_histories
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="nodeId != null">
+        node_id,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="flowId != null">
+        flow_id,
+      </if>
+      <if test="action != null">
+        action,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="assigneeId != null">
+        assignee_id,
+      </if>
+      <if test="createdDt != null">
+        created_dt,
+      </if>
+      <if test="deadLine != null">
+        dead_line,
+      </if>
+      <if test="assigneeBy != null">
+        assignee_by,
+      </if>
+      <if test="recordFlag != null">
+        record_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="nodeId != null">
+        #{nodeId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="flowId != null">
+        #{flowId,jdbcType=BIGINT},
+      </if>
+      <if test="action != null">
+        #{action,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="assigneeId != null">
+        #{assigneeId,jdbcType=BIGINT},
+      </if>
+      <if test="createdDt != null">
+        #{createdDt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deadLine != null">
+        #{deadLine,jdbcType=TIMESTAMP},
+      </if>
+      <if test="assigneeBy != null">
+        #{assigneeBy,jdbcType=BIGINT},
+      </if>
+      <if test="recordFlag != null">
+        #{recordFlag,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.FlowNodeHistoriesExample" resultType="java.lang.Long">
+    select count(*) from flow_node_histories
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update flow_node_histories
+    <set>
+      <if test="record.nodeId != null">
+        node_id = #{record.nodeId,jdbcType=BIGINT},
+      </if>
+      <if test="record.type != null">
+        type = #{record.type,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flowId != null">
+        flow_id = #{record.flowId,jdbcType=BIGINT},
+      </if>
+      <if test="record.action != null">
+        action = #{record.action,jdbcType=VARCHAR},
+      </if>
+      <if test="record.description != null">
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.assigneeId != null">
+        assignee_id = #{record.assigneeId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createdDt != null">
+        created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.deadLine != null">
+        dead_line = #{record.deadLine,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.assigneeBy != null">
+        assignee_by = #{record.assigneeBy,jdbcType=BIGINT},
+      </if>
+      <if test="record.recordFlag != null">
+        record_flag = #{record.recordFlag,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update flow_node_histories
+    set node_id = #{record.nodeId,jdbcType=BIGINT},
+      type = #{record.type,jdbcType=VARCHAR},
+      flow_id = #{record.flowId,jdbcType=BIGINT},
+      action = #{record.action,jdbcType=VARCHAR},
+      description = #{record.description,jdbcType=VARCHAR},
+      assignee_id = #{record.assigneeId,jdbcType=BIGINT},
+      created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+      dead_line = #{record.deadLine,jdbcType=TIMESTAMP},
+      assignee_by = #{record.assigneeBy,jdbcType=BIGINT},
+      record_flag = #{record.recordFlag,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  
+  <select id="getFlowStatus" resultMap="flowStatusMap">
+    select c.name assignee,d.name assigneed,c.action,c.description,c.created_dt FROM
+      (select a.assignee_by,b.name,a.action,a.description,a.created_dt  from
+        (select flow_id,assignee_id ,assignee_by,action,description,created_dt from flow_node_histories  where flow_id =#{flowId}
+        UNION select flow_id,assignee_id,assignee_by,NULL ,NULL,NULL FROM flow_nodes where flow_id=#{flowId}) a
+          left join users b on a.assignee_id = b.id) c LEFT JOIN  users d on c.assignee_by=d.id order BY c.created_dt
+  </select>
+
+  <resultMap id="flowStatusMap" type="HashMap">
+    <result column="assignee" property="assignee"/>
+    <result column="assigneed" property="assigneeBy"/>
+    <result column="action" property="action"/>
+    <result column="description" property="description"/>
+    <result column="created_dt" property="createdDt"/>
+  </resultMap>
+</mapper>

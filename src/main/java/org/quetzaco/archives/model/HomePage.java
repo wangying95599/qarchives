@@ -1,0 +1,85 @@
+package org.quetzaco.archives.model;
+
+import java.util.Date;
+
+public class HomePage {
+    private Long id;
+
+    private String content;
+
+    private String type;
+
+    private Date createDate;
+
+    private Boolean recordFlag;
+
+    private Date updateDt;
+    
+    private String docId;
+    
+    private Long fileId;
+    
+    public Long getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(Long fileId) {
+		this.fileId = fileId;
+	}
+
+	public String getDocId() {
+		return docId;
+	}
+
+	public void setDocId(String docId) {
+		this.docId = docId;
+	}
+
+	public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content == null ? null : content.trim();
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type == null ? null : type.trim();
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Boolean getRecordFlag() {
+        return recordFlag;
+    }
+
+    public void setRecordFlag(Boolean recordFlag) {
+        this.recordFlag = recordFlag;
+    }
+
+    public Date getUpdateDt() {
+        return updateDt;
+    }
+
+    public void setUpdateDt(Date updateDt) {
+        this.updateDt = updateDt;
+    }
+}

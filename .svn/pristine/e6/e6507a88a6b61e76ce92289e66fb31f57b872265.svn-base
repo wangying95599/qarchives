@@ -1,0 +1,14 @@
+# application.yml
+spring.datasource.url:jdbc:postgresql://127.0.0.1:5432/archives
+logging.level.org.springframework.boot.autoconfigure.logging:debug
+logging.level.org.springframework.boot.web.filter.OrderedRequestContextFilter:debug
+logging.level.utoConfigurationReportLoggingInitializer:debug
+logging.level.org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver:debug
+
+quetzaco.archive.config.file-storage=D:/docs/
+cron.docSync=0 0 13 * * ?
+cbs.imagesPath=file:///D:/upload/
+cbs.absPath=D:/upload/
+oa.prefix=D:/files/
+HISTORY_PREFIX=D:/docs
+RETURN_PATH=D:/docs

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.HomePictureMapper">
+    <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.HomePicture">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="location" jdbcType="VARCHAR" property="location"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt"/>
+        <result column="updated_dt" jdbcType="TIMESTAMP" property="updatedDt"/>
+        <result column="record_flag" jdbcType="BIT" property="recordFlag"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+    id, location, content, created_dt, updated_dt, record_flag
+  </sql>
+    <select id="selectByExample" parameterType="org.quetzaco.archives.model.HomePictureExample"
+            resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from home_picture
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from home_picture
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from home_picture
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+    <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.HomePictureExample">
+        delete from home_picture
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="org.quetzaco.archives.model.HomePicture">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            SELECT nextval('home_picture_id_seq')
+        </selectKey>
+        insert into home_picture (id, location, content,
+        created_dt, updated_dt, record_flag
+        )
+        values (#{id,jdbcType=INTEGER}, #{location,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR},
+        #{createdDt,jdbcType=TIMESTAMP}, #{updatedDt,jdbcType=TIMESTAMP}, #{recordFlag,jdbcType=BIT}
+        )
+    </insert>
+    <insert id="insertSelective" parameterType="org.quetzaco.archives.model.HomePicture">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            SELECT nextval('home_picture_id_seq')
+        </selectKey>
+        insert into home_picture
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="location != null">
+                location,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="createdDt != null">
+                created_dt,
+            </if>
+            <if test="updatedDt != null">
+                updated_dt,
+            </if>
+            <if test="recordFlag != null">
+                record_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=INTEGER},
+            <if test="location != null">
+                #{location,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createdDt != null">
+                #{createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedDt != null">
+                #{updatedDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="recordFlag != null">
+                #{recordFlag,jdbcType=BIT},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="org.quetzaco.archives.model.HomePictureExample"
+            resultType="java.lang.Long">
+        select count(*) from home_picture
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update home_picture
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=INTEGER},
+            </if>
+            <if test="record.location != null">
+                location = #{record.location,jdbcType=VARCHAR},
+            </if>
+            <if test="record.content != null">
+                content = #{record.content,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createdDt != null">
+                created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updatedDt != null">
+                updated_dt = #{record.updatedDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.recordFlag != null">
+                record_flag = #{record.recordFlag,jdbcType=BIT},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update home_picture
+        set id = #{record.id,jdbcType=INTEGER},
+        location = #{record.location,jdbcType=VARCHAR},
+        content = #{record.content,jdbcType=VARCHAR},
+        created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+        updated_dt = #{record.updatedDt,jdbcType=TIMESTAMP},
+        record_flag = #{record.recordFlag,jdbcType=BIT}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.HomePicture">
+        update home_picture
+        <set>
+            <if test="location != null">
+                location = #{location,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createdDt != null">
+                created_dt = #{createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedDt != null">
+                updated_dt = #{updatedDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="recordFlag != null">
+                record_flag = #{recordFlag,jdbcType=BIT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.HomePicture">
+    update home_picture
+    set location = #{location,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      created_dt = #{createdDt,jdbcType=TIMESTAMP},
+      updated_dt = #{updatedDt,jdbcType=TIMESTAMP},
+      record_flag = #{recordFlag,jdbcType=BIT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,27 @@
+package org.quetzaco.archives.application.dao;
+
+import org.apache.ibatis.annotations.Param;
+import org.quetzaco.archives.model.Files;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+@Repository
+public interface FileMapper {
+    int insert(Files record);
+
+    int insertSelective(Files record);
+
+    List<Files> selectFile(String docId);
+
+    void uploadFiles(Files files);
+
+    int deleteFile(Long fileId);
+
+    int updateMainByDocId(String docId);
+
+    int updateFileType(@Param("doc") String docFileType, @Param("oa") String oaFileType);
+
+    Files selectByPrimaryKey(Long fileId);
+
+    int updateFile(String fileId);
+}

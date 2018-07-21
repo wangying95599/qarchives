@@ -1,0 +1,8 @@
+# application.yml
+spring.datasource.url:jdbc:postgresql://127.0.0.1:5432/archives
+cbs.imagesPath=file:////opt/upload/
+cbs.absPath=/opt/upload/
+oa.prefix=/opt/files/
+RETURN_PATH=/opt/docs
+HISTORY_PREFIX=/opt/docs
+quetzaco.archive.config.file-storage=/opt/docs/

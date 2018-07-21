@@ -1,0 +1,25 @@
+html, body	{ height:100%; }   
+body { margin:0; padding:0; }
+.toolbar { background-image:url('../images/toolbarbg.gif'); height:24px; border-style:solid; border-width:1px; border-color:#777777; }
+.slider { width: 108px; font-family: Helvetica, Arial, sans-serif; font-size: 12px; top:5px; float:left; margin-left:4px; margin-right: 4px;}
+.tbbutton { float:left; margin-left:3px; margin-top:2px; padding-left: 1px; padding-right:1px; padding-top:1px; padding-bottom:1px; border: 1px solid transparent; }
+.tbbutton:hover { border: 1px solid #496487; }
+.tbseparator { float:left; padding-top:1px; padding-left:2px; padding-right:2px; }
+.tbbutton_fitmode_selected { background-color:#bbdaf3;}
+.tbbutton_viewmode_selected { background-color:#bbdaf3;}
+.tbbutton_cursormode_selected { background-color:#bbdaf3;}
+.tbbutton_fullscreen_selected { background-color:#bbdaf3;}
+.tbtextinput { float:left; font-family: Arial; font-size: 10px; margin-top:1px; height:19px;margin-top:2px;}
+.tblabel { float:left; font-family: Arial; font-size: 10px; height:14px; margin-top: 6px; margin-left:5px; width:29px; }
+.tbloader { float:right; margin-top:3px; margin-right:3px;visibility:hidden;}
+#tooltip{
+	position:absolute;
+	border:1px solid #333;
+	background:#f7f5d1;
+	padding:2px 5px;
+	color:#333;
+	display:none;
+	font-family: Helvetica, Arial, sans-serif; 
+	font-size: 11px;
+	}
+input {-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;}	

@@ -1,0 +1,377 @@
+package org.quetzaco.archives.web.restful;
+
+import org.apache.commons.lang3.StringUtils;
+import org.quetzaco.archives.application.biz.DocumentService;
+import org.quetzaco.archives.application.biz.RecordService;
+import org.quetzaco.archives.application.dao.*;
+import org.quetzaco.archives.application.message.AccessKey;
+import org.quetzaco.archives.application.message.MultiAccessKey;
+import org.quetzaco.archives.application.message.OptionLogger;
+import org.quetzaco.archives.model.*;
+import org.quetzaco.archives.util.config.ArchiveProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+@Controller
+public class ZipUtilsController {
+
+    @Autowired
+    ArchiveMapper archiveMapper;
+
+    @Autowired
+    RecordMapper recordMapper;
+
+    @Autowired
+    DocumentsMapper documentMapper;
+
+    @Autowired
+    FileMapper fileMapper;
+    @Autowired
+    HistoryFileMapper historyFileMapper;
+    @Autowired
+    DocumentService documentService;
+    @Autowired
+    RecordService recordService;
+
+    @Value("${HISTORY_PREFIX}")
+    String historyPrefix;
+
+    @Autowired
+    ArchiveProperties archiveProperties;
+
+    final static Logger LOGGER = LoggerFactory.getLogger(ZipUtilsController.class);
+    @OptionLogger(type = OptionLogger.OpType.ZIPDOWNLOAD, description = "非文档下载")
+    @RequestMapping("/fileZipDownload1")
+    public String downloadZip(@RequestParam("reelType") String reelType,
+        @AccessKey @RequestParam("fileId") String fileId,
+        org.apache.catalina.servlet4preview.http.HttpServletRequest request,
+                              HttpServletResponse response) throws IOException {
+
+        Map itemMap = new HashMap();
+        itemMap.put("id", "document".equals(reelType) ? fileId
+            : "historyDocument".equals(reelType) ? fileId : Long.parseLong(fileId));
+        itemMap.put("reelType", reelType);//historyDocument
+        itemMap.put("title", URLDecoder.decode(request.getParameter("fileName"), "UTF-8"));
+
+        //压缩文件初始设置
+        String path = archiveProperties.getFileStorage();
+        if("historyDocument".equals(reelType))path = historyPrefix;
+        String base_name = URLDecoder.decode(request.getParameter("fileName"), "UTF-8");
+        // localPath = request.getParameter("localtion");
+
+        String fileZip = base_name + ".zip"; // 拼接zip文件S
+        String filePath = path + "\\" + fileZip;//之后用来生成zip文件
+
+        doCompress(itemMap, filePath);
+        //以上，临时压缩文件创建完成
+
+        //进行浏览器下载
+        //获得浏览器代理信息
+        final String userAgent = request.getHeader("USER-AGENT");
+        //判断浏览器代理并分别设置响应给浏览器的编码格式
+        String finalFileName = null;
+        if (StringUtils.contains(userAgent, "MSIE") || StringUtils
+                .contains(userAgent, "Trident")) {//IE浏览器
+            finalFileName = URLEncoder.encode(fileZip, "UTF8");
+            System.out.println("IE浏览器");
+        } else if (StringUtils.contains(userAgent, "Mozilla")) {//google,火狐浏览器
+            finalFileName = new String(fileZip.getBytes(), "ISO8859-1");
+        } else {
+            finalFileName = URLEncoder.encode(fileZip, "UTF8");//其他浏览器
+        }
+        response.setContentType("application/x-download");//告知浏览器下载文件，而不是直接打开，浏览器默认为打开
+        response
+                .setHeader("Content-Disposition", "attachment;filename=\"" + finalFileName + "\"");//下载文件的名称
+
+        ServletOutputStream servletOutputStream = response.getOutputStream();
+        DataOutputStream temps = new DataOutputStream(
+                servletOutputStream);
+
+        DataInputStream in = new DataInputStream(
+                new FileInputStream(filePath));//浏览器下载文件的路径
+        byte[] b = new byte[2048];
+        File reportZip = new File(filePath);//之后用来删除临时压缩文件
+        try {
+            while ((in.read(b)) != -1) {
+                temps.write(b);
+            }
+            temps.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (temps != null) {
+                temps.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (reportZip != null) {
+                reportZip.delete();//删除服务器本地产生的临时压缩文件
+            }
+            servletOutputStream.close();
+        }
+        return null;
+    }
+
+    // private ZipUtils(){}
+
+    public void doCompress(Map itemMap, String zipFile) throws IOException {
+        doCompress(itemMap, new File(zipFile));
+    }
+
+
+    private void doCompress(Map itemMap, File zipFile) throws IOException {
+        ZipOutputStream out = null;
+        try {
+            out = new ZipOutputStream(new FileOutputStream(zipFile));
+            doCompress(itemMap, out);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            out.close();//记得关闭资源
+        }
+    }
+
+    private void doCompress(Map itemMap, ZipOutputStream out) throws IOException {
+        doCompress(itemMap, out, "");
+    }
+
+
+    private void doCompress(Map itemMap, ZipOutputStream out, String dir) throws IOException {
+        if (!"file".equals(itemMap.get("reelType"))) {
+            List<Map> childs = getChilds(itemMap.get("id"), (String) itemMap.get("reelType"));
+            if (childs != null && childs.size() > 0) {
+                for (Map map : childs) {
+                    String name = (String) itemMap.get("title");
+                    if (!"".equals(dir)) {
+                        name = dir + "/" + name;
+                    }
+                    doCompress(map, out, name);
+                }
+            } else {
+                doZip(null, (String) itemMap.get("title"), out, dir);
+            }
+        } else {
+            doZip((File) itemMap.get("file"), (String) itemMap.get("fileName"), out, dir);
+        }
+    }
+
+
+    private void doZip(File inFile, String fileName, ZipOutputStream out, String dir) throws IOException {
+        String entryName = null;
+        if (!"".equals(dir)) {
+            entryName = dir + "/" + fileName;
+            if (inFile == null)
+                entryName = dir + "/" + fileName + "/";
+        } else {
+            entryName = fileName;
+            if (inFile == null)
+                entryName = fileName + "/";
+        }
+        ZipEntry entry = new ZipEntry(entryName);
+        out.putNextEntry(entry);
+
+        if (inFile != null) {
+            try {
+                int len = 0;
+                byte[] buffer = new byte[1024];
+                FileInputStream fis = new FileInputStream(inFile);
+                while ((len = fis.read(buffer)) > 0) {
+                    out.write(buffer, 0, len);
+                    out.flush();
+                }
+                out.closeEntry();
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    private List<Map> getChilds(Object id, String reelType) {
+
+        List<Map> list = new ArrayList();
+        List<Archive> list1;
+        List<Record> list2;
+        List<Documents> list3;
+        List<Files> list4;
+        List<HistoryFile> list5;
+        switch (reelType) {
+            case "box":
+                list1 = archiveMapper.selectArchiveFromBox((Long) id);
+                for (Archive archive : list1) {
+                    Map map = new HashMap();
+                    map.put("id", archive.getId());
+                    map.put("reelType", "archive");
+                    map.put("title", archive.getTitle());
+                    list.add(map);
+                }
+                break;
+            case "archive":
+                list2 = recordMapper.selectRecordFromArchive((Long) id);
+                for (Record record : list2) {
+                    extractRecordMap(list, record);
+                }
+                break;
+            case "record":
+                list3 = documentMapper.selectFromRecord((Long) id, null);
+                for (Documents document : list3) {
+                    extractDocMap(list, document);
+                }
+                break;
+            case "document":
+                list4 = fileMapper.selectFile((String) id);
+                for (Files files : list4) {
+                    Map map = new HashMap();
+                    map.put("id", files.getId());
+                    map.put("reelType", "file");
+                    map.put("file", new File(archiveProperties.getFileStorage() + "/" + files.getLocation()));
+                    map.put("fileName", files.getFileName());
+                    list.add(map);
+                }
+                break;
+            case "historyDocument":
+                list5 = historyFileMapper.selectHistoryFile((String) id);
+                for (HistoryFile historyFile : list5) {
+                    Map map = new HashMap();
+                    map.put("id", historyFile.getEntryId());
+                    map.put("reelType", "file");
+                    // System.out.println("路径前缀：" + archiveProperties.getFileStorage());
+                    LOGGER.debug("路径前缀：    "+historyPrefix);
+                    map.put("file", new File(historyPrefix + "/" + historyFile.getFilePath()));
+                    map.put("fileName", historyFile.getFileName());
+                    list.add(map);
+                }
+                break;
+            default:
+                list = null;
+        }
+
+        return list;
+
+    }
+
+    private List<Map> getDownloadDetails(List<Long> ids ,String reelType ){
+        List<Map> maps = new ArrayList<>();
+        if("document".equals(reelType)){
+            List<Documents> list = documentService.getDocumentsByIds(ids);
+            for(Documents documents:list){
+                extractDocMap(maps, documents);
+            }
+        }else if("record".equals(reelType)){
+            List<Record> list = recordService.getRecordsByIds(ids);
+            for(Record record:list){
+                extractRecordMap(maps, record);
+            }
+        }
+        return maps;
+    }
+
+    @OptionLogger(type = OptionLogger.OpType.ZIPDOWNLOAD, description = "非文档下载")
+    @RequestMapping("/fileZipDownloads")
+    public String downloadZips(@RequestParam("reelType") String reelType,@MultiAccessKey @RequestParam("ids")  List<Long> ids,
+                              org.apache.catalina.servlet4preview.http.HttpServletRequest request,
+                              HttpServletResponse response) throws IOException {
+
+        List<Map> maps = getDownloadDetails(ids,reelType);
+        //压缩文件初始设置
+        String path = archiveProperties.getFileStorage();
+        if("historyDocument".equals(reelType))path = historyPrefix;
+
+        String fileZip = reelType + ".zip"; // 拼接zip文件S
+        String filePath = path + "\\" + fileZip;//之后用来生成zip文件
+
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(new File(filePath)));
+        try {
+            for (Map itemMap : maps) {
+                doCompress(itemMap, out);
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            out.close();
+        }
+        //以上，临时压缩文件创建完成
+
+        //进行浏览器下载
+        //获得浏览器代理信息
+        final String userAgent = request.getHeader("USER-AGENT");
+        //判断浏览器代理并分别设置响应给浏览器的编码格式
+        String finalFileName = null;
+        if (StringUtils.contains(userAgent, "MSIE") || StringUtils
+                .contains(userAgent, "Trident")) {//IE浏览器
+            finalFileName = URLEncoder.encode(fileZip, "UTF8");
+            System.out.println("IE浏览器");
+        } else if (StringUtils.contains(userAgent, "Mozilla")) {//google,火狐浏览器
+            finalFileName = new String(fileZip.getBytes(), "ISO8859-1");
+        } else {
+            finalFileName = URLEncoder.encode(fileZip, "UTF8");//其他浏览器
+        }
+        response.setContentType("application/x-download");//告知浏览器下载文件，而不是直接打开，浏览器默认为打开
+        response
+                .setHeader("Content-Disposition", "attachment;filename=\"" + finalFileName + "\"");//下载文件的名称
+
+        ServletOutputStream servletOutputStream = response.getOutputStream();
+        DataOutputStream temps = new DataOutputStream(
+                servletOutputStream);
+
+        DataInputStream in = new DataInputStream(
+                new FileInputStream(filePath));//浏览器下载文件的路径
+        byte[] b = new byte[2048];
+        File reportZip = new File(filePath);//之后用来删除临时压缩文件
+        try {
+            while ((in.read(b)) != -1) {
+                temps.write(b);
+            }
+            temps.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (temps != null) {
+                temps.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (reportZip != null) {
+                reportZip.delete();//删除服务器本地产生的临时压缩文件
+            }
+            servletOutputStream.close();
+        }
+        return null;
+    }
+
+    private void extractRecordMap(List<Map> maps, Record record) {
+        Map map = new HashMap();
+        map.put("id", record.getId());
+        map.put("reelType", "record");
+        map.put("title", record.getTitle());
+        maps.add(map);
+    }
+
+    private void extractDocMap(List<Map> maps, Documents documents) {
+        Map map = new HashMap();
+        map.put("id", documents.getDocumentLocalId());
+        map.put("reelType", "document");
+        map.put("title", documents.getTitle());
+        maps.add(map);
+    }
+}

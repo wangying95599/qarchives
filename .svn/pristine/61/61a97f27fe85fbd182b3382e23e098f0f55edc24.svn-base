@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.DocFilesMapper">
+    <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.DocFiles">
+        <result column="mid" jdbcType="VARCHAR" property="mid"/>
+        <result column="fid" jdbcType="VARCHAR" property="fid"/>
+        <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+        <result column="file_type" jdbcType="VARCHAR" property="fileType"/>
+        <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt"/>
+        <result column="real_filename" jdbcType="VARCHAR" property="realFilename"/>
+        <result column="real_path" jdbcType="VARCHAR" property="realPath"/>
+        <result column="update_flag" jdbcType="VARCHAR" property="updateFlag"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+    mid, fid, file_name, file_type, created_dt, real_filename, real_path, update_flag
+  </sql>
+    <select id="selectByExample" parameterType="org.quetzaco.archives.model.DocFilesExample" resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from doc_files
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.DocFilesExample">
+        delete from doc_files
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="org.quetzaco.archives.model.DocFiles">
+    insert into doc_files (mid, fid, file_name, 
+      file_type, created_dt, real_filename, 
+      real_path, update_flag)
+    values (#{mid,jdbcType=VARCHAR}, #{fid,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
+      #{fileType,jdbcType=VARCHAR}, #{createdDt,jdbcType=TIMESTAMP}, #{realFilename,jdbcType=VARCHAR}, 
+      #{realPath,jdbcType=VARCHAR}, #{updateFlag,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="org.quetzaco.archives.model.DocFiles">
+        insert into doc_files
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mid != null">
+                mid,
+            </if>
+            <if test="fid != null">
+                fid,
+            </if>
+            <if test="fileName != null">
+                file_name,
+            </if>
+            <if test="fileType != null">
+                file_type,
+            </if>
+            <if test="createdDt != null">
+                created_dt,
+            </if>
+            <if test="realFilename != null">
+                real_filename,
+            </if>
+            <if test="realPath != null">
+                real_path,
+            </if>
+            <if test="updateFlag != null">
+                update_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mid != null">
+                #{mid,jdbcType=VARCHAR},
+            </if>
+            <if test="fid != null">
+                #{fid,jdbcType=VARCHAR},
+            </if>
+            <if test="fileName != null">
+                #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileType != null">
+                #{fileType,jdbcType=VARCHAR},
+            </if>
+            <if test="createdDt != null">
+                #{createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="realFilename != null">
+                #{realFilename,jdbcType=VARCHAR},
+            </if>
+            <if test="realPath != null">
+                #{realPath,jdbcType=VARCHAR},
+            </if>
+            <if test="updateFlag != null">
+                #{updateFlag,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="org.quetzaco.archives.model.DocFilesExample" resultType="java.lang.Long">
+        select count(*) from doc_files
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update doc_files
+        <set>
+            <if test="record.mid != null">
+                mid = #{record.mid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fid != null">
+                fid = #{record.fid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileName != null">
+                file_name = #{record.fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileType != null">
+                file_type = #{record.fileType,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createdDt != null">
+                created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.realFilename != null">
+                real_filename = #{record.realFilename,jdbcType=VARCHAR},
+            </if>
+            <if test="record.realPath != null">
+                real_path = #{record.realPath,jdbcType=VARCHAR},
+            </if>
+            <if test="record.updateFlag != null">
+                update_flag = #{record.updateFlag,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update doc_files
+        set mid = #{record.mid,jdbcType=VARCHAR},
+        fid = #{record.fid,jdbcType=VARCHAR},
+        file_name = #{record.fileName,jdbcType=VARCHAR},
+        file_type = #{record.fileType,jdbcType=VARCHAR},
+        created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+        real_filename = #{record.realFilename,jdbcType=VARCHAR},
+        real_path = #{record.realPath,jdbcType=VARCHAR},
+        update_flag = #{record.updateFlag,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+
+    <insert id="insertToFiles">
+    INSERT INTO files (doc_id,file_id,file_name,upload_date,location,file_type)
+    SELECT  mid,fid,file_name,created_dt,real_path||'/'||real_filename,file_type FROM doc_files where update_flag='oa';
+  </insert>
+</mapper>

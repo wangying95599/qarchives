@@ -1,0 +1,394 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.sun.tools.internal.ws.wsdl.document.jaxws.Exception;
+import org.apache.commons.lang3.StringUtils;
+import org.quetzaco.archives.application.biz.DocumentService;
+import org.quetzaco.archives.application.biz.SwiftService;
+import org.quetzaco.archives.application.dao.AcousticImageMapper;
+import org.quetzaco.archives.application.dao.DocumentsMapper;
+import org.quetzaco.archives.application.dao.FileMapper;
+import org.quetzaco.archives.application.dao.FlowsMapper;
+import org.quetzaco.archives.model.*;
+import org.quetzaco.archives.util.config.ArchiveProperties;
+import org.quetzaco.converter.client.Conversion;
+import org.quetzaco.converter.client.ConversionManager;
+import org.quetzaco.converter.client.ConversionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/13.
+ */
+@Service
+public class DocumentServiceImpl implements DocumentService {
+
+    @Autowired
+    DocumentsMapper documentMapper;
+
+    @Autowired
+    FileMapper fileMapper;
+
+    @Autowired
+    ArchiveProperties archiveProperties;
+
+    @Autowired
+    FlowsMapper flowsMapper;
+
+    @Autowired
+    SwiftService swiftService;
+
+    @Autowired
+    AcousticImageMapper acousticImageMapper;
+    @Override
+    public PageInfo selectFileList(int type, Long deptId, int offset, int limit, String sortName, String sortOrder, String title, String startYear, String endYear) {
+        DocumentsExample documentsExample = new DocumentsExample();
+        if (sortName != null) {
+            sortName = "beforeNum".equals(sortName) ? "before_num" : "documentCreatime".equals(sortName) ? "document_creatime" : "archiveDate".equals(sortName) ? "archive_date" : null;
+            documentsExample.setOrderByClause(sortName + " " + sortOrder);
+        } else
+            documentsExample.setOrderByClause("document_creatime DESC ");
+
+        DocumentsExample.Criteria criteria = documentsExample.createCriteria();
+        if (type == 1) criteria.andArrangeFlagEqualTo(false).andDataSourceNotEqualTo("OA");
+        else if (type == 2) criteria.andArrangeFlagEqualTo(false).andDataSourceEqualTo("OA");
+        else if (type == 3) criteria.andArrangeFlagEqualTo(true).andIsArchiveEqualTo(false);
+        else if (type == 4) criteria.andArrangeFlagEqualTo(false);
+        else if (type == 5) criteria.andArrangeFlagEqualTo(false).andImportanceNotEqualTo("重要");
+        criteria.andDeptIdEqualTo(deptId).andRecordFlagEqualTo(true);
+
+        PageHelper.startPage(offset, limit);
+        List<Documents> list = documentMapper.selectByExample(documentsExample);
+        // List<Documents> list = documentMapper.selectFileList(deptId);
+//用PageInfo对结果进行包装
+        PageInfo page = new PageInfo(list);
+
+        return page;
+    }
+
+//  @Override
+//  public Document selectDocumentDetail(Long fildId) {
+//    return documentMapper.selectDocumentDetail(fildId);
+//  }
+
+    @Override
+    public Documents selectDocumentByFileCode(String fileCode) {
+        return documentMapper.selectDocumentByFileCode(fileCode, true);
+    }
+
+    @Override
+    public synchronized void saveDocumentDetailInfo(Documents document) {
+        // document.setArrangeFlag(true);
+        Documents document1 = documentMapper.selectByPrimaryKey(document.getId());
+        if (StringUtils.isEmpty(document1.getFileNum())) {
+            String fondsId = document.getFondsId();
+            String archiveType = document.getArchiveType();
+            String archiveYear = document.getArchiveYear();
+            String reserveDuration = document.getReserveDuration();
+            String prefix = fondsId + "-" + archiveType + "-" + archiveYear + "-" + reserveDuration;
+            int num = swiftService.saveSwiftNumber(prefix);
+            String fileNum = prefix + "-" + new DecimalFormat("0000").format(num);
+            document.setFileNum(fileNum);
+        }
+        documentMapper.updateByPrimaryKeySelective1(document);
+
+        // documentMapper.saveDocumentDetailInfo(document);
+    }
+
+    @Override
+    public int deleteDocument(List<Long> ids) {
+        DocumentsExample documentsExample = new DocumentsExample();
+        documentsExample.createCriteria().andIdIn(ids);
+        Documents documents = new Documents();
+        documents.setRecordFlag(false);
+        return documentMapper.updateByExampleSelective(documents, documentsExample);
+        // return documentMapper.deleteDocument(fileId);
+    }
+
+    @Override
+    public List<Files> selectFile(String docId) {
+        return fileMapper.selectFile(docId);
+    }
+
+    @Override
+    public int uploadDocument(Documents document) {
+        return documentMapper.insertSelective(document);
+        // return documentMapper.uploadDocument(document);
+    }
+
+    @Override
+    public void uploadFiles(Files files) {
+        String fileName = files.getFileName();
+        String baseName = fileName.substring(0, fileName.lastIndexOf("."));
+        String suffix = fileName.substring(fileName.lastIndexOf("."));
+        String dupBaseName = baseName + "(";
+        if ("main".equals(files.getFileType())) {
+            fileMapper.updateMainByDocId(files.getDocId());
+        }
+        List<Files> dupFiles = documentMapper.isDuplicateFileName(files.getDocId(), dupBaseName, fileName);
+
+        List<Files> realDupFiles = new ArrayList<>();
+        // int size = dupFiles.size();
+        int size = 0;
+        for (Files files1 : dupFiles) {
+            if (files1.getRecordFlag()) {
+                String name = files1.getFileName();
+                if (name.length() == fileName.length())
+                    size = 1;
+                else
+                    size = Character.getNumericValue(name.charAt(name.lastIndexOf("(") + 1)) + 1;
+                break;
+            }
+            // --size;
+        }
+        String realName;
+        if (size > 0) {
+            files.setFileName(baseName + "(" + size + ")" + suffix);
+        }
+
+        fileMapper.uploadFiles(files);
+    }
+
+    @Autowired
+    private ConversionManager cm;
+    @Value("${CONVERT_DOCUMENT_FORMAT}")
+    private String docFormats;
+
+    @Async("myTaskAsyncPool")
+    public void ConvertFileToSwf(String filePath) {
+        ConvertFileToSwf1(filePath);
+    }
+
+    public boolean ConvertFileToSwf1(String filePath) {
+        boolean status = false;
+        Conversion conv = null;
+        try {
+            conv = cm.getConversion();
+            String[] docs = docFormats.split(",");
+            String ext = filePath.substring(filePath.lastIndexOf(".") + 1, filePath.length());
+            for (int i = 0; i < docs.length; i++) {
+                if (docs[i].equalsIgnoreCase(ext)) {
+                    File targetFile = new File(filePath);
+                    String pdfPath = filePath.substring(0, filePath.lastIndexOf(".")) + ".pdf";
+                    if (ext.equalsIgnoreCase("pdf"))
+                        pdfPath = filePath.substring(0, filePath.lastIndexOf(".")) + "." + ext;
+                    File pdfFile = new File(pdfPath);
+                    if (!pdfFile.exists()) {
+                        ConversionUtil.File_2PDF(targetFile, conv, false);
+                    }
+                    System.out.println("filePath---------" + filePath);
+                    status = ConversionUtil.File_2SWF(pdfFile, conv, false);
+                    break;
+                }
+            }
+
+
+        } catch (java.lang.Exception e) {
+        } finally {
+            if (conv != null) {
+                conv.close();
+            }
+        }
+
+        return status;
+    }
+
+    @Override
+    public void batchModify(List<Long> ids, Documents documents) {
+        documents.setArrangeFlag(true);
+        DocumentsExample documentsExample = new DocumentsExample();
+        documentsExample.createCriteria().andIdIn(ids);
+        documentMapper.updateByExampleSelective(documents, documentsExample);
+    }
+
+    @Override
+    public PageInfo searchFileList(BatchDocuments batchDocuments) {
+        int pageNum = batchDocuments.getPageNum();
+        int pageSize = batchDocuments.getPageSize();
+        String sortName = batchDocuments.getSortName();
+        String sortOrder = batchDocuments.getSortOrder();
+        int type = batchDocuments.getType();
+        Documents documents = batchDocuments.getDocuments();
+        String title = documents.getTitle();
+        Long deptId = documents.getDeptId();
+        String startYear = documents.getStartYear();
+        String endYear = documents.getEndYear();
+        String archiveType = documents.getArchiveType();
+        String reserveDuration = documents.getReserveDuration();
+        DocumentsExample documentsExample = new DocumentsExample();
+        if (sortName != null) {
+            sortName = "beforeNum".equals(sortName) ? "before_num" : "documentCreatime".equals(sortName) ? "document_creatime" : "archiveDate".equals(sortName) ? "archive_date" : null;
+            documentsExample.setOrderByClause(sortName + " " + sortOrder);
+        } else
+            documentsExample.setOrderByClause("document_creatime DESC ");
+        DocumentsExample.Criteria criteria = documentsExample.createCriteria();
+        if (type == 1) criteria.andArrangeFlagEqualTo(false).andDataSourceNotEqualTo("OA");
+        else if (type == 2) criteria.andArrangeFlagEqualTo(false).andDataSourceEqualTo("OA");
+        else if (type == 3) {
+            criteria.andArrangeFlagEqualTo(true);
+            if (!"ALL".equals(archiveType)) criteria.andArchiveTypeEqualTo(archiveType);
+            if (!"ALL".equals(reserveDuration)) criteria.andReserveDurationEqualTo(reserveDuration);
+        } else if (type == 4) {
+            criteria.andArrangeFlagEqualTo(false);
+        }
+        if (!StringUtils.isEmpty(title))
+            criteria.andTitleLike("%" + title + "%");
+        if (!StringUtils.isEmpty(startYear)) {
+            if (type != 3) criteria.andDocumentCreatimeGreaterThanOrEqualTo(startYear);
+            else criteria.andArchiveDateGreaterThanOrEqualTo(startYear);
+        }
+        if (!StringUtils.isEmpty(endYear)) {
+            if (type != 3) criteria.andDocumentCreatimeLessThanOrEqualTo(endYear);
+            else criteria.andArchiveDateLessThanOrEqualTo(endYear);
+        }
+        criteria.andRecordFlagEqualTo(true).andDeptIdEqualTo(deptId);
+        PageHelper.startPage(pageNum, pageSize);
+        List<Documents> list = documentMapper.selectByExample(documentsExample);
+        PageInfo pageInfo = new PageInfo(list);
+
+        return pageInfo;
+    }
+
+    @Override
+    public void saveDocumentDetailInfo1(Documents documents) {
+        AcousticImage acousticImage = documents.getAcousticImage();
+        if (acousticImage != null) {
+            acousticImage.setId(new Integer(documents.getId().intValue()));
+            acousticImageMapper.updateByPrimaryKey(acousticImage);
+        }
+        int documentsMapper = documentMapper.updateByPrimaryKeySelective1(documents);
+    }
+
+    @Override
+    public List<Documents> getDocumentsByIds(List<Long> ids) {
+        DocumentsExample documentsExample = new DocumentsExample();
+        documentsExample.createCriteria().andIdIn(ids).andRecordFlagEqualTo(true);
+        List<Documents> list = documentMapper.selectByExample(documentsExample);
+
+        return list;
+    }
+
+
+    @Override
+    public List<Documents> selectComplete(Long deptId, String imprortant) {
+//    PageHelper.startPage(offset, limit);
+//    List<Document> list = documentMapper.selectFileList(deptId);
+////用PageInfo对结果进行包装
+//    PageInfo page = new PageInfo(list);
+
+        return documentMapper.selectComplete(deptId, imprortant);
+        // return null;
+    }
+
+    @Override
+    public PageInfo selectFromRecord(Long recordId, String archiveType, PageSortSearch pageSortSearch) {
+        int pageNum = pageSortSearch.getPageNum();
+        int pageSize = pageSortSearch.getPageSize();
+        String sortName = pageSortSearch.getSortName();
+        String sortOrder = pageSortSearch.getSortOrder();
+
+        String order = null;
+        if (sortName == null) order = "archive_date desc";
+        else {
+            if ("insideNum".equals(sortName)) order = "inside_num " + sortOrder;
+            else if ("archiveDate".equals(sortName)) order = "archive_date " + sortOrder;
+        }
+
+        PageHelper.startPage(pageNum, pageSize);
+        List<Documents> list;
+        if (!"SX".equals(archiveType)) list = documentMapper.selectFromRecord(recordId, order);
+        else list = documentMapper.acousticFromRecord(recordId, order);
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
+
+    @Override
+    public PageInfo searchDocumentList(Documents document, int offset, int limit) {
+        PageHelper.startPage(offset, limit);
+        List<Documents> list = documentMapper.searchDocumentList(document);
+        //用PageInfo对结果进行包装
+        PageInfo page = new PageInfo(list);
+        return page;
+    }
+
+    @Override
+    public PageInfo searchGlobalDocumentList(Documents document, int offset, int limit) {
+        PageHelper.startPage(offset, limit);
+        List<Documents> list = documentMapper.searchGlobalDocumentList(document);
+        PageInfo page = new PageInfo(list);
+        return page;
+    }
+
+    @Override
+    public void destroyReelNumByType(Long flowId, String reelNum, String reelType) {
+        if ("document".equals(reelType))
+            documentMapper.destroyReelNumByType("documents", "file_code", reelNum);
+        if ("record".equals(reelType))
+            documentMapper.destroyReelNumByType("records", "reel_num", reelNum);
+        if ("archive".equals(reelType))
+            documentMapper.destroyReelNumByType("archives", "reel_num", reelNum);
+        if ("box".equals(reelType))
+            documentMapper.destroyReelNumByType("box", "reel_num", reelNum);
+
+        Flows flows = new Flows();
+        flows.setId(flowId);
+        flows.setResult("DELETED");
+        flows.setDeadLine(new Date());
+        flowsMapper.updateByPrimaryKeySelective(flows);
+    }
+
+    @Override
+    public Long getIdByReelNumAndType(String reelNum, String reelType) {
+        Long id;
+        switch (reelType) {
+            case "document":
+                id = documentMapper.getIdByReelNumAndType("documents", "document_local_id", "file_code", reelNum);
+                break;
+            case "record":
+                id = documentMapper.getIdByReelNumAndType("records", "id", "reel_num", reelNum);
+                break;
+            case "archive":
+                id = documentMapper.getIdByReelNumAndType("archives", "id", "reel_num", reelNum);
+                break;
+            case "box":
+                id = documentMapper.getIdByReelNumAndType("box", "id", "reel_num", reelNum);
+                break;
+            default:
+                id = null;
+        }
+
+        return id;
+    }
+
+    @Override
+    public boolean deleteFile(Long fileId, String location, Long docId) {
+        Documents document = documentMapper.selectByPrimaryKey(docId);
+        if (document.getArrangeFlag()) {
+            return false;
+        }
+        int a = documentMapper.deleteFile(fileId);
+    /*File file = new File(location);
+    if (file.exists() && file.isFile()) {
+      return file.delete() ? true : false;
+    } else
+      return false;*/
+        return a == 1 ? true : false;
+    }
+
+    @Override
+    public boolean validReelNumByReelType(String reelNum, String reelType) {
+        return false;
+    }
+
+}
+
+

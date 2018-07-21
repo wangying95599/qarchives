@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.DeptMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Dept">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="prt_id" jdbcType="BIGINT" property="prtId" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, name, prt_id, description
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from dept
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from dept
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.Dept">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('permission_id_seq')
+    </selectKey>
+    insert into dept (id, name, prt_id, 
+      description)
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{prtId,jdbcType=BIGINT}, 
+      #{description,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Dept">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('dept_id_seq')
+    </selectKey>
+    insert into dept
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="name != null">
+        name,
+      </if>
+      <if test="prtId != null">
+        prt_id,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id,jdbcType=BIGINT},
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="prtId != null">
+        #{prtId,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.Dept">
+    update dept
+    <set>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="prtId != null">
+        prt_id = #{prtId,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.Dept">
+    update dept
+    set name = #{name,jdbcType=VARCHAR},
+      prt_id = #{prtId,jdbcType=BIGINT},
+      description = #{description,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <resultMap id="deptUsersAndRole" type="HashMap">
+    <result column="id" property="id" />
+    <result column="login_Name" property="loginName"/>
+    <result column="name" property="name"/>
+    <result column="state" property="state"/>
+    <result column="role_name" property="roleName"/>
+  </resultMap>
+  <select id="selectUsersByDeptID" resultMap="deptUsersAndRole">
+    select e.id ,e.login_name,e.name,e.state,e.role_name from
+      (select d.id ,d.login_name,d.name ,d.state,c.dept_id,d.updated_dt,c.role_id,c.name role_name from users d left join
+        (select a.usr_id,a.role_id,a.dept_id,b.name from
+        (select i.id,i.usr_id,i.dept_id,j.role_id from link_dept_users i left join link_users_dept_role j on
+             i.usr_id = j.usr_id and i.dept_id = j.dept_id ) a LEFT JOIN role b on a.role_id = b.id)c
+          on d.id = c.usr_id)e where e.dept_id = #{deptId} order by updated_dt DESC ;
+  </select>
+
+  <select id="selectDeptList" resultType="dept">
+    select * from dept where prt_id = #{prtId}  order by id
+  </select>
+
+  <select id ="selectDeptListForNull" resultType="dept">
+    select id,name ,prt_id from dept where prt_id is null and name not in ('ALL') order by id
+  </select>
+
+  <insert id="insertUserToDept" >
+    insert INTO  link_dept_users(usr_id, dept_id) VALUES (#{userId},#{deptId})
+  </insert>
+
+  <select id="getDeptsByUserAdmin" resultType="dept">
+    select id,name,prt_id from dept where id in (
+      select c.dept_id from
+        (select a.dept_id,a.usr_id ,b.name from link_users_dept_role a LEFT  JOIN role b on a.role_id = b.id)c
+      where c.usr_id = #{usrId} and c.name in ('档案管理员','部门档案管理员'))
+  </select>
+
+  <select id="getDeptByNameAndPrtId" parameterType="dept" resultType="dept">
+    select id,name,prt_id from dept where name = #{name} and prt_id is null
+  </select>
+
+  <select id="getDeptIdForSite" resultType="java.lang.Long">
+    select id from Dept where name ='ALL'
+  </select>
+  
+  <update id="updateDeptsForUser" >
+    UPDATE link_dept_users set dept_id = #{deptId} where usr_id=#{usrId}
+  </update>
+</mapper>

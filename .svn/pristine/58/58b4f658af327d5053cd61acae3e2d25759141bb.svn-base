@@ -1,0 +1,94 @@
+body{
+    font-size: 12px;!important;
+}
+#nav{
+    background-color: #333333;!important;
+    border: transparent;
+}
+.people{
+    margin-right: 2em;
+}
+/*�˵���*/
+.caidan,.caidan2{
+    padding-bottom: 1em;
+    border-bottom: 1px solid #cccccc;
+}
+/*��ҳ��*/
+.alldocs{
+    height: 39px;
+    line-height: 39px;
+    vertical-align: middle;
+    padding-left: 2em;
+}
+.alldocs>.dropdown-toggle{
+    display: inline-block;
+}
+/*�����ĵ������˵�*/
+#allfilelist,#allfilelist1{
+    top: 14%;
+}
+.liucheng li>a{
+    text-decoration: none;
+    color: #000000;
+    margin-left: 2em;
+}
+/*�������*/
+/*.shuxing_pos{*/
+    /*position: relative;*/
+/*}*/
+/*.shuxing{*/
+    /*width: 30%;*/
+    /*position: absolute;*/
+    /*top:120px;*/
+    /*right:0px;*/
+    /*z-index: 20;*/
+/*}*/
+/*.shuxing>.panel-heading{*/
+    /*width: 100%;*/
+/*}*/
+/*�ļ�����ģ̬�� ��*/
+#file .input-group,#file .row,#anjuan .input-group,#anjuan .row{
+    margin-top: 0.5em;
+}
+#jieYue .input-group{
+    margin-top: 0.5em;
+}
+#file .modal-body,#anjuan .modal-body{
+    padding-bottom: 0px;
+}
+
+/*�ַ���*/
+.panel a{
+    text-decoration: none;
+    color: #000000;
+}
+.panel li{
+    list-style: none;
+    margin-top: 1em;
+    border-bottom: 1px solid #cccccc;
+}
+.panel-body ul{
+    padding: 0;
+}
+/*��ҳ*/
+#fenYe{
+    position: absolute;
+    bottom: 0px;
+    right:100px;
+    z-index: 1;
+}
+
+
+.newFile_top{
+    margin-top: 1.5em;
+}
+.breadcrumb:hover{
+    cursor:pointer;
+}
+
+
+
+
+
+
+

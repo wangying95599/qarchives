@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.FlowFormDestoryMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.FlowFormDestory">
+      <result column="flow_id" jdbcType="BIGINT" property="flowId"/>
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="reel_num" jdbcType="VARCHAR" property="reelNum" />
+    <result column="reel_type" jdbcType="VARCHAR" property="reelType" />
+    <result column="reel_size" jdbcType="INTEGER" property="reelSize" />
+    <result column="destory_user" jdbcType="VARCHAR" property="destoryUser" />
+    <result column="supervise_user" jdbcType="VARCHAR" property="superviseUser" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="record_flag" jdbcType="BIT" property="recordFlag" />
+  </resultMap>
+  <resultMap id="WithFlowResultMap" extends="BaseResultMap"
+    type="org.quetzaco.archives.model.FlowFormDestory">
+      <association property="flows" javaType="org.quetzaco.archives.model.Flows">
+      <id column="id" jdbcType="BIGINT" property="id"/>
+      <result column="type" jdbcType="VARCHAR" property="type"/>
+      <result column="status" jdbcType="VARCHAR" property="status"/>
+      <result column="result" jdbcType="VARCHAR" property="result"/>
+      <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt"/>
+      <result column="dead_line" jdbcType="TIMESTAMP" property="deadLine"/>
+      <result column="end_dt" jdbcType="TIMESTAMP" property="endDt"/>
+      <result column="created_by" jdbcType="BIGINT" property="createdBy"/>
+      <result column="record_flag" jdbcType="BIT" property="recordFlag"/>
+    </association>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    flow_id, title, reel_num, reel_type, reel_size, destory_user, supervise_user, description,
+    record_flag
+  </sql>
+  <sql id="With_Flow_Column_List">
+
+    ffd.flow_id, ffd.title, ffd.reel_num, ffd.reel_type, ffd.description,ffd.destory_user,
+    ffd.record_flag, f.id, f.type, f.status, f.result, f.created_dt, f.dead_line, f.end_dt,f.created_by
+  </sql>
+  <select id="selectByExample" parameterType="org.quetzaco.archives.model.FlowFormDestoryExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from flow_form_destory
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.FlowFormDestoryExample">
+    delete from flow_form_destory
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.FlowFormDestory">
+    insert into flow_form_destory (flow_id, title, reel_num, 
+      reel_type, reel_size, destory_user, 
+      supervise_user, description, record_flag
+      )
+    values (#{flowId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{reelNum,jdbcType=VARCHAR}, 
+      #{reelType,jdbcType=VARCHAR}, #{reelSize,jdbcType=INTEGER}, #{destoryUser,jdbcType=VARCHAR},
+      #{superviseUser,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{recordFlag,jdbcType=BIT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.FlowFormDestory">
+    insert into flow_form_destory
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="flowId != null">
+        flow_id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="reelNum != null">
+        reel_num,
+      </if>
+      <if test="reelType != null">
+        reel_type,
+      </if>
+      <if test="reelSize != null">
+        reel_size,
+      </if>
+      <if test="destoryUser != null">
+        destory_user,
+      </if>
+      <if test="superviseUser != null">
+        supervise_user,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="recordFlag != null">
+        record_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="flowId != null">
+        #{flowId,jdbcType=BIGINT},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="reelNum != null">
+        #{reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="reelType != null">
+        #{reelType,jdbcType=VARCHAR},
+      </if>
+      <if test="reelSize != null">
+        #{reelSize,jdbcType=INTEGER},
+      </if>
+      <if test="destoryUser != null">
+        #{destoryUser,jdbcType=BIGINT},
+      </if>
+      <if test="superviseUser != null">
+        #{superviseUser,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="recordFlag != null">
+        #{recordFlag,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.FlowFormDestoryExample" resultType="java.lang.Long">
+    select count(*) from flow_form_destory
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update flow_form_destory
+    <set>
+      <if test="record.flowId != null">
+        flow_id = #{record.flowId,jdbcType=BIGINT},
+      </if>
+      <if test="record.title != null">
+        title = #{record.title,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reelNum != null">
+        reel_num = #{record.reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reelType != null">
+        reel_type = #{record.reelType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reelSize != null">
+        reel_size = #{record.reelSize,jdbcType=INTEGER},
+      </if>
+      <if test="record.destoryUser != null">
+        destory_user = #{record.destoryUser,jdbcType=BIGINT},
+      </if>
+      <if test="record.superviseUser != null">
+        supervise_user = #{record.superviseUser,jdbcType=BIGINT},
+      </if>
+      <if test="record.description != null">
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recordFlag != null">
+        record_flag = #{record.recordFlag,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update flow_form_destory
+    set flow_id = #{record.flowId,jdbcType=BIGINT},
+      title = #{record.title,jdbcType=VARCHAR},
+      reel_num = #{record.reelNum,jdbcType=VARCHAR},
+      reel_type = #{record.reelType,jdbcType=VARCHAR},
+      reel_size = #{record.reelSize,jdbcType=INTEGER},
+      destory_user = #{record.destoryUser,jdbcType=BIGINT},
+      supervise_user = #{record.superviseUser,jdbcType=BIGINT},
+      description = #{record.description,jdbcType=VARCHAR},
+      record_flag = #{record.recordFlag,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+
+  <select id="selectStartByMeList" parameterType="org.quetzaco.archives.model.User" resultMap="getStartByme">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_destory ffd INNER JOIN flows f on ffd.flow_id = f.id and f.record_flag = TRUE and ffd.record_flag
+    = TRUE
+    and f.created_by = #{contextUser.id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectProcessByMe" resultMap="WithFlowResultMap">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_destory ffd INNER JOIN flows f on ffd.flow_id = f.id and f.record_flag = TRUE
+    and ffd.record_flag  = TRUE
+    <choose>
+      <when test="!isProcessed">
+        and exists(select 1 from flow_nodes a WHERE assignee_id = #{usrId,jdbcType=BIGINT} and a.flow_id=f.id )
+        order by f.created_dt DESC
+      </when>
+      <otherwise>
+        and exists(select 1 from flow_node_histories a WHERE assignee_id = #{usrId,jdbcType=BIGINT} and a.flow_id =f.id)
+        order by f.created_dt DESC
+      </otherwise>
+    </choose>
+
+
+  </select>
+
+    <select id="getDeletedFlow" resultMap="getDeleteMap">
+    SELECT a.id,a.dead_line,b.name,c.reel_num,c.reel_type,c.destory_user,d.file_name as title from flows a join users b on a.created_by = b.id and a.result='DELETED'
+     join flow_form_destory c on a.id=c.flow_id and c.reel_type='document' join documents d on c.reel_num=d.file_code and d.dept_id= #{deptId}
+    UNION
+    SELECT a.id,a.dead_line,b.name,c.reel_num,c.reel_type,c.destory_user,d.title as title from flows a join users b on a.created_by = b.id and a.result='DELETED'
+     join flow_form_destory c on a.id=c.flow_id and c.reel_type='record' join records d on c.reel_num=d.reel_num and d.dept_id= #{deptId}
+    UNION
+    SELECT a.id,a.dead_line,b.name,c.reel_num,c.reel_type,c.destory_user,d.title as title from flows a join users b on a.created_by = b.id and a.result='DELETED'
+     join flow_form_destory c on a.id=c.flow_id and c.reel_type='archive' join archives d on c.reel_num = d.reel_num and d.dept_id= #{deptId}
+    UNION
+    SELECT a.id,a.dead_line,b.name,c.reel_num,c.reel_type,c.destory_user,d.title as title from flows a join users b on a.created_by = b.id and a.result='DELETED'
+     join flow_form_destory c on a.id=c.flow_id and c.reel_type='box' join box d on c.reel_num=d.reel_num and d.dept_id= #{deptId}
+  </select>
+
+    <resultMap id="getDeleteMap" type="java.util.HashMap">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="reel_num" property="reelNum"/>
+        <result column="reel_type" property="reelType"/>
+        <result column="destory_user" property="destroyUser"/>
+        <result column="title" property="title"/>
+        <result column="dead_line" property="deadLine"/>
+
+    </resultMap>
+
+    <resultMap id="getStartByme" type="HashMap">
+        <result column="id" property="flowId"/>
+    <result column="title" property="title"/>
+    <result column="reel_num" property="reelNum"/>
+    <result column="created_dt" property="createdDt"/>
+    <result column="dead_line" property="deadLine"/>
+    <!--<result column="lending_Permission" property="lendingPermission"/>-->
+    <result column="reel_type" property="reelType"/>
+  </resultMap>
+</mapper>

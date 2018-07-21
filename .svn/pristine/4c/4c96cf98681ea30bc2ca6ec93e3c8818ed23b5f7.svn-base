@@ -1,0 +1,78 @@
+package org.quetzaco.archives.web;
+
+import org.quetzaco.archives.application.biz.RoleService;
+import org.quetzaco.archives.model.Role;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+public class PageControler {
+
+  final static Logger logger = LoggerFactory.getLogger(PageControler.class);
+  @Autowired
+  RoleService roleService;
+
+  @RequestMapping("/")
+  public String home() {
+    return "login.html";
+  }
+  @RequestMapping("/index")
+  public String index() {
+    return "login.html";
+  }
+
+  //loginAdmin.html
+  @RequestMapping("/main")
+  public String main() {
+    logger.debug(" goto main ");
+    return "usermain.html";
+  }
+
+  @RequestMapping("/admin")
+  public String admin() {
+    return "adminmain.html";
+  }
+
+  @RequestMapping("/search")
+  public String search() {
+    return "searchsite.html";
+  }
+
+  @RequestMapping("/history")
+  public String history() {
+    return "historydata.html";
+  }
+
+  @RequestMapping("/view")
+  public String view() {
+    return "quetviewer.html";
+  }
+
+  @RequestMapping("/flowLending/endSwitch")
+  public String end(@RequestParam("action")String action,@RequestParam("usrId")Long usrId,@RequestParam("deptId")Long deptId){
+    //判断是否为管理员
+    Role role = roleService.getRoleByDepAndUser(deptId, usrId);
+    if(role!=null){
+      if(role.getId()==1L||role.getId()==3L)
+        return "forward:/flowLending/end/"+action;
+    }
+    return "forward:/flowLending/process";
+  }
+
+  @RequestMapping("/flowDestroy/endSwitch")
+  public String endDes(@RequestParam("action") String action, @RequestParam("usrId") Long usrId, @RequestParam("deptId") Long deptId) {
+    //判断是否为管理员
+    Role role = roleService.getRoleByDepAndUser(deptId, usrId);
+    if (role != null) {
+      if (role.getId() == 1L || role.getId() == 3L)
+        return "forward:/flowDestroy/end/" + action;
+    }
+    return "forward:/flowDestroy/process";
+  }
+
+
+}

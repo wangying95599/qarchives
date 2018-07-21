@@ -1,0 +1,9 @@
+package org.quetzaco.archives.application.biz;
+
+import java.util.Map;
+
+public interface FileService {
+    Map getFilesById(Long fileId);
+
+    Map getFilesByFileId(String fileId);
+}

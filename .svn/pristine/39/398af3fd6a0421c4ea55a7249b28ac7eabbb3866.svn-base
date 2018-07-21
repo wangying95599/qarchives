@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.OaCodesheetMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.OaCodesheet">
+    <id column="operatorid" jdbcType="NUMERIC" property="operatorid" />
+    <result column="userid" jdbcType="VARCHAR" property="userid" />
+    <result column="operatorname" jdbcType="VARCHAR" property="operatorname" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="flag" jdbcType="CHAR" property="flag" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    operatorid, userid, operatorname, password, flag
+  </sql>
+  <select id="selectByExample" parameterType="org.quetzaco.archives.model.OaCodesheetExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from oa_codesheet
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from oa_codesheet
+    where operatorid = #{operatorid,jdbcType=NUMERIC}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from oa_codesheet
+    where operatorid = #{operatorid,jdbcType=NUMERIC}
+  </delete>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.OaCodesheetExample">
+    delete from oa_codesheet
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.OaCodesheet">
+    insert into oa_codesheet (operatorid, userid, operatorname, 
+      password, flag)
+    values (#{operatorid,jdbcType=NUMERIC}, #{userid,jdbcType=VARCHAR}, #{operatorname,jdbcType=VARCHAR}, 
+      #{password,jdbcType=VARCHAR}, #{flag,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.OaCodesheet">
+    insert into oa_codesheet
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="operatorid != null">
+        operatorid,
+      </if>
+      <if test="userid != null">
+        userid,
+      </if>
+      <if test="operatorname != null">
+        operatorname,
+      </if>
+      <if test="password != null">
+        password,
+      </if>
+      <if test="flag != null">
+        flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="operatorid != null">
+        #{operatorid,jdbcType=NUMERIC},
+      </if>
+      <if test="userid != null">
+        #{userid,jdbcType=VARCHAR},
+      </if>
+      <if test="operatorname != null">
+        #{operatorname,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="flag != null">
+        #{flag,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.OaCodesheetExample" resultType="java.lang.Long">
+    select count(*) from oa_codesheet
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update oa_codesheet
+    <set>
+      <if test="record.operatorid != null">
+        operatorid = #{record.operatorid,jdbcType=NUMERIC},
+      </if>
+      <if test="record.userid != null">
+        userid = #{record.userid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.operatorname != null">
+        operatorname = #{record.operatorname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.password != null">
+        password = #{record.password,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flag != null">
+        flag = #{record.flag,jdbcType=CHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update oa_codesheet
+    set operatorid = #{record.operatorid,jdbcType=NUMERIC},
+      userid = #{record.userid,jdbcType=VARCHAR},
+      operatorname = #{record.operatorname,jdbcType=VARCHAR},
+      password = #{record.password,jdbcType=VARCHAR},
+      flag = #{record.flag,jdbcType=CHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.OaCodesheet">
+    update oa_codesheet
+    <set>
+      <if test="userid != null">
+        userid = #{userid,jdbcType=VARCHAR},
+      </if>
+      <if test="operatorname != null">
+        operatorname = #{operatorname,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="flag != null">
+        flag = #{flag,jdbcType=CHAR},
+      </if>
+    </set>
+    where operatorid = #{operatorid,jdbcType=NUMERIC}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.OaCodesheet">
+    update oa_codesheet
+    set userid = #{userid,jdbcType=VARCHAR},
+      operatorname = #{operatorname,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      flag = #{flag,jdbcType=CHAR}
+    where operatorid = #{operatorid,jdbcType=NUMERIC}
+  </update>
+
+</mapper>

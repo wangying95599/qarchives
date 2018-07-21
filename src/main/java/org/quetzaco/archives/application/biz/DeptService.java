@@ -1,0 +1,32 @@
+package org.quetzaco.archives.application.biz;
+
+import org.quetzaco.archives.model.Dept;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by deya on 2017/7/11.
+ */
+public interface DeptService {
+	List<Map> getDeptUsers(Long deptId);
+
+   	List<Dept> getDeptList(Long prtId);
+
+  void addUserToDept(Long userId, Long deptId);
+
+  	List<Dept> getDeptsByUser(Long usrId);
+
+	void createDept(Dept dept);
+
+  void updateDept(Dept dept);
+
+  Dept getDeptByNameAndPrtId(Dept dept);
+
+    void updateDeptsForUser(Long oldDeptId,Long deptId,Long usrId);
+
+ // PageInfo getDeptUsers(Long deptId, int offset, int limit);
+    Dept getDeptById(Long deptId);
+
+    Dept getDeptByDes(String description);
+}

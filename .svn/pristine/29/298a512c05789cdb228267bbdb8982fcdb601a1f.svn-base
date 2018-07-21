@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.FlowFormLendingMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.FlowFormLending">
+    <result column="flow_id" jdbcType="BIGINT" property="flowId"/>
+    <result column="title" jdbcType="VARCHAR" property="title"/>
+    <result column="reel_num" jdbcType="VARCHAR" property="reelNum"/>
+    <result column="reel_type" jdbcType="VARCHAR" property="reelType"/>
+    <result column="dep_id" jdbcType="BIGINT" property="depId"/>
+    <result column="lending_user" jdbcType="VARCHAR" property="lendingUser"/>
+    <result column="lending_permission" jdbcType="VARCHAR" property="lendingPermission"/>
+    <result column="description" jdbcType="VARCHAR" property="description"/>
+    <result column="record_flag" jdbcType="BIT" property="recordFlag"/>
+  </resultMap>
+
+  <resultMap id="WithFlowResultMap" extends="BaseResultMap"
+    type="org.quetzaco.archives.model.FlowFormLending">
+    <association property="flows" javaType="org.quetzaco.archives.model.Flows">
+      <id column="id" jdbcType="BIGINT" property="id"/>
+      <result column="type" jdbcType="VARCHAR" property="type"/>
+      <result column="status" jdbcType="VARCHAR" property="status"/>
+      <result column="result" jdbcType="VARCHAR" property="result"/>
+      <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt"/>
+      <result column="dead_line" jdbcType="TIMESTAMP" property="deadLine"/>
+      <result column="end_dt" jdbcType="TIMESTAMP" property="endDt"/>
+      <result column="created_by" jdbcType="BIGINT" property="createdBy"/>
+      <result column="record_flag" jdbcType="BIT" property="recordFlag"/>
+    </association>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="("
+                    separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="("
+                    separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    flow_id, title, reel_num, reel_type, dep_id, lending_user, lending_permission, description,
+    record_flag
+  </sql>
+
+  <sql id="With_Flow_Column_List">
+
+    ffl.flow_id, ffl.title, ffl.reel_num, ffl.reel_type, ffl.dep_id, ffl.lending_user, ffl.lending_permission, ffl.description,
+    ffl.record_flag, f.id, f.type, f.status, f.result, f.created_dt, f.dead_line, f.end_dt
+  </sql>
+  <select id="selectByExample" parameterType="org.quetzaco.archives.model.FlowFormLendingExample"
+    resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from flow_form_lending
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.FlowFormLendingExample">
+    delete from flow_form_lending
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.FlowFormLending">
+    INSERT INTO flow_form_lending (flow_id, title, reel_num,
+                                   reel_type, dep_id, lending_user,
+                                   lending_permission, description, record_flag
+    )
+    VALUES (#{flowId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{reelNum,jdbcType=VARCHAR},
+            #{reelType,jdbcType=VARCHAR}, #{depId,jdbcType=BIGINT}, #{lendingUser,jdbcType=VARCHAR},
+            #{lendingPermission,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR},
+            #{recordFlag,jdbcType=BIT}
+    )
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.FlowFormLending">
+    insert into flow_form_lending
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="flowId != null">
+        flow_id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="reelNum != null">
+        reel_num,
+      </if>
+      <if test="reelType != null">
+        reel_type,
+      </if>
+      <if test="depId != null">
+        dep_id,
+      </if>
+      <if test="lendingUser != null">
+        lending_user,
+      </if>
+      <if test="lendingPermission != null">
+        lending_permission,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="recordFlag != null">
+        record_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="flowId != null">
+        #{flowId,jdbcType=BIGINT},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="reelNum != null">
+        #{reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="reelType != null">
+        #{reelType,jdbcType=VARCHAR},
+      </if>
+      <if test="depId != null">
+        #{depId,jdbcType=BIGINT},
+      </if>
+      <if test="lendingUser != null">
+        #{lendingUser,jdbcType=VARCHAR},
+      </if>
+      <if test="lendingPermission != null">
+        #{lendingPermission,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="recordFlag != null">
+        #{recordFlag,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.FlowFormLendingExample"
+    resultType="java.lang.Long">
+    select count(*) from flow_form_lending
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update flow_form_lending
+    <set>
+      <if test="record.flowId != null">
+        flow_id = #{record.flowId,jdbcType=BIGINT},
+      </if>
+      <if test="record.title != null">
+        title = #{record.title,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reelNum != null">
+        reel_num = #{record.reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reelType != null">
+        reel_type = #{record.reelType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.depId != null">
+        dep_id = #{record.depId,jdbcType=BIGINT},
+      </if>
+      <if test="record.lendingUser != null">
+        lending_user = #{record.lendingUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lendingPermission != null">
+        lending_permission = #{record.lendingPermission,jdbcType=VARCHAR},
+      </if>
+      <if test="record.description != null">
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recordFlag != null">
+        record_flag = #{record.recordFlag,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause"/>
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update flow_form_lending
+    set flow_id = #{record.flowId,jdbcType=BIGINT},
+    title = #{record.title,jdbcType=VARCHAR},
+    reel_num = #{record.reelNum,jdbcType=VARCHAR},
+    reel_type = #{record.reelType,jdbcType=VARCHAR},
+    dep_id = #{record.depId,jdbcType=BIGINT},
+    lending_user = #{record.lendingUser,jdbcType=VARCHAR},
+    lending_permission = #{record.lendingPermission,jdbcType=VARCHAR},
+    description = #{record.description,jdbcType=VARCHAR},
+    record_flag = #{record.recordFlag,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause"/>
+    </if>
+  </update>
+  <select id="selectStartByMeList" parameterType="org.quetzaco.archives.model.User"
+    resultMap="getStartByme">
+    select
+    <!--<include refid="With_Flow_Column_List"/>-->
+    f.id,ffl.title,ffl.reel_num,ffl.lending_permission,f.created_dt,f.dead_line,ffl.reel_type,f.result
+    FROM flow_form_lending ffl INNER JOIN flows f on ffl.flow_id = f.id and f.record_flag = TRUE and
+    ffl.record_flag
+    = TRUE
+    and f.created_by = #{contextUser.id,jdbcType=BIGINT}
+    <if test='title !=""'>
+      and ffl.title LIKE '%'||#{title}||'%'
+    </if>
+    <if test='reelNum != ""'>
+      and ffl.reel_num LIKE '%'||#{reelNum}||'%'
+    </if>
+    <if  test="start!=null and end!=null">
+      and f.created_dt BETWEEN #{start} AND  #{end}
+    </if>
+    <if test="start!=null and end == null">
+      and f.created_dt &gt;= #{start}
+    </if>
+    <if test="start==null and end!=null">
+      and f.created_dt &lt;= #{end}
+    </if>
+    order by f.created_dt DESC
+  </select>
+
+  <!--<select id="selectProcessByMe" parameterType="org.quetzaco.archives.model.User"
+    resultMap="WithFlowResultMap">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_lending ffl INNER JOIN flows f on ffl.flow_id = f.id and f.record_flag = TRUE
+    and ffl.record_flag = TRUE
+    and (exists(select 1 from flow_nodes WHERE assignee_id = #{contextUser.id,jdbcType=BIGINT})
+    or exists(select 1 from flow_node_histories WHERE assignee_id =
+    #{contextUser.id,jdbcType=BIGINT} ) ) order by f.created_dt DESC
+  </select>-->
+
+  <!--parameterType="org.quetzaco.archives.model.User"-->
+  <select id="selectProcessByMe"
+          resultMap="WithFlowResultMap">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_lending ffl INNER JOIN flows f on ffl.flow_id = f.id and f.record_flag = TRUE
+    and ffl.record_flag = TRUE
+    <foreach collection="searchMap" index="key" item="info" >
+       and ${key} like '%'||#{info}||'%'
+    </foreach>
+    <choose>
+      <when test="!isProcessed">
+        and exists(select 1 from flow_nodes a WHERE assignee_id = #{usrId,jdbcType=BIGINT}
+        <if test="start!=null and end!=null">
+            AND a.created_dt BETWEEN #{start} AND #{end}
+        </if>
+        <if test="start !=null and end ==null">
+           AND  a.created_dt &gt;= #{start}
+        </if>
+        <if test="start ==null and end!=null">
+          AND  a.created_dt &lt;=   #{end}
+        </if>
+        AND a.flow_id = f.id)
+        ORDER BY f.created_dt DESC
+      </when>
+      <otherwise>
+        AND exists(select 1 from flow_node_histories a WHERE assignee_id =
+        #{usrId,jdbcType=BIGINT}
+        <if test="start!=null and end!=null">
+          AND a.created_dt BETWEEN #{start} AND #{end}
+        </if>
+        <if test="start !=null and end ==null">
+          AND  a.created_dt &gt;= #{start}
+        </if>
+        <if test="start ==null and end!=null">
+          AND  a.created_dt &lt;=   #{end}
+        </if>
+        AND a.flow_id = f.id) order by f.created_dt DESC
+      </otherwise>
+    </choose>
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="flowFormLending">
+    select * from flow_form_lending where flow_id = #{flowId}
+  </select>
+  <!--未审批processByme-->
+
+
+
+  <resultMap id="getStartByme" type="HashMap">
+    <result column="id" property="flowId"/>
+    <result column="title" property="title"/>
+    <result column="reel_num" property="reelNum"/>
+    <result column="created_dt" property="createdDt"/>
+    <result column="dead_line" property="deadLine"/>
+    <result column="lending_Permission" property="lendingPermission"/>
+    <result column="reel_type" property="reelType"/>
+    <result column="result" property="result"/>
+  </resultMap>
+</mapper>

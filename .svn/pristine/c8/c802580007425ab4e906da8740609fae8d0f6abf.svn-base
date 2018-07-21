@@ -1,0 +1,103 @@
+package org.quetzaco.archives.util.boot;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.quetzaco.archives.util.config.TaskThreadPoolConfig;
+import org.quetzaco.converter.client.ConversionManager;
+import org.quetzaco.converter.client.ConversionServer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+
+import java.io.File;
+
+@Configuration
+@EnableAsync
+@EnableAutoConfiguration(exclude = {MultipartAutoConfiguration.class})
+@ComponentScan(basePackages = "org.quetzaco.archives")
+@EnableConfigurationProperties({TaskThreadPoolConfig.class})
+public class QarchivesApplication extends SpringBootServletInitializer{
+	public static void main(String[] args) {
+		SpringApplication.run(QarchivesApplication.class, args);
+	}
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(QarchivesApplication.class);
+	}
+
+	@Bean(name = "multipartResolver")
+	public MultipartResolver multipartResolver(){
+		CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+		resolver.setDefaultEncoding("UTF-8");
+		resolver.setResolveLazily(true);//resolveLazily属性启用是为了推迟文件解析，以在在UploadAction中捕获文件大小异常
+		resolver.setMaxInMemorySize(40960);
+		resolver.setMaxUploadSize(50*1024*1024);//上传文件大小 50M 50*1024*1024
+		return resolver;
+	}
+
+    @Value("${SERVER_CONVIG}")
+    private String serverConfig;
+    @Value("${RETURN_PATH}")
+    private String returnpath;
+
+    @Bean(name = "conversionManager")
+    public ConversionManager getConversionManager() {
+        ConversionManager confMgr = null;
+        File tmpFolder = new File(returnpath);
+        if (!tmpFolder.exists() || !tmpFolder.isDirectory()) {
+            if (!tmpFolder.mkdirs()) {
+                return null;
+            }
+        }
+
+        String[] arrayOfString = serverConfig.split(",");
+        ConversionServer[] arrayOfConversionServer = new ConversionServer[arrayOfString.length];
+
+        for (int i = 0; i < arrayOfConversionServer.length; i++) {
+            ConversionServer localConversionServer = new ConversionServer();
+            localConversionServer.setRetuenPath(returnpath);
+            localConversionServer.setMaxCon(Integer.parseInt(arrayOfString[i].substring(arrayOfString[i].indexOf("+") + 1)));
+            localConversionServer.setHost(arrayOfString[i].substring(0, arrayOfString[i].indexOf(":")));
+            localConversionServer.setPort(Integer.parseInt(arrayOfString[i].substring(arrayOfString[i].indexOf(":") + 1, arrayOfString[i].indexOf("+"))));
+            arrayOfConversionServer[i] = localConversionServer;
+        }
+
+        confMgr = new ConversionManager(arrayOfConversionServer);
+
+        return confMgr;
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<Object>(Object.class);
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+        RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+        template.setConnectionFactory(redisConnectionFactory);
+        template.setKeySerializer(jackson2JsonRedisSerializer);
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.setHashKeySerializer(jackson2JsonRedisSerializer);
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+        template.afterPropertiesSet();
+        return template;
+    }
+
+
+}

@@ -1,0 +1,60 @@
+package org.quetzaco.archives.web.restful;
+
+import java.util.List;
+
+import org.quetzaco.archives.application.biz.wcontrollerUpperKeyService;
+import org.quetzaco.archives.model.wcontrollerUpperKey;
+import org.quetzaco.archives.model.User;
+import org.quetzaco.archives.model.api.APIEntity;
+import org.quetzaco.archives.web.config.session.WebSecurityConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.SessionAttribute;
+
+@RestController
+public class wcontrollerUpperKeyController extends BaseRestContoller {
+	@Autowired
+	wcontrollerUpperKeyService wcontrollerKeyService;
+
+	@RequestMapping(value = "wcontrollerKey/create", method = RequestMethod.POST)
+	public HttpEntity<APIEntity> create(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user,
+			@RequestBody wcontrollerUpperKey wcontrollerKey) {
+		wcontrollerKeyService.createwcontrollerUpperKey(wcontrollerKey);
+		return buildEntity(APIEntity.create(null), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "wcontrollerKey/all", method = RequestMethod.GET)
+	public HttpEntity<APIEntity> getAll(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user) {
+		List<wcontrollerUpperKey> all = wcontrollerKeyService.getAllwcontrollerUpperKey();
+		return buildEntity(APIEntity.create(all), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "wcontrollerKey/{id}", method = RequestMethod.GET)
+	public HttpEntity<APIEntity> getwcontrollerUpperKeyById(
+			@PathVariable String id) {
+		wcontrollerUpperKey wcontrollerKey = wcontrollerKeyService.getwcontrollerUpperKey(id);
+		return buildEntity(APIEntity.create(wcontrollerKey), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "wcontrollerKey", method = RequestMethod.PUT)
+	public HttpEntity<APIEntity> updatewcontrollerUpperKey(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user,
+			@RequestBody wcontrollerUpperKey wcontrollerKey) {
+		wcontrollerUpperKey updatedwcontrollerUpperKey = wcontrollerKeyService.updatewcontrollerUpperKey(wcontrollerKey);
+		return buildEntity(APIEntity.create(updatedwcontrollerUpperKey), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "wcontrollerKey/delete", method = RequestMethod.DELETE)
+	public HttpEntity<APIEntity> deletewcontrollerUpperKeys(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user,
+			@RequestBody List<String> ids) {
+		for (String id : ids) {
+			wcontrollerKeyService.deletewcontrollerUpperKey(id);
+		}
+		return buildEntity(APIEntity.create(null), HttpStatus.OK);
+	}
+}

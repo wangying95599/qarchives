@@ -1,0 +1,112 @@
+package org.quetzaco.archives.web.restful;
+
+import com.github.pagehelper.PageInfo;
+import org.apache.ibatis.annotations.Param;
+import org.quetzaco.archives.application.biz.BoxService;
+import org.quetzaco.archives.application.message.AccessKey;
+import org.quetzaco.archives.application.message.OptionLogger;
+import org.quetzaco.archives.model.Archive;
+import org.quetzaco.archives.model.Box;
+import org.quetzaco.archives.model.api.APIEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/17.
+ */
+@RestController
+public class BoxController extends BaseRestContoller{
+    @Autowired
+    BoxService boxService;
+
+    @OptionLogger(objectType = "部门",type = OptionLogger.OpType.DETAIL,description = "获取全宗")
+    @RequestMapping(value = "/boxs/page/{deptId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>> getBoxList(@AccessKey@PathVariable Long deptId,
+                                                            @Param("offset") int offset,
+                                                            @Param("limit") int limit){
+        return buildEntity(APIEntity.create(boxService.selectBoxs(deptId,offset,limit)));
+    }
+
+    @OptionLogger(objectType = "全宗",type = OptionLogger.OpType.ADD,description = "新增全宗")
+    @RequestMapping(value = "/boxs/{deptId}",method = RequestMethod.POST)
+    public HttpEntity<APIEntity<Box>>createRecord(@PathVariable("deptId") Long deptId, @Param("title")String title, @Param("importance")String importance,
+                                                     @Param("reelNum")String reelNum, @Param("recordsLocation")String recordsLocation,
+                                                     @Param("fileNum")Long fileNum, @Param("responsible")String responsible,
+                                                     @Param("remark")String remark,@Param("deptName")String deptName){
+        Box box = new Box();
+        box.setTitle(title);
+        box.setImportance(importance);
+        box.setReelNum(reelNum);
+        box.setRecordsLocation(recordsLocation);
+        box.setFileNum(fileNum);
+        box.setResponsible(responsible);
+        box.setDeptId(deptId);
+        box.setRemark(remark);
+        box.setDeptName(deptName);
+        Timestamp d = new Timestamp(System.currentTimeMillis());
+        box.setCreateTime(d.toString());
+        boxService.createBox(box);
+        return buildEntity(APIEntity.create(box));
+    }
+
+    @OptionLogger(objectType = "全宗",type = OptionLogger.OpType.DETAIL,description = "获取全宗信息")
+    @RequestMapping(value = "/boxs/detail/{boxId}",method = RequestMethod.GET )
+    public HttpEntity<APIEntity<Box>>getBoxDetail(@AccessKey@PathVariable Long boxId){
+        return buildEntity(APIEntity.create(boxService.selectBoxDetial(boxId)));
+    }
+
+//    @RequestMapping(value = "/boxs/archives/{boxId}",method = RequestMethod.GET)
+//    public HttpEntity<APIEntity<List<Archive>>>getDocumentFromRecord(@PathVariable Long boxId){
+//        return buildEntity(APIEntity.create(boxService.selectArchiveFromBox(boxId)));
+//    }
+
+    @OptionLogger(objectType = "全宗", type = OptionLogger.OpType.UPDATE, description = "修改全宗")
+    @RequestMapping(value = "/box/{id}", method = RequestMethod.PUT)
+    public HttpEntity<APIEntity> modifyRecord(@AccessKey @PathVariable("id") Long id, @RequestBody Box box) {
+        box.setId(id);
+        boxService.modifyRecord(box);
+        return buildEntity(APIEntity.create("#fond"), HttpStatus.ACCEPTED);
+    }
+
+    @OptionLogger(objectType = "全宗",type = OptionLogger.OpType.UPDATE,description = "添加档案")
+    @RequestMapping(value = "boxs/archives/{boxId}",method = RequestMethod.POST)
+    public HttpEntity<APIEntity> insertArchiveToBox(@AccessKey @PathVariable("boxId") Long boxId, @RequestBody List<Archive> archives) {
+
+        return buildEntity(APIEntity.create(boxService.insertArchiveToBox(boxId, archives)), HttpStatus.ACCEPTED);
+    }
+
+    @OptionLogger(objectType = "全宗", type = OptionLogger.OpType.DEL, description = "回退档案")
+    @RequestMapping(value = "boxs/{boxId}/remove/{archiveId}", method = RequestMethod.GET)
+    public HttpEntity<APIEntity<Archive>> removeArchiveFromBox(@AccessKey @PathVariable("boxId") Long boxId, @PathVariable("archiveId") Long archiveId) {
+        boxService.removeArchiveFromBox(boxId, archiveId);
+        return buildEntity(APIEntity.create(null));
+    }
+
+    @RequestMapping(value = "boxs/search/{deptId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>>searchBoxList(@PathVariable("deptId")Long deptId,@Param("title")String title,
+                                                        @Param("reelNum")String reelNum,@Param("offset") int offset,@Param("limit")int limit){
+        Box box = new Box();
+        box.setTitle(title);
+        box.setReelNum(reelNum);
+        box.setDeptId(deptId);
+        return buildEntity(APIEntity.create(boxService.searchBoxList(box,offset,limit)));
+    }
+
+    @RequestMapping(value = "boxs/searchGlobal", method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>> searchGlobalBoxList(
+            @Param("title") String title,
+            @Param("fileCode") String fileCode,
+            @RequestParam(value = "pageNum", required = false, defaultValue = "1") int offset,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10000") int limit) {
+        Box box = new Box();
+        box.setTitle(title);
+        box.setReelNum(fileCode);
+
+        return buildEntity(APIEntity.create(boxService.searchGlobalBoxList(box, offset, limit)));
+    }
+}

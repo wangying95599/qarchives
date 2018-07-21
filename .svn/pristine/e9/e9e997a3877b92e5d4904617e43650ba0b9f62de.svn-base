@@ -1,0 +1,35 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import org.quetzaco.archives.application.biz.FlowNodesService;
+import org.quetzaco.archives.application.dao.FlowNodeHistoriesMapper;
+import org.quetzaco.archives.application.dao.FlowNodesMapper;
+import org.quetzaco.archives.model.FlowNodes;
+import org.quetzaco.archives.model.FlowNodesExample;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.xml.ws.ServiceMode;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class FlowNodesServiceImpl implements FlowNodesService {
+
+    @Autowired
+    FlowNodesMapper flowNodesMapper;
+    @Autowired
+    FlowNodeHistoriesMapper flowNodeHistoriesMapper;
+
+    @Override
+    public List<FlowNodes> getNodesByFlowAndUser(Long flowId, Long usrId) {
+        FlowNodesExample flowNodesExample = new FlowNodesExample();
+        FlowNodesExample.Criteria criteria = flowNodesExample.or();
+        criteria.andFlowIdEqualTo(flowId).andAssigneeIdEqualTo(usrId);
+        return  flowNodesMapper.selectByExample(flowNodesExample);
+    }
+
+    @Override
+    public List<Map> getFlowStatus(Long flowId) {
+        return flowNodeHistoriesMapper.getFlowStatus(flowId);
+    }
+}

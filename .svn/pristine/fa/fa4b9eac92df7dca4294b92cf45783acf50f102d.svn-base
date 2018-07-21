@@ -1,0 +1,65 @@
+package org.quetzaco.archives.application.dao;
+
+import org.apache.ibatis.annotations.Param;
+import org.quetzaco.archives.model.Documents;
+import org.quetzaco.archives.model.Record;
+import org.quetzaco.archives.model.RecordExample;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface RecordMapper {
+    long countByExample(RecordExample example);
+
+    int deleteByExample(RecordExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(Record record);
+
+    int insertSelective(Record record);
+
+    List<Record> selectByExample(RecordExample example);
+
+    Record selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") Record record, @Param("example") RecordExample example);
+
+    int updateByExample(@Param("record") Record record, @Param("example") RecordExample example);
+
+    int updateByPrimaryKeySelective(Record record);
+
+    int updateByPrimaryKey(Record record);
+
+    List<Record> selectRecords(Long deptId);
+
+    void createRecord(Record record);
+
+    Record selectRecordDetial(Long recordId);
+
+    List<Documents> selectDocumentFromRecord(Long recordId);
+
+    void insertDocumentToRecord(@Param("recordId") Long recordId, @Param("docId") Long docId);
+
+    //从档案里过去案卷
+    List<Record> selectRecordFromArchive(Long archiveId);
+
+    //更新
+    void recordArchiveToArchive(Long recordId);
+
+    List<Record> searchRecordList(Record record);
+
+    //全局搜索
+    List<Record> searchGlobalRecordList(Record record);
+
+    List<Record> selectArchiveRecords(@Param("deptId") Long deptId, @Param("important") String important);
+
+    Record selectByFileCode(@Param("reelNum") String reelNum, @Param("recordFlag") boolean b);
+
+    int removeDocumentFromRecord(@Param("recordId") Long recordId, @Param("docId") Long docId);
+
+    void archiveToRecord(Long recordId);
+
+    Documents isDuplicateTitle(@Param("recordId") Long recordId, @Param("title") String title);
+}

@@ -1,0 +1,107 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.quetzaco.archives.application.biz.BoxService;
+import org.quetzaco.archives.application.dao.ArchiveMapper;
+import org.quetzaco.archives.application.dao.BoxMapper;
+import org.quetzaco.archives.model.Archive;
+import org.quetzaco.archives.model.Box;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/15.
+ */
+@Service
+public class BoxServiceImpl implements BoxService {
+    @Autowired
+    BoxMapper boxMapper;
+
+    @Autowired
+    ArchiveMapper archiveMapper;
+
+
+    @Override
+    public void createBox(Box box) {
+
+        boxMapper.createBox(box);
+    }
+
+    @Override
+    public Box selectBoxDetial(Long boxId) {
+        return boxMapper.selectBoxDetial(boxId);
+    }
+
+    @Override
+    public List<Archive> selectArchiveFromBox(Long boxId) {
+        return boxMapper.selectArchiveFromBox(boxId);
+    }
+
+    @Override
+    public PageInfo selectBoxs(Long deptId,int offset, int limit) {
+        PageHelper.startPage(offset, limit);
+        List<Box> list = boxMapper.selectBoxs(deptId);
+        //用PageInfo对结果进行包装
+        PageInfo page = new PageInfo(list);
+
+        return page;
+    }
+
+    @Override
+    public List<String> insertArchiveToBox(Long boxId, List<Archive> archives) {
+        List<String> dupTitles = new ArrayList<String>();
+
+        for (int i = 0; i < archives.size(); i++) {
+            Archive archive = archives.get(i);
+            Archive dupArchive = boxMapper.isDuplicateTitle(boxId, archive.getTitle());
+            if (dupArchive == null) {
+                Long archiveId = archive.getId();
+                //recordMapper.insertDocumentToRecord(recordId,docId);
+                boxMapper.insertArchiveToBox(boxId, archiveId);
+                archiveMapper.archiveToArchive(archiveId);
+            } else {
+                dupTitles.add(archive.getTitle());
+            }
+        }
+        return dupTitles;
+    }
+
+    @Override
+    public PageInfo searchBoxList(Box box, int offset, int limit) {
+        PageHelper.startPage(offset,limit);
+
+        List<Box> list = boxMapper.searchBoxList(box);
+        PageInfo page = new PageInfo(list);
+
+        return page;
+    }
+
+    @Override
+    public PageInfo searchGlobalBoxList(Box box, int offset, int limit) {
+        PageHelper.startPage(offset, limit);
+        List<Box> list = boxMapper.searchGlobalBoxList(box);
+        PageInfo page = new PageInfo(list);
+
+        return page;
+    }
+
+    @Override
+    public Box selectByFileCode(String reelNum) {
+        return boxMapper.selectByFileCode(reelNum,true);
+    }
+
+    @Override
+    public void removeArchiveFromBox(Long boxId, Long archiveId) {
+        boxMapper.removeArchiveFromBox(boxId, archiveId);
+        archiveMapper.boxToArchive(archiveId);
+    }
+
+    @Override
+    public int modifyRecord(Box box) {
+        return boxMapper.updateByPrimaryKeySelective(box);
+    }
+}

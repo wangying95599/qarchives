@@ -1,0 +1,7 @@
+formkey:folder,Folder,文件夹,文件夹信息
+form:新建项目,project
+formbutton:提交,createProject()
+input:采购编号,project_code_input,purchaseCode
+area:短信信息,messages_text_area,smsInfo
+date:评标时间,bidding_time_input,biddingTime
+select:采购方式,project_code_input,purchaseType

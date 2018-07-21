@@ -1,0 +1,103 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.ListUtils;
+import org.quetzaco.archives.application.biz.DeptService;
+import org.quetzaco.archives.application.dao.DeptMapper;
+import org.quetzaco.archives.application.dao.RoleMapper;
+import org.quetzaco.archives.model.Dept;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by deya on 2017/7/11.
+ */
+@Service
+public class DeptServiceImpl implements DeptService {
+
+  @Autowired
+  DeptMapper deptMapper;
+
+  @Autowired
+  RoleMapper roleMapper;
+
+  @Override
+  public List<Map> getDeptUsers(Long deptId) {
+      List<Map> list =deptMapper.selectUsersByDeptID(deptId);
+      for (Map map : list) {
+          if ("0".equals(map.get("state"))) {
+              map.put("state", "激活");
+          } else {
+              map.put("state","关闭");
+          }
+          if(map.get("roleName")==null){
+              map.put("roleName","普通用户");
+          }
+      }
+      return list;
+  }
+
+  @Override
+  public List<Dept> getDeptList(Long prtId) {
+	if (prtId != null) {
+	  return deptMapper.selectDeptList(prtId);
+	} else {
+	  return deptMapper.selectDeptListForNull();
+	}
+  }
+
+  @Override
+  public void addUserToDept(Long userId, Long deptId) {
+
+    deptMapper.insertUserToDept(userId, deptId);
+  }
+
+  @Override
+  public List<Dept> getDeptsByUser(Long usrId) {
+    List<Dept> depts = deptMapper.getDeptsByUserAdmin(usrId);
+    if(ListUtils.emptyIfNull(depts).size()>0 && !"ALL".equals(depts.get(0).getName()))
+      return depts;
+
+    if(ListUtils.emptyIfNull(depts).size()>0 && "ALL".equals(depts.get(0).getName()))
+      return deptMapper.selectDeptListForNull();
+    else
+        return deptMapper.selectDeptListByUser(usrId);
+  }
+
+  @Override
+  public void createDept(Dept dept) {
+	deptMapper.insertSelective(dept);
+  }
+
+  @Override
+  public void updateDept(Dept dept) {
+	deptMapper.updateByPrimaryKeySelective(dept);
+  }
+
+  @Override
+  public Dept getDeptByNameAndPrtId(Dept dept) {
+	return deptMapper.getDeptByNameAndPrtId(dept);
+  }
+
+    @Override
+    public void updateDeptsForUser(Long oldDeptId,Long deptId, Long usrId) {
+        deptMapper.updateDeptsForUser(deptId,usrId);
+        roleMapper.deleteRoleByDeptAndUser(oldDeptId,usrId);
+    }
+
+    @Override
+    public Dept getDeptById(Long deptId) {
+        return deptMapper.selectByPrimaryKey(deptId);
+    }
+
+  /*@Override
+  public PageInfo getDeptUsers(Long deptId, int offset, int limit) {
+    PageHelper.startPage(offset, limit);
+    return new PageInfo(getDeptUsers(deptId));
+  }*/
+
+
+}

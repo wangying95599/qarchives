@@ -1,0 +1,105 @@
+package org.quetzaco.archives.model;
+
+import java.util.Date;
+
+public class AcousticImage {
+    private Integer id;
+
+    private String place;
+
+    private String figure;
+
+    private String photographer;
+
+    private Date photographyTime;
+
+    private Integer number;
+
+    private String leader;
+
+    private Date createdDt;
+
+    private Date updatedDt;
+    
+    private String photographyTimeStr;
+
+    public String getPhotographyTimeStr() {
+		return photographyTimeStr;
+	}
+
+	public void setPhotographyTimeStr(String photographyTimeStr) {
+		this.photographyTimeStr = photographyTimeStr;
+	}
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getPlace() {
+        return place;
+    }
+
+    public void setPlace(String place) {
+        this.place = place == null ? null : place.trim();
+    }
+
+    public String getFigure() {
+        return figure;
+    }
+
+    public void setFigure(String figure) {
+        this.figure = figure == null ? null : figure.trim();
+    }
+
+    public String getPhotographer() {
+        return photographer;
+    }
+
+    public void setPhotographer(String photographer) {
+        this.photographer = photographer == null ? null : photographer.trim();
+    }
+
+    public Date getPhotographyTime() {
+        return photographyTime;
+    }
+
+    public void setPhotographyTime(Date photographyTime) {
+        this.photographyTime = photographyTime;
+    }
+
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
+    }
+
+    public String getLeader() {
+        return leader;
+    }
+
+    public void setLeader(String leader) {
+        this.leader = leader == null ? null : leader.trim();
+    }
+
+    public Date getCreatedDt() {
+        return createdDt;
+    }
+
+    public void setCreatedDt(Date createdDt) {
+        this.createdDt = createdDt;
+    }
+
+    public Date getUpdatedDt() {
+        return updatedDt;
+    }
+
+    public void setUpdatedDt(Date updatedDt) {
+        this.updatedDt = updatedDt;
+    }
+}

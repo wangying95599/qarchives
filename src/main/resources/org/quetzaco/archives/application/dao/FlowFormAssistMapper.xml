@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.FlowFormAssistMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.FlowFormAssist">
+    <result column="flow_id" jdbcType="BIGINT" property="flowId" />
+    <result column="apply_days" jdbcType="VARCHAR" property="applyDays" />
+    <result column="apply_user" jdbcType="VARCHAR" property="applyUser" />
+    <result column="assit_user" jdbcType="BIGINT" property="assitUser" />
+    <result column="apply_id" jdbcType="VARCHAR" property="applyId" />
+    <result column="office" jdbcType="VARCHAR" property="office" />
+    <result column="dept" jdbcType="VARCHAR" property="dept" />
+    <result column="assist_type" jdbcType="VARCHAR" property="assistType" />
+    <result column="assist_content" jdbcType="VARCHAR" property="assistContent" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="record_flag" jdbcType="VARCHAR" property="recordFlag" />
+    <result column="iphone" jdbcType="VARCHAR" property="iphone" />
+  </resultMap>
+ 
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    flow_id, apply_days, apply_user, assit_user, apply_id, office, dept, assist_type, iphone,
+    assist_content, description, record_flag
+  </sql>
+  
+  <sql id="With_Flow_Column_List">
+
+    ffd.flow_id,ffd.iphone, ffd.apply_days, ffd.apply_user, ffd.assit_user, ffd.apply_id,ffd.office,ffd.dept,ffd.assist_type,ffd.assist_content,ffd.description,
+    ffd.record_flag, f.id, f.type, f.status, f.result, f.created_dt, f.dead_line, f.end_dt,f.created_by
+  </sql>
+  
+  <select id="selectByExample" parameterType="org.quetzaco.archives.model.FlowFormAssistExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from flow_form_assist
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.FlowFormAssistExample">
+    delete from flow_form_assist
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.FlowFormAssist">
+    insert into flow_form_assist (flow_id, apply_days, apply_user, 
+      assit_user, apply_id, office, 
+      dept, assist_type, assist_content, 
+      description, record_flag,iphone)
+    values (#{flowId,jdbcType=BIGINT}, #{applyDays,jdbcType=VARCHAR}, #{applyUser,jdbcType=VARCHAR}, 
+      #{assitUser,jdbcType=BIGINT}, #{applyId,jdbcType=VARCHAR}, #{office,jdbcType=VARCHAR}, 
+      #{dept,jdbcType=VARCHAR}, #{assistType,jdbcType=VARCHAR}, #{assistContent,jdbcType=VARCHAR}, 
+      #{description,jdbcType=VARCHAR}, #{recordFlag,jdbcType=VARCHAR}, #{iphone,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.FlowFormAssist">
+    insert into flow_form_assist
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="flowId != null">
+        flow_id,
+      </if>
+      <if test="applyDays != null">
+        apply_days,
+      </if>
+      <if test="applyUser != null">
+        apply_user,
+      </if>
+      <if test="assitUser != null">
+        assit_user,
+      </if>
+      <if test="applyId != null">
+        apply_id,
+      </if>
+      <if test="office != null">
+        office,
+      </if>
+      <if test="dept != null">
+        dept,
+      </if>
+      <if test="assistType != null">
+        assist_type,
+      </if>
+      <if test="assistContent != null">
+        assist_content,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="recordFlag != null">
+        record_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="flowId != null">
+        #{flowId,jdbcType=BIGINT},
+      </if>
+      <if test="applyDays != null">
+        #{applyDays,jdbcType=VARCHAR},
+      </if>
+      <if test="applyUser != null">
+        #{applyUser,jdbcType=VARCHAR},
+      </if>
+      <if test="assitUser != null">
+        #{assitUser,jdbcType=BIGINT},
+      </if>
+      <if test="applyId != null">
+        #{applyId,jdbcType=VARCHAR},
+      </if>
+      <if test="office != null">
+        #{office,jdbcType=VARCHAR},
+      </if>
+      <if test="dept != null">
+        #{dept,jdbcType=VARCHAR},
+      </if>
+      <if test="assistType != null">
+        #{assistType,jdbcType=VARCHAR},
+      </if>
+      <if test="assistContent != null">
+        #{assistContent,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="recordFlag != null">
+        #{recordFlag,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.FlowFormAssistExample" resultType="java.lang.Long">
+    select count(*) from flow_form_assist
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update flow_form_assist
+    <set>
+      <if test="record.flowId != null">
+        flow_id = #{record.flowId,jdbcType=BIGINT},
+      </if>
+      <if test="record.applyDays != null">
+        apply_days = #{record.applyDays,jdbcType=VARCHAR},
+      </if>
+      <if test="record.applyUser != null">
+        apply_user = #{record.applyUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.assitUser != null">
+        assit_user = #{record.assitUser,jdbcType=BIGINT},
+      </if>
+      <if test="record.applyId != null">
+        apply_id = #{record.applyId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.office != null">
+        office = #{record.office,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dept != null">
+        dept = #{record.dept,jdbcType=VARCHAR},
+      </if>
+      <if test="record.assistType != null">
+        assist_type = #{record.assistType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.assistContent != null">
+        assist_content = #{record.assistContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.description != null">
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recordFlag != null">
+        record_flag = #{record.recordFlag,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update flow_form_assist
+    set flow_id = #{record.flowId,jdbcType=BIGINT},
+      apply_days = #{record.applyDays,jdbcType=VARCHAR},
+      apply_user = #{record.applyUser,jdbcType=VARCHAR},
+      assit_user = #{record.assitUser,jdbcType=BIGINT},
+      apply_id = #{record.applyId,jdbcType=VARCHAR},
+      office = #{record.office,jdbcType=VARCHAR},
+      dept = #{record.dept,jdbcType=VARCHAR},
+      assist_type = #{record.assistType,jdbcType=VARCHAR},
+      assist_content = #{record.assistContent,jdbcType=VARCHAR},
+      description = #{record.description,jdbcType=VARCHAR},
+      record_flag = #{record.recordFlag,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+    <resultMap id="getStartByme" type="HashMap">
+    <result column="id" property="flowId"/>
+    <result column="apply_days" property="applyDays"/>
+    <result column="assist_content" property="assistContent"/>
+    <result column="created_dt" property="createdDt"/>
+    <result column="dead_line" property="deadLine"/>
+    <result column="end_dt" property="endDt"/>
+      <result column="assit_user" property="assitUser"/>
+      <result column="apply_user" property="applyUser"/>
+    <!--<result column="lending_Permission" property="lendingPermission"/>-->
+    <result column="assist_type" property="assistType"/>
+    <result column="created_by" property="createdBy"/>
+  </resultMap>
+  
+  <resultMap id="WithFlowsResultMap" type="org.quetzaco.archives.model.FlowFormAssist" extends="BaseResultMap">
+  <!-- 
+    <association property="flows" resultMap="org.quetzaco.archives.application.dao.FlowsMapper.BaseResultMap"/>
+    <association property="deliverDept" column="deliver_dept_id" select="org.quetzaco.archives.application.dao.DeptMapper.selectByPrimaryKey"/>
+   -->
+  </resultMap>
+  
+  <select id="selectStartByMeList" parameterType="org.quetzaco.archives.model.User" resultMap="getStartByme">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_assist ffd INNER JOIN flows f on ffd.flow_id = f.id  and f.record_flag
+    = TRUE
+    and f.created_by = #{contextUser.id,jdbcType=BIGINT} order by f.created_dt desc
+  </select>
+  
+  <select id="getTurnOverToMe" parameterType="Map" resultMap="getStartByme">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_assist ffd INNER JOIN flows f on ffd.flow_id = f.id and f.record_flag = TRUE
+    and ffd.record_flag = '00'
+    <choose>
+      <when test="type!=null and type =='00'">
+        and(exists(select 1 from flow_nodes a WHERE assignee_id = #{usrId,jdbcType=BIGINT} AND a.flow_id = f.id)
+        or exists(select 1 from flow_node_histories a WHERE assignee_id =
+        #{usrId,jdbcType=BIGINT} AND a.flow_id = f.id))
+        ORDER BY f.created_dt DESC
+      </when>
+      <when test="type!=null and type =='01'">
+        and exists(select 1 from flow_nodes a WHERE assignee_id = #{usrId,jdbcType=BIGINT} AND a.flow_id = f.id)
+        ORDER BY f.created_dt DESC
+      </when>
+      <otherwise>
+        AND exists(select 1 from flow_node_histories a WHERE (assignee_id =
+        #{usrId,jdbcType=BIGINT} or assignee_by=#{usrId,jdbcType=BIGINT})AND a.flow_id = f.id) order by f.created_dt DESC
+      </otherwise>
+    </choose>
+  </select>
+  
+  <select id="getInfo" resultMap="WithFlowsResultMap">
+    select
+    <include refid="With_Flow_Column_List"/>
+    FROM flow_form_assist ffd INNER JOIN flows f on f.id=#{flowId} and ffd.flow_id = f.id and f.record_flag = TRUE
+    and ffd.record_flag = '00'
+  </select>
+  
+  <insert id="saveDocument" parameterType="map">
+    insert into link_assist_doc (flow_id, record_id, document_local_id, 
+      record_flag,updated_dt,doc_id,lend_flag)
+    values (#{flowId,jdbcType=BIGINT}, #{record_id,jdbcType=BIGINT}, #{document_local_id,jdbcType=VARCHAR}, 
+      '01', #{updated_dt,jdbcType=VARCHAR}, #{doc_id,jdbcType=BIGINT}, '01')
+  </insert>
+
+  <update id="deleteDocument" parameterType="map">
+    update link_assist_doc
+    set record_flag = '00',updated_dt=#{updated_dt,jdbcType=VARCHAR}
+    where flow_id=#{flowId,jdbcType=BIGINT} 
+     <if test="record_id != null">
+        and record_id = #{record_id,jdbcType=VARCHAR}
+      </if>
+       <if test="document_local_id != null">
+        and document_local_id = #{document_local_id,jdbcType=VARCHAR}
+      </if>
+      <if test="doc_id != null">
+        and doc_id = #{doc_id,jdbcType=VARCHAR}
+      </if>
+  </update>
+  <update id="updateLendTypeWhenLending" parameterType="map">
+    UPDATE link_assist_doc set lend_flag = '02' WHERE flow_id=#{flowId} AND
+    <foreach collection="relationMap" index="key" item="ent" separator="or" open="(" close=")">
+      ${key} in <foreach collection="ent"  index="index" item="id" open="(" separator="," close=")"> #{id}</foreach>
+    </foreach>
+  </update>
+ 
+</mapper>

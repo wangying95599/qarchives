@@ -1,0 +1,68 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import java.util.List;
+
+import org.quetzaco.archives.application.biz.wserviceUpperKeyService;
+import org.quetzaco.archives.application.dao.wserviceUpperKeyMapper;
+import org.quetzaco.archives.model.wserviceUpperKey;
+import org.quetzaco.archives.model.wserviceUpperKeyExample;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service("wserviceKeyService")
+public class wserviceUpperKeyServiceImpl implements wserviceUpperKeyService {
+
+	final static Logger logger = LoggerFactory.getLogger(wserviceUpperKeyServiceImpl.class);
+	@Autowired
+	wserviceUpperKeyMapper wserviceKeyMapper;
+
+	@Override
+	public wserviceUpperKey createwserviceUpperKey(wserviceUpperKey wserviceKey) {
+		wserviceKeyMapper.setCreatedDt(new Date());
+		wserviceKeyMapper.setUpdatedDt(new Date());
+		wserviceKeyMapper.insertSelective(wserviceKey);
+		return wserviceKey;
+	}
+
+	@Override
+	public void deletewserviceUpperKey(String id) {
+		wserviceUpperKeyExample wserviceKeyExample = new wserviceUpperKeyExample();
+        wserviceKeyExample.createCriteria().andIdEqualTo(id);
+        wserviceKeyMapper.deleteByExample(wserviceKeyExample);
+	}
+
+	@Override
+	public wserviceUpperKey updatewserviceUpperKey(wserviceUpperKey wserviceKey) {
+		wserviceUpperKeyExample wserviceKeyExample = new wserviceUpperKeyExample();
+        wserviceKeyExample.createCriteria().andIdEqualTo(wserviceKey.getId());
+        
+        int flag = wserviceKeyMapper.updateByExampleSelective(wserviceKey, wserviceKeyExample);
+        logger.debug("updatewserviceUpperKey.wserviceKey  "+wserviceKey);
+        logger.debug("updatewserviceUpperKey.id  "+flag);
+        return wserviceKey;
+	}
+
+	@Override
+	public wserviceUpperKey getwserviceUpperKey(String id) {
+			wserviceUpperKeyExample e = new wserviceUpperKeyExample();
+		wserviceUpperKeyExample.Criteria c = e.createCriteria();
+		c.andIdEqualTo(id);
+		List<wserviceUpperKey> result = wserviceKeyMapper.selectByExample(e);
+		return result.get(0);
+	}
+
+	@Override
+	public List<wserviceUpperKey> getAllwserviceUpperKey() {
+		wserviceUpperKeyExample e = new wserviceUpperKeyExample();
+		e.setOrderByClause("updated_dt desc");
+		return wserviceKeyMapper.selectByExample(e);
+	}
+	
+	public static void main(String[] args) {
+		wserviceUpperKeyServiceImpl s = new wserviceUpperKeyServiceImpl();
+		s.getwserviceUpperKey("76");
+	}
+
+}

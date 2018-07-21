@@ -1,0 +1,2909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="Cache" content="no-cache">
+
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>档案系统</title>
+
+    <!-- Bootstrap -->
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-treeview.css"/>
+    <link rel="stylesheet" href="css/fileinput.css">
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
+    <link rel="stylesheet" href="css/bootstrap-table.css">
+    <link rel="stylesheet" href="css/1.css"/>
+    <link rel="stylesheet" href="css/bootstrapValidator.min.css"/>
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]-->
+    <!--[endif]-->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-treeview.js"></script>
+    <script src="js/fileinput.js"></script>
+    <script src="js/zh.js"></script>
+    <script src="js/bootstrap-datetimepicker.js"></script>
+    <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="js/bootstrap-table.js"></script>
+    <script src="js/bootstrap-table-zh-CN.js"></script>
+    <script src="js/bootstrapValidator.min.js"></script>
+
+    <script src="js/api.js"></script>
+    <script src="js/ajax.js"></script>
+
+    <style>
+        body,p{margin: 0;}
+        body,html,.parent{height: 100%;}
+
+        td {
+            /*width:100px;  !*宽度根据需要设置，也可以设置百分比*!*/
+            white-space: nowrap; /*文本显示不自动换行*/
+            overflow: hidden; /*超出部分显示*/
+        }
+        @media screen and (min-width: 1060px) {
+            .parent{
+                position: relative;
+            }
+            .middle {
+                overflow: hidden;
+                /*height:100%;*/
+                /*calc(100% - 60px);*/
+            }
+            .left{
+                height: 100%;
+                overflow: auto;
+            }
+            .right{
+                height: 100%;
+                overflow-x: scroll;
+                overflow: auto;
+            }
+
+               
+        }
+
+        .breadcrumb > li + li:before {
+            color: #4876FF;
+            content: ">> ";
+            padding: 0 5px;
+        }
+        .breadcrumb>li{
+            font-size: 15px;!important;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container-fluid parent">
+    <!-- 分页-->
+    <div id="fenYe" class="row">
+        <ul class="pagination">
+        </ul>
+    </div>
+    <!--顶部导航-->
+    <div class="row top">
+        <nav class="navbar" role="navigation" id="nav" style="background:  #27408B ;color:#ffffff">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <img src="img/backgrounds/logo.png" alt="" class="img-responsive"
+                         style="float:left;margin-top:7px;margin-right:10px;"/>
+                    <a class="navbar-brand" href="#" style="font-weight:600"> 档案管理系统</a>
+                </div>
+              <div class="collapse navbar-collapse" id="example-navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right people">
+                        <li><a href="#">欢迎 <span id="loginName"></span></a></li>
+
+                        <li class="dropdown">
+                            <a href="#" data-toggle="modal" data-target="#setpassword">
+                                修改密码
+                            </a>
+                        </li>
+
+                        <li class="dropdown">
+                            <a href="#" onclick="logOut()"> <!--<span class="glyphicon glyphicon-user">--></span>
+                                退出登录<!--<b class="caret"></b>-->
+                            </a>
+                            <!-- <ul class="dropdown-menu">
+                                 <li data-toggle="modal" data-target="#setpassword"><a href="#">更改密码</a></li>
+                                 <li id="tui"><a href="#" onclick="logOut()">退出登录</a></li>
+                             </ul>-->
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- *********************************************************************************************************************************-->
+    <!--主页面-->
+    <div class="row middle">
+        <div class="panel-group col-lg-2 col-md-2 col-sm-2 left" id="accordion">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion"
+                           href="#collapseOne">
+                            档案列表
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse in">
+                    <div class="panel-body" id="lefttree">
+
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion"
+                           href="#collapseTwo">
+                            借阅流程
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseTwo" class="panel-collapse collapse">
+                    <div class="panel-body" id="jieyueliucheng">
+                        <ul>
+                            <li href="#myLiuChengTable1" onclick="getFlowStartByme('get',queryparams)"><a href="#"><span class="glyphicon glyphicon-random"></span> &nbsp;&nbsp;由我发起</a></li>
+                            <li href="#myLiuCheng1Table1" class="sP" onclick="getFlowWillProcessByme()"><a href="#"><span class="glyphicon glyphicon-retweet"></span> &nbsp;&nbsp;经我审批</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-info sP">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion"
+                           href="#collapseThree">
+                            销毁流程
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseThree" class="panel-collapse collapse">
+                    <div class="panel-body" id="feiQi">
+                        <ul>
+                            <li href="#newFeiQi" class="deptAdmin" onclick="getFlowDestory();"><a href="#"><span
+                                    class="glyphicon glyphicon-trash"></span> &nbsp;&nbsp;由我发起</a></li>
+                            <li href="#oldFeiQiByMe" onclick="getleftDestroyTable()"><a href="#"><span
+                                    class="glyphicon glyphicon-trash"></span> &nbsp;&nbsp;经我审批</a></li>
+                            <li href="#oldFeiQi" onclick="getDeletedTable()"><a href="#"><span
+                                    class="glyphicon glyphicon-trash"></span> &nbsp;&nbsp;已销毁</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion"
+                           href="#searchAllArea">
+                            全局搜索
+                        </a>
+                    </h4>
+                </div>
+                <div id="searchAllArea" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <ul>
+                            <li href="#newFeiQi"><a href="search?type=1"><span
+                                    class="glyphicon glyphicon-file"></span> &nbsp;&nbsp;文件</a></li>
+                            <li href="#oldFeiQi"><a href="search?type=2"><span
+                                    class="glyphicon glyphicon-folder-open"></span> &nbsp;&nbsp;案卷</a></li>
+                            <li href="#newFeiQi"><a href="search?type=3"><span
+                                    class="glyphicon glyphicon-briefcase"></span> &nbsp;&nbsp;档案</a></li>
+                            <li href="#oldFeiQi"><a href="search?type=4"><span
+                                    class="glyphicon glyphicon-tasks"></span> &nbsp;&nbsp;全宗</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-success notglobal hidden">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" data-parent="#accordion"
+                     href="#oldFile">
+                    历史数据
+                  </a>
+                </h4>
+              </div>
+                <div id="oldFile" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <ul>
+                          <li href="#"><a href="history?type=5"><span
+                                    class="glyphicon glyphicon-file"></span> &nbsp;&nbsp;文书档案</a></li>
+                          <li href="#"><a href="history?type=6"><span
+                                    class="glyphicon glyphicon-edit"></span> &nbsp;&nbsp;未归档档案</a></li>
+                          <li href=""><a href="history?type=7"><span
+                                    class="glyphicon glyphicon-facetime-video"></span> &nbsp;&nbsp;声像档案</a></li>
+                          <li href=""><a href="history?type=8"><span
+                              class="glyphicon glyphicon-book"></span>
+                                &nbsp;&nbsp;实体档案</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 文档列表首页-->
+        <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12 right">
+            <ol class="breadcrumb hidden" style="color: #4876FF">
+                <li>返回>></li>
+            </ol>
+            <!--首页-->
+            <div class="home">
+                <div>
+                    <div class="row">
+                        <div id="myCarousel" class="col-lg-8 col-md-8 col-sm-8 col-xs-8 carousel slide">
+                            <ol class="carousel-indicators">
+                                <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                                <li data-target="#myCarousel" data-slide-to="1"></li>
+                                <li data-target="#myCarousel" data-slide-to="2"></li>
+                            </ol>
+                            <!-- 轮播（Carousel）项目 -->
+                            <div class="carousel-inner">
+                                <div class="item active">
+                                    <img alt="First slide" class="img-responsive ">
+                                    <div class="carousel-caption">ksdflajdklfklad</div>
+                                </div>
+                                <div class="item">
+                                    <img alt="Second slide" class="img-responsive ">
+                                    <div class="carousel-caption">标题 1</div>
+                                </div>
+                                <div class="item">
+                                    <img alt="Third slide" class="img-responsive ">
+                                    <div class="carousel-caption">标题 1</div>
+                                </div>
+                            </div>
+                            <!-- 轮播（Carousel）导航 -->
+                            <a class="carousel-control left" href="#myCarousel"
+                               data-slide="prev">&lsaquo;
+                            </a>
+                            <a class="carousel-control right" href="#myCarousel"
+                               data-slide="next">&rsaquo;
+                            </a>
+
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">
+                                        最新通知
+                                    </h3>
+                                </div>
+                                <div class="panel-body" id="home_box3">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row panel panel-danger">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                使用须知
+                            </h3>
+                        </div>
+                        <div class="panel-body" id="home_box4">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="fromLocal" class="hidden">
+                <div id="localtoolbar" class="btn-group">
+                    <button id="btn_add" type="button" class="btn btn-info" data-toggle="modal"
+                            data-target="#newFile">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>创建文件
+                    </button>
+                    <button id="btn_edit" type="button" class="btn btn-info" data-toggle="modal"
+                            data-target="#file" data-whatever="1">
+                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>归档
+                    </button>
+                    <button id="btn_edits" type="button" class="btn btn-success" data-toggle="modal"
+                            data-target="#batchFile">
+                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>批量归档
+                    </button>
+                    <button id="btn_delete" type="button" class="btn btn-danger" onclick="deleteDocument()">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除
+                    </button>
+                    <button id="btn_accessLog" type="button" class="btn btn-default" onclick="showAccessLog()">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>访问日志
+                    </button>
+                </div>
+                <div style="float: right;margin-top: 13px;">
+                    <form id="fileSearchForm">
+                        <div class="form-group input-group input-group-sm date" style="float: right;width:35%;">
+                            <input type="text" class="form-control form_datetime endYear" name="endYear"
+                                   placeholder="请输入截止年度" style="border-radius: 3px;">
+                            <span class="input-group-btn">
+                            <button class="btn btn-default btn-group-sm" type="button" onclick="docSearch()"><span
+                                    class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                        </div>
+                        <div class="form-group input-group input-group-sm" style="float: right;width:25%;">
+                            <input type="text" class="form-control form_datetime startYear" name="startYear"
+                                   placeholder="请输入起始年度" style="border-radius: 3px;">
+                        </div>
+                        <div class="form-group input-group input-group-sm " style="float: right;width:40%;">
+                            <input type="text" class="form-control " name="title" placeholder="请输入题名"
+                                   style="border-radius: 3px;">
+                        </div>
+                    </form>
+                </div>
+                <table id="fromLocalTable"></table>
+            </div>
+            <div id="arranged" class="hidden">
+                <div id="arrangedToolBar">
+                    <button type="button" class="btn btn-primary" onclick="downloads1()">批量下载
+                    </button>
+                    <form id="arrangedSearchForm">
+                        <div class="from-group input-group input-group-sm" style="float:left;width: 20%">
+                            <span class="input-group-addon">档案种类</span>
+                            <select class="form-control" name="archiveType">
+                                <option value="ALL">全部</option>
+                                <option value="WS">文书档案</option>
+                                <option value="KJ">会计档案</option>
+                                <option value="RS">人事档案</option>
+                                <option value="SW">实物档案</option>
+                                <option value="HT">合同档案</option>
+                                <option value="KW">刊物档案</option>
+                                <option value="YX">印信档案</option>
+                                <option value="FC">房产档案</option>
+                                <option value="ZJ">证件档案</option>
+                                <option value="DJ">单机档案</option>
+                            </select>
+                        </div>
+                        <div class="from-group input-group input-group-sm" style="float:left;width: 15%">
+                            <span class="input-group-addon">保管期限</span>
+                            <select class="form-control" name="reserveDuration" style="display: inline-block;">
+                                <option value="ALL">全部</option>
+                                <option>5年</option>
+                                <option>10年</option>
+                                <option>30年</option>
+                                <option>永久</option>
+                            </select>
+                        </div>
+                        <div style="float: right">
+                            <div class="form-group input-group input-group-sm date" style="float: right;width: 35%">
+                                <input type="text" class="form-control form_datetime endYear" name="endYear"
+                                       placeholder="请输入截止年度" style="border-radius: 3px;">
+                                <span class="input-group-btn" style="line-height: 24px">
+                                    <button class="btn btn-default btn-group-sm" type="button"
+                                            onclick="arrangeSearch()"><span
+                                            class="glyphicon glyphicon-search"></span></button>
+                                </span>
+                            </div>
+                            <div class="form-group input-group input-group-sm" style="float: right;width: 25%">
+                                <input type="text" class="form-control form_datetime startYear" name="startYear"
+                                       placeholder="请输入起始年度" style="border-radius: 3px;">
+                            </div>
+                            <div class="form-group input-group input-group-sm " style="float: right;width: 40%">
+                                <input type="text" class="form-control " name="title" placeholder="请输入题名"
+                                       style="border-radius: 3px;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <table id="arrangedTable"></table>
+            </div>
+            <div id="records" class="hidden">
+                <div id="recordToolbar">
+                    <!--<button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#anjuan"
+                            data-whatever="1" onclick="createAnjuan();"
+                            style="float: left;margin-top:-2px;margin-right: 5px;">创建案卷
+                    </button>-->
+                    <div class="btn-group" style="float:left">
+                        <button type="button" class="btn btn-primary"  onclick="downloads2()">批量下载
+                        </button>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#anjuan"
+                                data-whatever="1">创建
+                        </button>
+                        <button type="button" class="btn btn-primary dropdown-toggle"
+                                data-toggle="dropdown">
+                            <span class="caret"></span>
+                            <span class="sr-only">切换下拉菜单</span>
+                        </button>
+
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="#" data-toggle="modal" data-target="#anjuan" data-whatever="1">其它类型案卷</a></li>
+                            <li><a href="#" data-toggle="modal" data-target="#construction" data-whatever="1">基建类型案卷</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <form id="recordSearchForm" style="float:right;width:90%;margin-top: 3px;">
+                        <div style="float: right;width:60%;">
+                            <div class="form-group input-group input-group-sm date" style="float: right;width: 35%;">
+                                <input type="text" class="form-control form_datetime endYear" name="endYear"
+                                       placeholder="请输入截止年度" style="border-radius: 3px;">
+                                <span class="input-group-btn" style="line-height: 24px">
+                                    <button class="btn btn-default btn-group-sm" type="button"
+                                            onclick="recordSearch()"><span
+                                            class="glyphicon glyphicon-search"></span></button>
+                                </span>
+                            </div>
+                            <div class="form-group input-group input-group-sm" style="float: right;width: 25%">
+                                <input type="text" class="form-control form_datetime startYear" name="startYear"
+                                       placeholder="请输入起始年度" style="border-radius: 3px;">
+                            </div>
+                            <div class="form-group input-group input-group-sm " style="float: right;width: 40%">
+                                <input type="text" class="form-control " name="title" placeholder="请输入题名"
+                                       style="border-radius: 3px;">
+                            </div>
+                        </div>
+                        <div class="from-group input-group input-group-sm" style="float:right;width: 20%">
+                            <span class="input-group-addon">档案种类</span>
+                            <select class="form-control" name="archiveType">
+                                <option value="ALL">全部</option>
+                                <option value="JJ">基建档案</option>
+                                <option value="SX">声像档案</option>
+                                <option value="SJJC">审计监察档案</option>
+                                <option value="AJ">案件档案</option>
+                                <option value="SG">生产安全事故档案</option>
+                                <option value="XX">信息化建设档案</option>
+                                <option value="ZTB">招投标档案</option>
+                            </select>
+                        </div>
+                        <div class="from-group input-group input-group-sm" style="float:right;width: 20%">
+                            <span class="input-group-addon">保管期限</span>
+                            <select class="form-control" name="reserveDuration" style="display: inline-block;">
+                                <option value="ALL">全部</option>
+                                <option>5年</option>
+                                <option>10年</option>
+                                <option>30年</option>
+                                <option>永久</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <table id="recordTable"></table>
+            </div>
+            <div id="recordsDetail" class="hidden">
+                <p>案卷级档号：<span id="detailFileNum"></span>&nbsp;&nbsp;&nbsp; 案卷题名：<span id="detailTitle"></span></p>
+                <button type="button" class="btn btn-primary" onclick="downloads3()">批量下载
+                </button>
+                <!--<p>案卷级档号：<span id="detailFileNum"></span></p>
+                <p>案卷题名：<span id="detailTitle"></span></p>-->
+                <table id="recordsDetailTable"></table>
+            </div>
+            <!-- 文件列表-->
+            <table class="table table-striped hidden" id="wenJian">
+                <thead>
+                <tr>
+                    <td class="row" id="toolbar">
+                        <button type="button" class="btn btn-info sC searchResult upLoadMan" data-toggle="modal"
+                                data-target="#newFile">创建文件
+                        </button>
+                        <button type="button" class="btn btn-info hidden" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="1">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info hidden upLoadMan" data-toggle="modal"
+                                data-target="#file"
+                                onclick="fillMessage();">修改信息
+                        </button>
+                        <button type="button" class="btn btn-info selectFile">
+                            下载文件
+                        </button>
+                        <button type="button" class="btn btn-danger upLoadMan selectFile1 searchResult"
+                                onclick="deleteDocument();">删除文件
+                        </button>
+                        <button type="button" class="btn btn-danger search" data-toggle="modal"
+                                data-target="#searchFileInfo">搜索
+                        </button>
+                        <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                data-target="#accessLog"
+                                data-whatever="1">访问日志
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                    <th>状态</th>
+                </tr>
+                </thead>
+                <tbody id="wenJian_1">
+
+                </tbody>
+            </table>
+            <!-- 文件内容列表-->
+            <table class="table table-striped hidden" id="wenJian_detail">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info fileBiao" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="5">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info zLdA selectFile"
+                        >下载文件
+                        </button>
+                        <button type="button" class="btn btn-info readOnly" data-toggle="modal"
+                                data-target="#fileUpload">上传正文
+                        </button>
+                        <button type="button" class="btn btn-info readOnly" data-toggle="modal"
+                                data-target="#fileUploads">
+                            上传附件
+                        </button>
+                        <button type="button" class="btn btn-danger selectFile1 upLoadMan" onclick="deleteFile();">删除文件
+                        </button>
+
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>正文文件</td>
+                </tr>
+                <tr>
+                    <td style="border: none">
+                        <ul class="list-group" id="main">
+
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>附件文件</td>
+                </tr>
+                <tr>
+                    <td style="border: none">
+                        <ul class="list-group" id="accessory"></ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!-- 案卷列表-->
+            <!-- <table class="table table-striped hidden" id="records">
+                 <thead>
+                 <tr>
+                     <td>
+                         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#biaoDan"
+                                 onclick="lookMessage();" data-whatever="2">查看信息
+                         </button>
+                         <button type="button" class="btn btn-info selectFile">
+                             下载
+                         </button>
+                         <button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#anjuan"
+                                 onclick="createAnjuan();">创建案卷
+                         </button>
+                         <button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#modify"
+                                 data-whatever="1">修改案卷
+                         </button>
+                         <button type="button" class="btn btn-danger search" data-toggle="modal"
+                                 data-target="#searchAnjuanInfo">搜索
+                         </button>
+                         <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                 data-target="#accessLog"
+                                 data-whatever="2">访问日志
+                         </button>
+                     </td>
+                 </tr>
+                 <tr>
+                     <th>题名</th>
+                     <th>档号</th>
+                 </tr>
+                 </thead>
+                 <tbody id="records_1">
+
+                 </tbody>
+             </table>-->
+
+            <!-- 档案列表-->
+            <table class="table table-striped hidden" id="archives">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="3">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info selectFile">
+                            下载
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#anjuan">
+                            创建档案
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#modify"
+                                data-whatever="2">
+                            修改档案
+                        </button>
+                        <button type="button" class="btn btn-danger search" data-toggle="modal"
+                                data-target="#searchAnjuanInfo">搜索
+                        </button>
+                        <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                data-target="#accessLog"
+                                data-whatever="3">访问日志
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                </tr>
+                </thead>
+                <tbody id="archives_1">
+
+                </tbody>
+            </table>
+
+            <!-- 全宗列表-->
+            <table class="table table-striped hidden" id="fond">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="4">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info  selectFile">下载
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#anjuan">
+                            创建全宗
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan" data-toggle="modal" data-target="#modify"
+                                data-whatever="3">
+                            修改全宗
+                        </button>
+                        <button type="button" class="btn btn-danger search" data-toggle="modal"
+                                data-target="#searchAnjuanInfo">搜索
+                        </button>
+                        <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                data-target="#accessLog"
+                                data-whatever="4">访问日志
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                </tr>
+                </thead>
+                <tbody id="fonds_1">
+
+                </tbody>
+            </table>
+            <!-- 案卷具体内容列表-->
+            <table class="table table-striped hidden" id="records_detail">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info retrieve" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="6">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info zLdA selectFile download">
+                            下载
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan archive create" data-toggle="modal"
+                                data-target="#records_detail_1"
+                                onclick="achive();">归档
+                        </button>
+                        <button type="button" class="btn btn-info docBack upLoadMan" onclick="docsBack(1)">回退</button>
+                        <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                data-target="#accessLog"
+                                data-whatever="5">访问日志
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                </tr>
+                </thead>
+                <tbody id="reelDetail">
+                </tbody>
+            </table>
+
+
+            <!--档案具体内容-->
+            <table class="table table-striped hidden" id="archive_detail">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="7">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info selectFile">下载
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan create" data-toggle="modal"
+                                data-target="#records_detail_1"
+                                onclick="achive();">归档
+                        </button>
+                        <button type="button" class="btn btn-default docBack upLoadMan" onclick="docsBack(2)">回退
+                        </button>
+                        <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                data-target="#accessLog"
+                                data-whatever="6">访问日志
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                </tr>
+                </thead>
+                <tbody id="archiveDetail">
+                </tbody>
+            </table>
+
+
+            <!--全宗具体内容-->
+            <table class="table table-striped hidden" id="fond_detail">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#biaoDan"
+                                data-whatever="8">查看信息
+                        </button>
+                        <button type="button" class="btn btn-info selectFile">
+                            下载
+                        </button>
+                        <button type="button" class="btn btn-info upLoadMan" data-toggle="modal"
+                                data-target="#records_detail_1"
+                                onclick="achive();">归档
+                        </button>
+                        <button type="button" class="btn btn-default docBack upLoadMan" onclick="docsBack(3)">回退
+                        </button>
+                        <button type="button" class="btn btn-default upLoadMan" data-toggle="modal"
+                                data-target="#accessLog"
+                                data-whatever="7">访问日志
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                </tr>
+                </thead>
+                <tbody id="fondDetail">
+                </tbody>
+            </table>
+            <!-- 由我发起流程的列表-->
+            <div id="myLiuChengTable1" class="hidden">
+                <div class="btn-toolbar toolBar_1" role="toolbar" id="toolBar1">
+                    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#jieYue">发起借阅</button>
+                    <button type="button" class="btn btn-info fileBiao" data-toggle="modal"
+                            onclick="getLendDetailsStartByMe()">查看信息
+                    </button>
+                    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#flow-status"
+                            data-whatever="1">状态
+                    </button>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#searchStartByme">搜索
+                    </button>
+                </div>
+                <table id="myLiuChengTable"></table>
+            </div>
+            <!-- 由我发起具体内容列表-->
+            <table class="table table-striped hidden" id="myLiuChengDetail">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info fileBiao" data-toggle="modal" data-target="#flowForm">
+                            查看信息
+                        </button>
+                        <button type="button" class="btn btn-info" id="downloadFlow">下载</button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                    <th>文档类型</th>
+                </tr>
+                </thead>
+                <tbody id="startbyme-tbody">
+
+                </tbody>
+            </table>
+            <!-- 由我批准的-->
+            <div id="myLiuCheng1Table1" class="hidden">
+                <div class="btn-toolbar toolBar_1" role="toolbar" id="toolBar2">
+                    <button type="button" class="btn btn-info" onclick="getFlowWillProcessByme()" id="newShenP">待审批
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="getFlowProcessedByme()" id="oldShenP">已审批
+                    </button>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#searchProcessByme">
+                        搜索
+                    </button>
+                </div>
+                <table id="myLiuCheng1Table"></table>
+            </div>
+
+            <!-- 由我发起的销毁-->
+            <div class="hidden" id="newFeiQi">
+                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#xiaoHui">发起销毁</button>
+                <button type="button" class="btn btn-info fileBiao" data-toggle="modal"
+                        onclick="getDesDetailsStartByme()">查看信息
+                </button>
+                <button type="button" class="btn btn-info " data-toggle="modal" data-target="#flow-status"
+                        data-whatever="4">状态
+                </button>
+                <table id="sendDestoryFlow"></table>
+            </div>
+
+            <!--由我审批的销毁-->
+            <div class="hidden" id="oldFeiQiByMe">
+                <button type="button" class="btn btn-info" onclick="getleftDestroyTable()" id="newDesShenP">待审批</button>
+                <button type="button" class="btn btn-info" onclick="getProcessedDesTable()" id="oldDesShenP">已审批
+                </button>
+                <table id="oldFeiQiByMeTable"></table>
+            </div>
+            <!-- 已销毁-->
+            <div id="oldFeiQiDiv">
+                <table id="oldFeiQi" class="hidden"></table>
+            </div>
+            <!-- 借阅审批-->
+            <table class="table table-striped hidden" id="shenpi">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#shenpiyijian1"
+                                data-whatever="1">批准
+                        </button>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#shenpiyijian1"
+                                data-whatever="2">否决
+                        </button>
+                        <button type="button" class="btn btn-info deptAdmin" data-toggle="modal"
+                                data-target="#selectFlowUser">
+                            请求审批
+                        </button>
+                        <button type="button" class="btn btn-info fileBiao" data-toggle="modal" data-target="#flowForm">
+                            查看信息
+                        </button>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#flow-status"
+                                data-whatever="2">状态
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>文档名</th>
+                    <th>档号</th>
+                    <th>借阅人</th>
+                    <th>借阅部门</th>
+                    <th>借阅权限</th>
+                </tr>
+                </thead>
+                <tbody id="lending_approval_tbody">
+
+
+                </tbody>
+            </table>
+            <!-- 销毁审批-->
+            <table class="table table-striped hidden" id="delShenPi">
+                <thead>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#shenpiyijian1"
+                                data-whatever="3">批准
+                        </button>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#shenpiyijian1"
+                                data-whatever="4">否决
+                        </button>
+                        <button type="button" class="btn btn-info fileBiao" data-toggle="modal" data-target="#flowForm">
+                            查看信息
+                        </button>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#flow-status"
+                                data-whatever="3">状态
+                        </button>
+                        <button type="button" class="btn btn-info deptAdmin" data-toggle="modal"
+                                data-target="#selectDetoryFlow">
+                            请求审批
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>题名</th>
+                    <th>档号</th>
+                    <th>责任人</th>
+                    <th>发起时间</th>
+                    <th>截止时间</th>
+                    <th>类型</th>
+                </tr>
+                </thead>
+                <tbody id="destoryTbody">
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    <!--右侧面板-->
+    <!--<div class="panel panel-primary shuxing hidden">-->
+    <!--<div class="panel-heading btn-group">-->
+    <!--<button id="quanxian" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">-->
+    <!--属性信息-->
+    <!--<span class="caret"></span>-->
+    <!--</button>-->
+    <!--<ul class="dropdown-menu">-->
+    <!--<li href="shuxing_1"><a>属性</a></li>-->
+    <!--<li href="shuxing_2"><a>权限</a></li>-->
+    <!--</ul>-->
+    <!--</div>-->
+    <!--<div class="panel-body" id="shuxing_1">-->
+    <!--<div class="zLdA">-->
+    <!--<span class="glyphicon glyphicon-pencil"></span>-->
+    <!--<span class="glyphicon glyphicon-floppy-disk"></span>-->
+    <!--</div>-->
+    <!--<br/>-->
+    <!--</div>-->
+    <!--<div class="panel-body" id="shuxing_2">-->
+    <!--<div>-->
+    <!--<span class="glyphicon glyphicon-pencil"  data-toggle="modal" data-target="#safe"></span>-->
+    <!--</div>-->
+    <!--<ul class="list-group">-->
+    <!--<li>1111111111</li>-->
+    <!--<li>2222222222</li>-->
+    <!--<li>222222222</li>-->
+    <!--<li>3333333333</li>-->
+    <!--<li>4444444444</li>-->
+    <!--</ul>-->
+    <!--</div>-->
+    <!--</div>-->
+
+</div>
+<!-- *********************************************************************************************************************************************-->
+<!-- 搜索界面-->
+<!--***********************************************************************************************************-->
+<!--各种模态框-->
+<!--个人信息模态框-->
+<!--更改密码-->
+<div class="modal fade" id="setpassword" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">更改密码</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label for="oldpassword" class="col-sm-3 control-label">请输入密码</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="oldpassword" placeholder="请输入密码">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newpassword" class="col-sm-3 control-label">请输入新密码</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="newpassword" placeholder="请输入新密码">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="againpassword" class="col-sm-3 control-label">再次确认新密码</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="againpassword" placeholder="请输入新密码">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <span class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" class="btn btn-default" onclick="updatePwd()">确认</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--表单模态框-->
+<div class="modal fade" id="biaoDan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">档案信息</h4>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="documentMessage">
+
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--流程中得查看信息-->
+<div class="modal fade" id="flowForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">档案信息</h4>
+            </div>
+            <div class="modal-body">
+                <!-- 文件的查看信息表单-->
+                <div class="row documentInfo hidden">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon c1">题名</span>
+                            <input type="text" id="1111111111111" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">主题词</span>
+                            <input type="text" class="form-control" value="122">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">全宗号</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">附件数</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">来文机关</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">归档年度</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">保存分数</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">存放位置</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">归档日期</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">件号</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">责任人</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">密级</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">档案类别</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">所属部门</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">保管期限</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">档案编号</span>
+                            <input type="text" class="form-control" placeholder="">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">原文件编号</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">文件形成时间</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案卷的查看信息表单-->
+                <div class="row recordInfo hidden">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">标题</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">卷号</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">件数</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">密级</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">实体位置</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">责任人</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 档案查看信息-->
+                <div class="row archiveInfo hidden">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">标题</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">归档号</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">卷数</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">密级</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">实体位置</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">责任人</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 查看全宗信息-->
+                <div class="row boxInfo ">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">标题</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">归档号</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">档案数</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">密级</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">实体位置</span>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">责任人</span>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--新建文件-->
+<div class="modal fade" id="newFile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">填写案卷信息</h4>
+            </div>
+            <div class="modal-body">
+                <form id="createFileForm">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group">
+                                <!--<label for="title">题名</label>-->
+                                <span class="input-group-addon">题名</span>
+                                <input type="text" class="form-control" name="title">
+                            </div>
+                            <div class="form-group newFile_top input-group">
+                                <span class="input-group-addon">原文数量</span>
+                                <input type="text" class="form-control" name="appendices">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class='form-group input-group date' id='datetimepicker'>
+                                <span class="input-group-addon">请选择时间
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                                <input type='text' class="form-control" name="fileCreatetime"/>
+                            </div>
+                            <div class="form-group newFile_top input-group">
+                                <span class="input-group-addon">原文编号</span>
+                                <input type="text" class="form-control" name="beforeNum">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="createDocSubmit" class="btn btn-primary">确认</button>
+                        </div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="fileUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">正文上传（若多次上传，则覆盖掉此前上传的正文）</h4>
+            </div>
+            <div class="modal-body">
+                <div class="from-group">
+                    <label class="control-label">上传正文</label>
+                    <input id="input-1a" name ="test" type="file" class="file-loading" multiple>
+                </div>
+            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="commitMainFile();">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+          </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<div class="modal fade" id="fileUploads" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">附件上传</h4>
+            </div>
+            <div class="modal-body">
+                <div class="from-group newFile_top">
+                    <label class="control-label">上传附件</label>
+                    <input id="input-1b" name = "exactfile" type="file" class="file-loading"  multiple>
+                </div>
+            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="commitFile();">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+          </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--整理文件-->
+<div class="modal fade" id="file" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">著录项</h4>
+            </div>
+            <div class="modal-body">
+                <form id="archiving">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">档 号</span>
+                              <input type="text" class="form-control" name="fileNum" id="fileNumber"
+                                     readonly="true"/>
+                                <span class="input-group-btn " id="fileCodeSpan"><button class="btn btn-default"
+                                                                                         type="button"
+                                                                                         onclick="createFileNumForDoc()"><span
+                                        class="glyphicon glyphicon-cog"></span></button></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                          <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">全宗号</span>
+                              <input type="text" class="form-control" name="fondsId" id="QZH" readonly="readonly">
+                            </div>
+                            <div class="form-group input-group input-group-sm date simpleDate" id='archiveYear'>
+                                  <span class="input-group-addon">归档年度
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                              <input type='text' class="form-control" name="archiveYear"
+                                     id="fileYear"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                          <div class="from-group input-group input-group-sm"
+                               style="margin-bottom: 15px">
+                                <span class="input-group-addon">档案种类</span>
+                            <select class="form-control" name="archiveType" id="fileType">
+                                    <option value="WS">文书档案</option>
+                                    <option value="KJ">会计档案</option>
+                                    <option value="RS">人事档案</option>
+                                    <option value="SW">实物档案</option>
+                                    <option value="HT">合同档案</option>
+                                    <option value="KW">刊物档案</option>
+                                    <option value="YX">印信档案</option>
+                                    <option value="FC">房产档案</option>
+                                    <option value="ZJ">证件档案</option>
+                                    <option value="DJ">单机档案</option>
+                                </select>
+                            </div>
+                          <div class="from-group input-group input-group-sm">
+                                <span class="input-group-addon">保管期限</span>
+                            <select class="form-control" name="reserveDuration"
+                                    id="retentionPeriod">
+                                    <option>5年</option>
+                                    <option>10年</option>
+                                    <option>30年</option>
+                                    <option>永久</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">题 名</span>
+                                <input type="text" class="form-control" name="title"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">密级</span>
+                                <select class="form-control" name="importance">
+                                    <option>一般</option>
+                                    <option>重要</option>
+                                </select>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">原文件编号</span>
+                                <input type="text" class="form-control" name="beforeNum">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">实体份数</span>
+                                <input type="text" class="form-control" name="entityNum">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">附件数</span>
+                                <input type="text" class="form-control" name="appendices">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">存放位置</span>
+                                <input type="text" class="form-control" name="savaLocation">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">责任者</span>
+                                <input type="text" class="form-control" name="responsible">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">文件属性</span>
+                                <select class="form-control" name="docAttr">
+                                    <option>原件</option>
+                                    <option>复印件</option>
+                                    <option>仿制品</option>
+                                </select>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">页 数</span>
+                                <input type="text" class="form-control" name="paginalNum">
+                            </div>
+                            <div class="form-group input-group input-group-sm date completeDate" id='archiveDate'>
+                                  <span class="input-group-addon">归档日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" name="archiveDate"/>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交人</span>
+                                    <input type="text" class="form-control" name="deliverUser">
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交部门</span>
+                                    <input type="text" class="form-control" name="deliverDept">
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <div class="form-group input-group input-group-sm date completeDate" id='deliverDate'>
+                                  <span class="input-group-addon">移交日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                    <input type='text' class="form-control" name="deliverDate"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                            <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                                <label>备注</label>
+                                <textarea class="form-control" rows="2" name="remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="fileSave">
+                            保存
+                      </button>
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="modifySubmit" class="btn btn-primary">提交
+                          </button>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+<!--创建案卷-->
+<div class="modal fade" id="anjuan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">案卷著录项</h4>
+            </div>
+            <div class="modal-body">
+                <form id="createRecordForm">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">档 号</span>
+                                <input type="text" class="form-control" name="fileNum" readonly="readonly"/>
+                                <span class="input-group-btn " id="anjuanBtn"><button class="btn btn-default"
+                                                                                      type="button"
+                                                                                      onclick="createFileNumForRec()"><span
+                                        class="glyphicon glyphicon-cog"></span></button></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">全宗号</span>
+                                <input type="text" class="form-control" name="fondsId" readonly="readonly">
+                            </div>
+                            <div class="form-group input-group input-group-sm date simpleDate">
+                                  <span class="input-group-addon">归档年度
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" name="archiveYear"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="from-group input-group input-group-sm" style="margin-bottom: 15px;">
+                                <span class="input-group-addon">档案种类</span>
+                                <select class="form-control" name="archiveType">
+                                    <option value="SX">声像档案</option>
+                                    <option value="SJJC">审计监察档案</option>
+                                    <option value="AJ">案件档案</option>
+                                    <option value="SG">生产安全事故档案</option>
+                                    <option value="XX">信息化建设档案</option>
+                                    <option value="ZTB">招投标档案</option>
+                                </select>
+                            </div>
+                            <div class="from-group input-group input-group-sm">
+                                <span class="input-group-addon">保管期限</span>
+                                <select class="form-control" name="reserveDuration">
+                                    <option>5年</option>
+                                    <option>10年</option>
+                                    <option>30年</option>
+                                    <option>永久</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">题 名（项目名|事件名）</span>
+                                <input type="text" class="form-control" name="title"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">密级</span>
+                                <select class="form-control" name="importance">
+                                    <option>一般</option>
+                                    <option>重要</option>
+                                </select>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">主题词</span>
+                                <input type="text" class="form-control" name="themeWord">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">数 量</span>
+                                <input type="text" class="form-control" name="saveNum">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">卷内文件数</span>
+                                <input type="text" class="form-control" name="appendices">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">归档人</span>
+                                <input type="text" class="form-control" name="responsible">
+                            </div>
+                            <div class="form-group input-group input-group-sm date completeDate">
+                                  <span class="input-group-addon">归档日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" name="archiveDate"/>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">存放位置</span>
+                                <input type="text" class="form-control" name="reserveLocation"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交人</span>
+                                    <input type="text" class="form-control" name="deliverUser"/>
+                                </div>
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交科室</span>
+                                    <input type="text" class="form-control" name="deliverOffice"/>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交部门</span>
+                                    <input type="text" class="form-control" name="deliverDept"/>
+                                </div>
+                                <div class="form-group input-group input-group-sm date completeDate">
+                                  <span class="input-group-addon">移交日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                    <input type='text' class="form-control" name="deliverDate"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                            <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                                <label>备注</label>
+                                <textarea class="form-control" rows="2" name="remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="anjuanSubmit" class="btn btn-primary">提交</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+<!--创建基建类案卷-->
+<div class="modal fade" id="construction" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">基建案卷著录项</h4>
+            </div>
+            <div class="modal-body">
+                <form id="constructionForm">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">档 号</span>
+                                <input type="text" class="form-control" name="fileNum" readonly="readonly"/>
+                                <span class="input-group-btn " id="constructBtn"><button class="btn btn-default"
+                                                                                         type="button"
+                                                                                         onclick="createConstruction()"><span
+                                        class="glyphicon glyphicon-cog"></span></button></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">全宗号</span>
+                                <input type="text" class="form-control" name="fondsId" readonly="readonly">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">项目号</span>
+                                <input type="text" class="form-control" name="itemNum">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="from-group input-group input-group-sm" style="margin-bottom: 15px;">
+                                <span class="input-group-addon">档案种类</span>
+                                <select class="form-control" name="archiveType">
+                                    <option value="JJ">基建档案</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">题 名（项目名|事件名）</span>
+                                <input type="text" class="form-control" name="title"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm date simpleDate">
+                                  <span class="input-group-addon">归档年度
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" name="archiveYear"/>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">密级</span>
+                                <select class="form-control" name="importance">
+                                    <option>一般</option>
+                                    <option>重要</option>
+                                </select>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">主题词</span>
+                                <input type="text" class="form-control" name="themeWord">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">数 量</span>
+                                <input type="text" class="form-control" name="saveNum">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">卷内文件数</span>
+                                <input type="text" class="form-control" name="appendices">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="from-group input-group input-group-sm">
+                                <span class="input-group-addon">保管期限</span>
+                                <select class="form-control" name="reserveDuration">
+                                    <option>5年</option>
+                                    <option>10年</option>
+                                    <option>30年</option>
+                                    <option>永久</option>
+                                </select>
+                            </div>
+                            <div class="form-group input-group input-group-sm" style="margin-top:15px;">
+                                <span class="input-group-addon">归档人</span>
+                                <input type="text" class="form-control" name="responsible">
+                            </div>
+                            <div class="form-group input-group input-group-sm date completeDate">
+                                  <span class="input-group-addon">归档日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" name="archiveDate"/>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">存放位置</span>
+                                <input type="text" class="form-control" name="reserveLocation"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交人</span>
+                                    <input type="text" class="form-control" name="deliverUser"/>
+                                </div>
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交科室</span>
+                                    <input type="text" class="form-control" name="deliverOffice"/>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">移交部门</span>
+                                    <input type="text" class="form-control" name="deliverDept"/>
+                                </div>
+                                <div class="form-group input-group input-group-sm date completeDate">
+                                  <span class="input-group-addon">移交日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                    <input type='text' class="form-control" name="deliverDate"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                            <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                                <label>备注</label>
+                                <textarea class="form-control" rows="2" name="remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="constructionSubmit" class="btn btn-primary">提交</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+
+<!--批量归档-->
+<div class="modal fade" id="batchFile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">填写案卷信息</h4>
+            </div>
+            <div class="modal-body">
+                <form id="batchFileForm">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">全宗号</span>
+                                <input type="text" class="form-control" name="fondsId" readonly="readonly">
+                            </div>
+                            <div class="form-group input-group input-group-sm date" id='batchAchiveYear'>
+                                  <span class="input-group-addon">归档年度
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" name="archiveYear"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="from-group input-group input-group-sm" style="margin-bottom: 15px">
+                                <span class="input-group-addon">档案种类</span>
+                                <select class="form-control" name="archiveType">
+                                    <option value="WS">文书档案</option>
+                                    <option value="KJ">会计档案</option>
+                                    <option value="RS">人事档案</option>
+                                    <option value="SW">实物档案</option>
+                                    <option value="HT">合同档案</option>
+                                    <option value="KW">刊物档案</option>
+                                    <option value="YX">印信档案</option>
+                                    <option value="FC">房产档案</option>
+                                    <option value="ZJ">证件档案</option>
+                                    <option value="DJ">单机档案</option>
+                                </select>
+                            </div>
+                            <div class="from-group input-group input-group-sm">
+                                <span class="input-group-addon">保管期限</span>
+                                <select class="form-control" name="reserveDuration">
+                                    <option>5年</option>
+                                    <option>10年</option>
+                                    <option>30年</option>
+                                    <option>永久</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="batchFileSubmit" class="btn btn-primary">确认</button>
+                        </div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--文件归档-->
+<div class="modal fade" id="records_detail_1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">请选择归档文件</h4>
+            </div>
+            <div class="modal-body">
+                <table id="table_1"></table>
+            </div>
+            <div class="modal-footer">
+                <span id="dupTitle" class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" class="btn btn-default" onclick="commitActive();">确认</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--修改案卷-->
+<div class="modal fade" id="modify" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 id="modifyInfo" class="modal-title">修改案卷信息</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">标题</span>
+                        <input id="modifyTitle" name="title" type="text" class="form-control" placeholder="请输入信息">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">卷号</span>
+                        <input id="modifyReelNum" name="reelNum" type="text" class="form-control" placeholder="请输入信息">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">件数</span>
+                        <input id="modifyFileNum" name="fileNum" type="text" class="form-control" placeholder="请输入信息">
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">密级</span>
+                        <select class="form-control" id="modifyImportance" name="importance">
+                            <!--<option>请选择信息</option>-->
+                            <option>一般</option>
+                            <option>重要</option>
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">案卷位置</span>
+                        <input type="text" class="form-control" name="recordsLocation" placeholder="请输入信息"
+                               id="modifyLocation">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">责任人</span>
+                        <input type="text" class="form-control" name="responsible" placeholder="请输入信息"
+                               id="modifyResponsible">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                    <label>备注</label>
+                    <textarea class="form-control" rows="2" id="modifyRemark" name="remark"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="modifySpan" class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" class="btn btn-primary" id="modifyCommit">修改</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--创建案卷-->
+<!--<div class="modal fade" id="anjuan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 id="anjuanTitle" class="modal-title">填写案卷信息</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">标题</span>
+                        <input  id="recordTitle" type="text" class="form-control" placeholder="请输入信息">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">卷号</span>
+                        <input id="recordReelNum" type="text" class="form-control" placeholder="请输入信息">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">件数</span>
+                        <input id="recordFileNum" type="text" class="form-control" placeholder="请输入信息">
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">重要程度</span>
+                        <select class="form-control" id="recordImportance">
+                            &lt;!&ndash;<option>请选择信息</option>&ndash;&gt;
+                            <option>一般</option>
+                            <option>重要</option>
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">案卷位置</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="recordRecordsLocation">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">责任人</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="recordResponsible">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                    <label>备注</label>
+                    <textarea class="form-control" rows="2" id="recordRemark"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="anjuanSpan" class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" class="btn btn-primary" onclick="crateRecord();" id="anjuanCommit">确认</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" >关闭</button>
+            </div>
+        </div>&lt;!&ndash; /.modal-content &ndash;&gt;
+    </div>&lt;!&ndash; /.modal &ndash;&gt;
+</div>-->
+<!--设置权限模态框-->
+<div class="modal fade" id="safe" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">安全设置</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-hover">
+                    <button type="button" class="btn btn-primary" id="safe_add_1">增加权限</button>
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>权限</th>
+                        <th style="text-align: center" id="deletesafe">删除</th>
+                    </tr>
+                    </thead>
+                    <tbody id="safe_list">
+                    <tr>
+                        <td><span class="glyphicon glyphicon-user"></span>小一</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <select class="form-control">
+                                    <option>阅读</option>
+                                    <option>可见</option>
+                                    <option>上传</option>
+                                    <option>修改</option>
+                                    <option>最高控制</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td style="text-align: center"><span class="glyphicon glyphicon-trash"></span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="glyphicon glyphicon-user"></span>小二</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <select class="form-control">
+                                    <option>阅读</option>
+                                    <option>可见</option>
+                                    <option>上传</option>
+                                    <option>修改</option>
+                                    <option>最高控制</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td style="text-align: center"><span class="glyphicon glyphicon-trash"></span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="glyphicon glyphicon-user"></span>小三</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <select class="form-control">
+                                    <option>阅读</option>
+                                    <option>可见</option>
+                                    <option>上传</option>
+                                    <option>修改</option>
+                                    <option>最高控制</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td style="text-align: center"><span class="glyphicon glyphicon-trash"></span></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary">确认</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--增加权限模态框-->
+<div class="modal fade" id="safeadd" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">选择用户</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-lg-6 col-md-6 col-xs-6" id="safeTree"></div>
+                <div class="col-lg-6 col-md-6 col-xs-6">
+                    <div class="row input-group">
+                        <input type="text" class="form-control">
+                        <span class="input-group-btn">
+                        <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="safe_add_2">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--借阅流程-->`
+<div class="modal fade" id="jieYue" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">借阅流程</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-lg-6 col-md-6 col-xs-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">标题</span>
+                        <input type="text" id="lendingtitle" class="form-control" placeholder="请输入信息">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">档号</span>
+                        <input type="text" id="lendingreel" class="form-control" placeholder="请输入信息">
+                    </div>
+                    <!--<div class="input-group input-group-sm">
+                       <span class="input-group-addon">借阅人</span>
+                        <input type="text" class="form-control" placeholder="请输入信息">
+                    </div>-->
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">文档类型</span>
+                        <select id="reeltype" class="form-control">
+                            <option id="document">文件</option>
+                            <option id="record">案卷</option>
+                            <option id="archive">档案</option>
+                            <option id="box">全宗</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-xs-6">
+                    <!--<div class="input-group input-group-sm">
+                        <span class="input-group-addon">借阅部门</span>
+                        <input type="text" class="form-control" placeholder="请输入信息">
+                    </div>-->
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">借阅权限</span>
+                        <select id="lendingrole" class="form-control">
+                            <option>电子版只读</option>
+                            <option>电子版水印下载</option>
+                            <option>纸质版复印件</option>
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">选择部门管理员</span>
+                        <select id="deptadmin" class="form-control">
+                            <!--<option>电子版只读</option>
+                            <option>电子版水印下载</option>
+                            <option>纸质版复印件</option>-->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class='input-group date' id='datetimepicker1'>
+                                    <span class="input-group-addon">截止时间
+                                        <span class="glyphicon glyphicon-calendar" ></span>
+                                    </span>
+                            <input type='text' id="expiredate" class="form-control" />
+                        </div>
+                    </div>
+
+                    <!--<div class="input-group input-group-sm">
+                        <span class="input-group-addon">截止时间</span>
+                        <input type="date" class="form-control" placeholder="请选择时间">
+                    </div>-->
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                    <label>借阅事由</label>
+                    <textarea id="lendingcause" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="vaildlending" class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" onclick="lendingStart()" class="btn btn-primary">提交</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--销毁流程-->
+<div class="modal fade" id="xiaoHui" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">销毁流程</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-lg-6 col-md-6 col-xs-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon" >销毁资料名称</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="destoryTitle">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">销毁资料档号</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="destoryReelName">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">销毁资料份数</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="destorySize">
+                    </div>
+                    <div class="form-group">
+                        <div class='input-group date' id='datetimepicker6'>
+                                    <span class="input-group-addon">销毁资料时间
+                                        <span class="glyphicon glyphicon-calendar" ></span>
+                                    </span>
+                            <input type='text' id="destoryTime" class="form-control" />
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-lg-6 col-md-6 col-xs-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">销毁人</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="destoryUser">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">监督人</span>
+                        <input type="text" class="form-control" placeholder="请输入信息" id="superviseUser1">
+                    </div>
+
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">文档类型</span>
+                        <select id="reeltype1" class="form-control">
+                            <option value="document">文件</option>
+                            <option value="record">案卷</option>
+                            <option value="archive">档案</option>
+                            <option value="box">全宗</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">文档类型</span>
+                        <select id="destroyStep" class="form-control">
+                            <option value="1">销毁鉴定小组</option>
+                            <option value="2">部门领导</option>
+                            <option value="3">公司领导</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                    <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                        <label>销毁事由</label>
+                        <textarea class="form-control" rows="3" id="destoryDescription"></textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                    <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                        <label>审批成员列表</label>
+                        <table id="destroyAskUsers"></table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="vaildDestroy" class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#delPerson"
+                        data-whatever="1">选择审批人员
+                </button>
+                <button type="button" class="btn btn-primary" onclick="commitDestoryFlow();">提交</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--借阅审批用户添加-->
+<div class="modal fade" id="jieyueadd" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">选择用户</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-lg-6 col-md-6 col-xs-6" id="jieyueTree"></div>
+                <div class="col-lg-6 col-md-6 col-xs-6">
+                    <div class="row input-group">
+                        <input type="text" class="form-control">
+                        <span class="input-group-btn">
+                        <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="jieyue_add_1">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--借阅审批模态框-->
+<div class="modal fade" id="shenpiyijian" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">审批意见</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label></label>
+                    <textarea class="form-control" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        上传附件
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">我的电脑</a></li>
+                        <li><a href="#">档案系统</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--销毁审批模态框-->
+<div class="modal fade" id="shenpiyijian1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">审批意见</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label></label>
+                    <textarea id="flow-modal-description" class="form-control" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!--<div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        上传附件
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">我的电脑</a></li>
+                        <li><a href="#">档案系统</a></li>
+                    </ul>
+                </div>-->
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="flow-modal-submit">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--流程状态模态框-->
+<div class="modal fade" id="flow-status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">流程状态</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered " >
+                    <thead>
+                    <tr>
+                        <th>发起人</th>
+                        <th>审批人</th>
+                        <th>状态</th>
+                        <th>审批意见</th>
+                        <th>审批时间</th>
+                    </tr>
+                    </thead>
+                    <tbody id="status-tbody1" >
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--由我审批 请求审批模态框-->
+<div class="modal fade" id="selectFlowUser" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">选择审批用户</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-xs-6"  style="border-right: 1px solid #cccccc">
+                        <div id="askRadio">
+                            <div class="radio">
+                                <label class="radio-inline">
+                                    <input type="radio" name="optionsRadiosinline" href="depApproUser"  value="option1" checked> 本部门审批成员
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label class="radio-inline">
+                                    <input type="radio" name="optionsRadiosinline" href="fileDepApproUser"  value="option2">文件所在部门管理员
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label class="radio-inline">
+                                    <input type="radio" name="optionsRadiosinline" href="companyLead"  value="option3">公司级领导
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-xs-6">
+                        <div class="depApproUser" >
+                            <div class="checkbox">
+                                <label><input type="checkbox" value="">选项 1</label>
+                            </div>
+                            <div class="checkbox">
+                                <label><input type="checkbox" value="">选项 2</label>
+                            </div>
+                        </div>
+                        <div class="fileDepApproUser hidden">
+                            <div class="checkbox">
+                                <label><input type="checkbox" value="">选项 3</label>
+                            </div>
+                            <div class="checkbox">
+                                <label><input type="checkbox" value="">选项 4</label>
+                            </div>
+                        </div>
+                        <div class="companyLead hidden">
+                            <div class="checkbox">
+                                <label><input type="checkbox" value="">选项 3</label>
+                            </div>
+                            <div class="checkbox">
+                                <label><input type="checkbox" value="">选项 4</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="askSure" class="hidden" style="color: red;font-weight: 500">请选择审批人</span>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary sslx" data-toggle="modal" data-target="#txssxx" onclick="askForApproval()">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="selectDetoryFlow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">销毁请求审批</h4>
+            </div>
+            <div class="modal-body">
+                <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                    <label>审批成员列表</label>
+                    <table id="destroyAskUsers1"></table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="askDestorySure" class="hidden" style="color: red;font-weight: 500">请选择审批人</span>
+                <button id="selectDetoryId" type="button" class="btn btn-primary" data-toggle="modal"
+                        data-target="#delPerson" data-whatever="2">选择审批人员
+                </button>
+                <button type="button" class="btn btn-primary sslx" data-toggle="modal" data-target="#txssxx"
+                        onclick="askForDestroy()">提交
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--搜索信息填写-->
+<div class="modal fade" id="searchFileInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">填写搜索信息</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="s1">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <form class="bs-example bs-example-form" role="form">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-addon">题名</span>
+                                <input type="text" class="form-control" placeholder="请输入信息" id="searchFileTitle">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">件号</span>
+                            <input type="text" class="form-control" placeholder="请输入信息" id="searchFileCode">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="searchResult" >提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="searchAnjuanInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">填写搜索信息</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="s3">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <form class="bs-example bs-example-form" role="form">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-addon" >题名</span>
+                                <input type="text" class="form-control" placeholder="请输入信息" id="searchRecordTitle">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">卷号</span>
+                            <input type="text" class="form-control" placeholder="请输入信息" id="searchRecordReelNum">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="searchRecordResult">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--由我审批搜索模态框-->
+<div class="modal fade" id="searchProcessByme" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">填写搜索信息</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label  class="col-sm-3 control-label">题名</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control"  placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 45px">
+                        <label class="col-sm-3 control-label">档号</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 90px">
+                        <label  class="col-sm-3 control-label">借阅人</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control"  placeholder="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px">
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <div class='input-group date' id='datetimepicker2'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon">开始 <span
+                                        class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <div class='input-group date' id='datetimepicker3'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon">结束 <span
+                                        class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div style="margin-left: 60%">
+                        <div class="radio" style="display: inline-block">
+                            <label class="radio-inline">
+                                <input type="radio" name="optionsRadiosinline" href="depApproUser"  value="option1" checked>待审批
+                            </label>
+                        </div>
+                        <div class="radio" style="display: inline-block">
+                            <label class="radio-inline">
+                                <input type="radio" name="optionsRadiosinline" href="fileDepApproUser"  value="option2">已审批
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary"  onclick="searchProcessByme()">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--由我发起   搜索模态框-->
+<div class="modal fade" id="searchStartByme" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">填写搜索信息</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label  class="col-sm-3 control-label">题名</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control"  placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 45px">
+                        <label class="col-sm-3 control-label">档号</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" placeholder="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px">
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <div class='input-group date' id='datetimepicker4'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon">开始 <span
+                                        class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <div class='input-group date' id='datetimepicker5'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon">结束 <span
+                                        class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="searchStartByme()" >提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--发起销毁审批模态框-->
+<div class="modal fade" id="delPerson" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">选择审批用户组</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-5 col-md-5 col-xs-5">
+                        <div id="destoryTreeId">
+
+                        </div>
+                    </div>
+                    <div class="col-lg-7 col-md-7 col-xs-7">
+                        <table id="destoryTableId"></table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="delPersonSubmit" type="button" class="btn btn-primary">添加</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--卷内文件修改模态框-->
+<div class="modal fade" id="detailUpdateModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">案卷内文件著录项</h4>
+            </div>
+            <div class="modal-body">
+                <form id="detailUpdateForm">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">卷号</span>
+                                <input type="text" class="form-control" name="recordFileNum" readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">卷内目录号</span>
+                                <input type="text" class="form-control" name="insideNum" readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">题 名</span>
+                                <input type="text" class="form-control" name="title"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">责任者</span>
+                                <input type="text" class="form-control" name="responsible">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">页 数</span>
+                                <input type="text" class="form-control" name="paginalNum">
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                            <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                                <label>备注</label>
+                                <textarea class="form-control" rows="2" name="remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="detailSubmit" class="btn btn-primary">提交</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+<!--声像类型卷内文件修改模态框-->
+<div class="modal fade" id="acousticImage" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">案卷内声像文件著录项</h4>
+            </div>
+            <div class="modal-body">
+                <form id="acousticForm">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">卷号</span>
+                                <input type="text" class="form-control" name="recordFileNum" readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">卷内目录号</span>
+                                <input type="text" class="form-control" name="insideNum" readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">题 名</span>
+                                <input type="text" class="form-control" name="title"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">责任者</span>
+                                <input type="text" class="form-control" name="responsible">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">地点</span>
+                                <input type="text" class="form-control" name="place">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">摄影者</span>
+                                <input type="text" class="form-control" name="photographer">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">数量</span>
+                                <input type="text" class="form-control" name="number">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">页 数</span>
+                                <input type="text" class="form-control" name="paginalNum">
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">人物</span>
+                                <input type="text" class="form-control" name="figure">
+                            </div>
+                            <div class="form-group input-group input-group-sm date completeDate">
+                                      <span class="input-group-addon">摄影时间
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                       </span>
+                                <input type='text' class="form-control" name="photographyTime"/>
+                            </div>
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">负责人</span>
+                                <input type="text" class="form-control" name="leader">
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12 col-sm-12">
+                            <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                            <div class="form-group col-lg-10 col-md-10 col-sm-10">
+                                <label>备注</label>
+                                <textarea class="form-control" rows="2" name="remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="form-group" style="display: inline-block">
+                            <button type="button" id="acousticSubmit" class="btn btn-primary">提交</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+<!--日志模态框-->
+<div class="modal fade" id="accessLog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">访问日志</h4>
+            </div>
+            <div class="modal-body">
+                <!--<table id="accessLogTable"></table>-->
+                <div class="row">
+                    <div id="logToolbar">
+                        <!--<button type="button" class="button btn btn-primary" style="margin-bottom: 2px">数据导出</button>-->
+                        <div class="col-lg-4">
+                            <input type="text" class="form-control" placeholder="搜索用户" id="searchAccessLog1">
+                        </div>
+                        <div class="col-lg-4">
+                            <select class="form-control" id="accessLogSelect" onchange="accessLogSearch()">
+                                <option>全部</option>
+                                <option>查看内容</option>
+                                <option>下载</option>
+                                <option>ZIP下载</option>
+                                <option>新增</option>
+                                <option>更新</option>
+                            </select>
+                        </div>
+                          
+                    </div>
+                </div>
+                <table id="accessLogTable">
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                <!--<button type="button" class="btn btn-default" onclick="accessLogSearch()">搜索</button>-->
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--归档模态框-->
+<div class="modal fade" id="placeModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">归档</h4>
+            </div>
+            <div class="modal-body">
+                <!--<div class="from-group">
+                    <label class="control-label">上传图片</label>
+                    <input id="input-c" name="test" type="file" class="file-loading" multiple>
+                    <label class="control-label">图片文字</label>
+                    <textarea class="form-control" rows="3" id="picContent"></textarea>
+                </div>-->
+                <div style="float: right;margin-top: 13px;">
+                    <form id="placeSearchForm">
+                        <div class="form-group input-group input-group-sm date" style="float: right;width:30%;">
+                            <input type="text" class="form-control form_datetime endYear" name="endYear"
+                                   placeholder="请输入截止年度" style="border-radius: 3px;">
+                            <span class="input-group-btn">
+                            <button class="btn btn-default btn-group-sm" type="button" onclick="placeSearch()"><span
+                                    class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                        </div>
+                        <div class="form-group input-group input-group-sm" style="float: right;width:30%;">
+                            <input type="text" class="form-control form_datetime startYear" name="startYear"
+                                   placeholder="请输入起始年度" style="border-radius: 3px;">
+                        </div>
+                        <div class="form-group input-group input-group-sm " style="float: right">
+                            <input type="text" class="form-control " name="title" placeholder="请输入题名"
+                                   style="border-radius: 3px;">
+                        </div>
+                    </form>
+                </div>
+                <table id="placeTable"></table>
+            </div>
+            <div class="modal-footer">
+                <span id="placeValid" class="hidden" style="color: red;font-weight: 500"></span>
+                <button type="button" class="btn btn-primary" id="placeSubmit">归档</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<script type="text/javascript">
+    function datetimepickerinit($table) {
+        $table.datetimepicker({
+            language: 'zh-CN',
+            format: 'yyyy-mm-dd',
+            minView: 'month',
+            autoclose: true,
+            todayBtn: true,
+            pickerPosition: "bottom-left"
+        });
+    }
+
+    $(function () {
+        datetimepickerinit($('#datetimepicker'));
+        datetimepickerinit($('#datetimepicker1'));
+        datetimepickerinit($('#datetimepicker2'));
+        datetimepickerinit($('#datetimepicker3'));
+        datetimepickerinit($('#datetimepicker4'));
+        datetimepickerinit($('#datetimepicker5'));
+        datetimepickerinit($('#datetimepicker6'));
+        datetimepickerinit($('#datetimepicker7'));
+        datetimepickerinit($('#datetimepicker8'));
+
+    });
+</script>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<!--<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>-->
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+
+<script src="js/1.js"></script>
+<script src="js/flow.js"></script>
+<script src="js/flowdestory.js"></script>
+<script src="js/optimize.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.FileMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Files">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="doc_id" jdbcType="VARCHAR" property="docId" />
+    <result column="file_type" jdbcType="VARCHAR" property="fileType" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+    <result column="upload_date" jdbcType="VARCHAR" property="uploadDate" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    <result column="file_id" jdbcType="VARCHAR" property="fileId" />
+    <result column="record_flag" jdbcType="BIT" property="recordFlag" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, doc_id, file_type, location, upload_date, file_name, file_id, record_flag
+  </sql>
+  <select id="selectByExample" parameterType="org.quetzaco.archives.model.FileExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from files
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from files
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from files
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.FileExample">
+    delete from files
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.Files">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('file_id_seq')
+    </selectKey>
+    insert into files (id, doc_id, file_type, 
+      location, upload_date, file_name, 
+      file_id, record_flag)
+    values (#{id,jdbcType=BIGINT}, #{docId,jdbcType=VARCHAR}, #{fileType,jdbcType=VARCHAR}, 
+      #{location,jdbcType=VARCHAR}, #{uploadDate,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
+      #{fileId,jdbcType=VARCHAR}, #{recordFlag,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Files">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('file_id_seq')
+    </selectKey>
+    insert into files
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="docId != null">
+        doc_id,
+      </if>
+      <if test="fileType != null">
+        file_type,
+      </if>
+      <if test="location != null">
+        location,
+      </if>
+      <if test="uploadDate != null">
+        upload_date,
+      </if>
+      <if test="fileName != null">
+        file_name,
+      </if>
+      <if test="fileId != null">
+        file_id,
+      </if>
+      <if test="recordFlag != null">
+        record_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id,jdbcType=BIGINT},
+      <if test="docId != null">
+        #{docId,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null">
+        #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="uploadDate != null">
+        #{uploadDate,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null">
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileId != null">
+        #{fileId,jdbcType=VARCHAR},
+      </if>
+      <if test="recordFlag != null">
+        #{recordFlag,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.FileExample" resultType="java.lang.Long">
+    select count(*) from files
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update files
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.docId != null">
+        doc_id = #{record.docId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileType != null">
+        file_type = #{record.fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.location != null">
+        location = #{record.location,jdbcType=VARCHAR},
+      </if>
+      <if test="record.uploadDate != null">
+        upload_date = #{record.uploadDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileName != null">
+        file_name = #{record.fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileId != null">
+        file_id = #{record.fileId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recordFlag != null">
+        record_flag = #{record.recordFlag,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update files
+    set id = #{record.id,jdbcType=BIGINT},
+      doc_id = #{record.docId,jdbcType=VARCHAR},
+      file_type = #{record.fileType,jdbcType=VARCHAR},
+      location = #{record.location,jdbcType=VARCHAR},
+      upload_date = #{record.uploadDate,jdbcType=VARCHAR},
+      file_name = #{record.fileName,jdbcType=VARCHAR},
+      file_id = #{record.fileId,jdbcType=VARCHAR},
+      record_flag = #{record.recordFlag,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.Files">
+    update files
+    <set>
+      <if test="docId != null">
+        doc_id = #{docId,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null">
+        file_type = #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        location = #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="uploadDate != null">
+        upload_date = #{uploadDate,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null">
+        file_name = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileId != null">
+        file_id = #{fileId,jdbcType=VARCHAR},
+      </if>
+      <if test="recordFlag != null">
+        record_flag = #{recordFlag,jdbcType=BIT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.Files">
+    update files
+    set doc_id = #{docId,jdbcType=VARCHAR},
+      file_type = #{fileType,jdbcType=VARCHAR},
+      location = #{location,jdbcType=VARCHAR},
+      upload_date = #{uploadDate,jdbcType=VARCHAR},
+      file_name = #{fileName,jdbcType=VARCHAR},
+      file_id = #{fileId,jdbcType=VARCHAR},
+      record_flag = #{recordFlag,jdbcType=BIT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectFile"  resultType="org.quetzaco.archives.model.Files" parameterType="java.lang.String">
+    select
+    <include refid="Base_Column_List"/>
+    from files where doc_id = #{docId} and record_flag = true
+  </select>
+  <insert id="uploadFiles" parameterType="org.quetzaco.archives.model.Files">
+    insert into files (doc_id,file_type,location,upload_date,file_name,file_id)
+    values (#{docId},#{fileType},#{location},#{uploadDate},#{fileName},#{fileId})
+  </insert>
+  <delete id="deleteFile" parameterType="java.lang.Long">
+    DELETE FROM files WHERE file_id = #{fileId}
+  </delete>
+
+  <update id="updateMainByDocId" parameterType="java.lang.String">
+    UPDATE files SET record_flag = FALSE WHERE doc_id = #{docId} and file_type ='main'
+  </update>
+
+  <update id="updateFileType">
+    UPDATE files SET file_type = #{doc} where file_Type = #{oa};
+  </update>
+
+  <update id="updateFile" parameterType="java.lang.String">
+    UPDATE files set record_flag = FALSE where file_id = #{fileId}
+  </update>
+</mapper>

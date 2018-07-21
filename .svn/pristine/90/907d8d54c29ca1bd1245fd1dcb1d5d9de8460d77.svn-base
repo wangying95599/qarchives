@@ -1,0 +1,158 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.quetzaco.archives.application.biz.*;
+import org.quetzaco.archives.application.dao.FlowFormDestoryMapper;
+import org.quetzaco.archives.model.FlowFormDestory;
+import org.quetzaco.archives.model.FlowNodeHistories;
+import org.quetzaco.archives.model.Flows;
+import org.quetzaco.archives.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @Description Created by dong on 2017/7/21.
+ */
+@Service
+public class FlowDestoryServiceImpl implements FlowDestoryService {
+
+  @Autowired
+  FlowFormDestoryMapper flowFormDestoryMapper;
+  @Autowired
+  FlowService flowService;
+  @Autowired
+  DocumentService documentService;
+  @Autowired
+  BoxService boxService;
+  @Autowired
+  RecordService recordService;
+  @Autowired
+  ArchiveService archiveService;
+  @Autowired
+  RoleService roleService;
+
+
+  @Override
+  @Transactional
+  public void start(FlowFormDestory flowFormDestory) {
+   // flowService.start(flowFormDestory.getFlows());
+    Long flowId = flowService.start(flowFormDestory.getFlows());
+    flowFormDestory.setFlowId(flowId);
+    flowFormDestoryMapper.insert(flowFormDestory);
+  }
+
+  @Override
+  public PageInfo selectStartByMeList(User contextUser, int pageNum, int pageSize) {
+    PageHelper.startPage(pageNum, pageSize);
+    return new PageInfo(flowFormDestoryMapper.selectStartByMeList(contextUser));
+  }
+
+  @Override
+  public PageInfo getProcessByMe(Long usrId, Boolean isProcessed, int pageNum, int pageSize) {
+    PageHelper.startPage(pageNum, pageSize);
+      return new PageInfo(flowFormDestoryMapper.selectProcessByMe(usrId, isProcessed));
+  }
+
+  @Override
+  public FlowFormDestory getFormDetail(FlowFormDestory flowFormDestory) {
+    setLendingModel(flowFormDestory);
+    return flowFormDestory;
+  }
+
+  //查询借阅文档信息 document/archive/record/box
+  //flowFormLending.setLendingModel();
+  private void setLendingModel(FlowFormDestory flowFormDestory) {
+    switch (flowFormDestory.getReelType()) {
+      case "document":
+        flowFormDestory.setDestoryModel(
+            documentService.selectDocumentByFileCode(flowFormDestory.getReelNum()));
+        break;
+      case "archive":
+        flowFormDestory
+            .setDestoryModel(archiveService.selectByFileCode(flowFormDestory.getReelNum()));
+        break;
+      case "record":
+          flowFormDestory.setDestoryModel(recordService.selectByFileCode(flowFormDestory.getReelNum()));
+        break;
+      case "box":
+          flowFormDestory.setDestoryModel(boxService.selectByFileCode(flowFormDestory.getReelNum()));
+        break;
+    }
+  }
+
+  @Override
+  public FlowFormDestory getFlowHistory(FlowFormDestory flowFormDestory) {
+    Flows flows = null;
+    if (flowFormDestory.getFlows() != null && flowFormDestory.getFlows().getId() != null) {
+      flows = flowFormDestory.getFlows();
+    } else {
+      flows = new Flows();
+      flows.setId(flowFormDestory.getFlowId());
+      flows = flowService.detail(flows);
+    }
+
+    flowFormDestory.setFlows(flowService.history(flows));
+    return flowFormDestory;
+  }
+
+  @Transactional
+  @Override
+  public void proccess(FlowFormDestory flowFormDestory, FlowNodeHistories flowNodeHistories) {
+    if (flowFormDestory == null || flowFormDestory.getFlows() == null) {
+      throw new RuntimeException(" flowFormLending is null or empty ");
+    }
+
+    flowService.proccess(flowFormDestory.getFlows(), flowNodeHistories);
+  }
+
+  @Transactional
+  @Override
+  public void end(FlowFormDestory flowFormDestory, FlowNodeHistories flowNodeHistories) {
+    if (flowFormDestory == null || flowFormDestory.getFlows() == null) {
+      throw new RuntimeException(" flowFormLending is null or empty ");
+    }
+    flowService.end(flowFormDestory.getFlows(), flowNodeHistories);
+  }
+
+
+  @Override
+  public Map<String, List<User>> getAskUsers() {
+    List<User> list1= roleService.selectRoles(10L);
+    List<User> list2= roleService.selectRoles(9L);
+    List<User> list3= roleService.selectRoles(8L);
+    Map<String, List<User>> map = new HashMap<String, List<User>>();
+    map.put("reel", list1);
+    map.put("file", list2);
+    map.put("lead",list3);
+    return map;
+  }
+
+    @Override
+    public FlowFormDestory getFlowDestroyDetail(FlowFormDestory flowFormDestory) {
+        setLendingModel(flowFormDestory);
+        return flowFormDestory;
+    }
+
+    @Override
+    public List<Map> getDeletedFlow(Long deptId) {
+        List<Map> maps = flowFormDestoryMapper.getDeletedFlow(deptId);
+        for (Map map : maps) {
+            String reelType = (String) map.get("reelType");
+            if ("document".equals(reelType))
+                map.put("reelType", "文件");
+            else if ("record".equals(reelType))
+                map.put("reelType", "案卷");
+            else if ("archive".equals(reelType))
+                map.put("reelType", "档案");
+            else
+                map.put("reelType", "全宗");
+        }
+        return maps;
+    }
+}

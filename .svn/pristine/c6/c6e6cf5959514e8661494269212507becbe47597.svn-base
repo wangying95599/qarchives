@@ -1,0 +1,641 @@
+// var deptId = 8;
+// var usrId = 15;
+<!--<tr>-->
+// <!--<th>题名</th>-->
+// <!--<th>档号</th>-->
+// <!--<th>责任人</th>-->
+// <!--<th>发起时间</th>-->
+// <!--<th>截止时间</th>-->
+// <!--</tr>-->
+window.operateEvents = {
+    'click .remove': function (e, value, row, index) {
+        $('#destroyAskUsers').bootstrapTable('remove', {
+            field: 'id',
+            values: [row.id]
+        });
+    },
+    'click #docDelete': function (e, value, row, index) {
+        // alert(row.reelType+"    "+row.reelNum + "  r  "+row.result);
+        var confirm = window.confirm("您确定要销毁  " + row.title + "  吗");
+        if (!confirm)
+            return;
+        $.each(row, function (key, value) {
+            console.log("key: " + key + "  value:" + value);
+        })
+        var data = {reelNum: row.reelNum, reelType: row.reelType, flowId: row.flowId}
+        $.ajax({
+            type: 'POST',
+            url: '/document/destroy',
+            data: data,
+            success: function (json) {
+                // alert("destroy success");
+                getFlowDestory();
+            }
+        })
+    }
+};
+
+var destoryCol=[{"field":"flowId","title":"id"},{"field":"reelType","title":"类型"},{"field":"status","checkbox":true},{"field":"title","title":"题名"},{"field":"reelNum","title":"档号"},
+    {"field": "destory_user", "title": "责任人"},
+    {"field":"createdDt","title":"发起时间"},
+    {"field": "deadLine", "title": "截止时间"}, {
+        "field": "Button",
+        "title": "操作",
+        events: operateEvents,
+        formatter: AddRemoveButton,
+        align: 'center'
+    }, {"field": "result", "title": "结果", visible: false}];
+
+function commitDestoryFlow() {
+
+        var title = $("#destoryTitle").val();
+        var reelName = $("#destoryReelName").val();
+        var size = $("#destorySize").val();
+        var time = $("#destoryTime").val();
+        var destoryUser = $("#destoryUser").val();
+    var superviseUser = $("#superviseUser1").val();
+        var description = $("#destoryDescription").val();
+        var reelType = $('#reeltype1 option:selected').val();
+    // var users = $('#destroyAskUsers').bootstrapTable('getData');
+    // var ids=[];
+    // for(var i = 0 ;i<users.length;i++){
+    //     ids.push(users[i].id);
+    // }
+    var ids = $.map($('#destroyAskUsers').bootstrapTable('getData'), function (row) {
+        return row.id;
+    });
+    console.log("assigneeid         " + ids);
+    if (ids.length == 0) {
+        alert("请选择审批用户");
+        return;
+    }
+
+        if(title==""){
+            alert("请输入销毁资料名称");
+            return;
+        }
+
+        if(reelName==""){
+            alert("请输入销毁资料档号");
+            return;
+        }
+        if (size==""){
+            alert("请输入销毁资料份数");
+            return;
+        }
+        if(time==""){
+            alert("请输入销毁资料时间");
+            return;
+        }
+
+        if(destoryUser==""){
+            alert("请输入销毁人");
+            return;
+        }
+
+        if(superviseUser==""){
+            alert("请输入监督人");
+            return;
+        }
+        console.log("宋建强"+superviseUser);
+
+    $.axx({
+        type: 'POST',
+        url: "/flowLending/isvalid",
+        data: {reelNum: reelName, reelType: reelType},
+        success: function (json) {
+            var isvalid = json.content;
+            if (!isvalid) {
+                $('#vaildDestroy').html("档号或类型输入错误").removeClass("hidden");
+                return
+            }
+
+            var data = {
+                "title": title, "reelNum": reelName, "reelSize": size,
+                "destoryUser": destoryUser, "superviseUser": superviseUser, "description": description,
+                "assigneeId": ids, "assigneeBy": usrId, "deptId": deptId, "deadLine": time, "reelType": reelType
+            };
+            $.ajax({
+                type: "POST",
+                url: "flowDestory",
+                data: data,
+                // dataType:"json",
+                success: function (json) {
+                    // console.log("经理的加肥加大");
+                    // alert("destory success");
+                    $("#xiaoHui").modal("hide");
+                    getFlowDestory();
+                }
+
+            });
+        }
+    });
+}
+
+$('#xiaoHui input').focus(function () {
+    $('#vaildDestroy').addClass("hidden");
+})
+
+var destroyProcessByMeCol = [{"field": "status", "checkbox": true}, {"field": "title", "title": "题名"},
+    {"field": "reelNum", "title": "档号"}, {"field": "destoryUser", "title": "责任人"}, {
+        "field": "flows.createdDt",
+        "title": "发起时间"
+    }, {"field": "flows.deadLine", "title": "截止时间"}, {"field": "flowId", "title": "id"},
+    {"field": "reelType", "title": "类型"}];
+
+function getoldFlowDestory(mehtod, isProcessed, queryparams) {
+    $('.pagination').addClass("hidden");
+    var $table = $('#oldFeiQiByMeTable');
+    var url = "/flowDestroy/" + usrId + "/process/" + isProcessed;
+    var column = destroyProcessByMeCol;
+    loadingBootstrapTable(mehtod, $table, url, column, queryparams);
+    $table.bootstrapTable("hideColumn", "flowId");
+    $table.bootstrapTable("hideColumn", "reelType");
+
+    /*if(queryparams == searchQueryParams){
+        $('#searchProcessByme').modal('hide');
+    }*/
+
+    //如果未审批的话  切换toolbar
+    if (!isProcessed) {
+        $('#oldFeiQiByMeTable').unbind('click-row.bs.table');
+        $('#oldFeiQiByMeTable').one('click-row.bs.table', function (row, $element) {
+            /*$.each($element,function (key,value) {
+                console.log("11   "+key + "     " + value);
+            })*/
+            $('#delShenPi').removeClass("hidden").hide().fadeIn(500).siblings().addClass("hidden");
+            getFileFromDestoryFlow($element);
+        });
+    } else {
+        $('#oldFeiQiByMeTable').unbind('click-row.bs.table');
+    }
+}
+
+function getleftDestroyTable() {
+    getoldFlowDestory('get', false, queryparams);
+}
+
+function getProcessedDesTable() {
+    getoldFlowDestory('get', true, queryparams);
+}
+
+function getFlowDestory(){
+    $('.pagination').addClass("hidden");
+    console.log("songjianqiang");
+    $("#sendDestoryFlow").bootstrapTable('destroy');
+    $("#sendDestoryFlow").bootstrapTable({
+        //contentType : "application/x-www-form-urlencoded",
+        //是否显示行间隔色
+        striped: true,
+        //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        cache: false,
+        //是否显示分页（*）
+        pagination: true,
+        //是否启用排序
+        sortable: false,
+        //排序方式
+        sortOrder: "asc",
+        //初始化加载第一页，默认第一页
+        pageNumber:1,
+        //每页的记录行数（*）
+        pageSize: 10,
+        //可供选择的每页的行数（*）
+        pageList: [10, 25, 50, 100],
+        //分页方式：client客户端分页，server服务端分页（*）
+        //sidePagination: "server",
+        //是否显示搜索
+        search: false,
+        //Enable the strict search.
+        strictSearch: true,
+        queryParamsType:'',
+        // totalField: 'total',
+        // dataField: 'list',
+        singleSelect: true,
+
+        editable: true,
+
+       //pagination: true,
+        /* //默认值为 'limit',传给服务端的参数为：limit, offset, search, sort, order Else
+       //queryParamsType:'',
+       //查询参数,每次调用是会带上这个参数，可自定义
+       queryParams: function (params) {
+         var subcompany = $('#subcompany option:selected').val();
+         var name = $('#name').val();
+         return {
+           pageNumber: params.offset + 1,
+           pageSize: params.limit,
+           companyId: subcompany,
+           name: name
+         };
+       },*/
+        // showRefresh: true,
+        clickToSelect: true,
+       // uniqueId: "flowId",
+        columns: destoryCol
+    });
+  //  $('#sendDestoryFlow').bootstrapTable("hideColumn", "flowId");
+    $('#sendDestoryFlow').bootstrapTable("hideColumn","reelType");
+    $.axx({
+        type:"GET",
+        url:"flowDestorying/start/"+usrId,
+        data:{
+            "offset":1,
+            "limit":10
+        },
+        dataType:"json",
+        success:function (json) {
+            console.log("songjidnfjd");
+            $('#sendDestoryFlow').bootstrapTable('load', json.content.list);
+            $('#sendDestoryFlow').bootstrapTable('hideColumn', "flowId");
+            /*
+                        $('#sendDestoryFlow>tbody').on('click','tr',function(){
+                            console.log("宋纪强");
+                            $('#delShenPi').removeClass("hidden").hide().fadeIn(500).siblings().addClass("hidden");
+                            getFileFromDestoryFlow($('#sendDestoryFlow'));
+                        });
+            */
+        },
+
+        error:function () {
+
+        }
+    });
+}
+//(@Param("deptId")Long deptId ,@Param("reelNum")String reelNum,
+//@Param("reelType")String reelType,@Param("flowId")Long flowId)
+//获取销毁流程下的文件(processedBy me0
+function getFileFromDestoryFlow($element) {
+    // var select_tr = $table.bootstrapTable('getSelections');
+    $("#destoryTbody").empty();
+    var data ={
+        flowId: $element.flowId,
+        reelNum: $element.reelNum,
+        reelType: $element.reelType
+    };
+    $.axx({
+       type:"POST",
+        url: "/flowDestroy/details",
+        data:data,
+        dataType:"json",
+        success:function (json) {
+            // $("#destoryTbody").empty();
+            var model = json.content;
+            if (model != null) {
+                console.log("reel title" + $element.createdDt)
+            }
+            var viewReelType = model.reelType == "document" ? "文件" : model.reelType == "record" ? "案卷" : model.reelType == "archive" ? "档案" : "全宗";
+            var title = model.reelType == "document" ? model.destoryModel.fileName : model.destoryModel.title;
+            $("#destoryTbody").append(
+                '<tr>'+
+                '<td>' + title + '</td>' +
+                '<td>' + $element.reelNum + '</td>' +
+                '<td>' + $element.destoryUser + '</td>' +
+                '<td>' + $element.flows.createdDt + '</td>' +
+                '<td>' + $element.flows.deadLine + '</td>' +
+                '<td>' + viewReelType + '</td>' +
+                '<td class="hidden" id="hidden_td1">' + $element.flowId + '</td>' +
+                '<td class="hidden" id="hidden_depId1">' + model.destoryModel.deptId + '</td>' +
+                '</tr>'
+            );
+            fileLendingInfo(model.destoryModel, model.reelType);
+            showFlowFormByReelType(model.reelType);
+        }
+    });
+}
+
+// $('#sendDestoryFlow').on('dbl-click-row.bs.table',function (e, row, $element) {
+//     $('#delShenPi').removeClass("hidden").hide().fadeIn(500).siblings("table").addClass("hidden");
+//     console.log("rew"+row.roleName);
+// })
+
+function getDesDetailsStartByme() {
+    getDetailsStartByme($('#sendDestoryFlow'), "/flowDestroy/details", 2);
+}
+
+//查看信息(destroy start by me)
+function getDetailsStartByme($table, url, type) {
+    var select_tr = $table.bootstrapTable('getSelections');
+    if (select_tr.length != 1) {
+        alert("请选择一个记录");
+        return
+    }
+
+    if (select_tr[0].result == "DELETED") {
+        alert("该文件已删除")
+        return
+    }
+
+    // $('#flowForm input').val("");
+    var data = {
+        flowId: select_tr[0].flowId,
+        reelNum: select_tr[0].reelNum,
+        reelType: select_tr[0].reelType
+    };
+
+    $.axx({
+        type: "POST",
+        url: url,
+        data: data,
+        dataType: "json",
+        success: function (json) {
+            var model;
+            if (type == 1) {
+                model = json.content.flowFormLending;
+                if (!model.lendingModel) {
+                    alert("文件已删除");
+                    return;
+                }
+            }
+            if (type == 2) {
+                model = json.content;
+                if (!model.destoryModel) {
+                    alert("文件已删除");
+                    return;
+                }
+            }
+
+            fileLendingInfo(type == 1 ? model.lendingModel : model.destoryModel, model.reelType);
+            showFlowFormByReelType(model.reelType);
+            $('#flowForm').modal('show');
+        }
+    })
+
+
+}
+
+//销毁流程批准
+function endDestroyFlow(action, description) {
+    var flowId = document.getElementById('hidden_td1').innerHTML;
+    var deptId = document.getElementById('hidden_depId1').innerHTML;
+    var data = {
+        usrId:usrId,
+        description:description,
+        flowId:flowId,
+        deptId:deptId,
+        action:action
+    }
+    $.ajax({
+        type:'POST',
+        url: "/flowDestroy/endSwitch/",
+        data:data,
+        success:function (json) {
+            alert("审批成功");
+            $('#flow-modal-description').val("");
+            $('#shenpiyijian1').modal("hide");
+            getProcessedDesTable();
+            $('#oldFeiQiByMe').removeClass("hidden").hide().fadeIn(500).siblings().addClass("hidden");
+
+        }
+    });
+}
+
+//销毁流程请求审批
+function askForDestroy() {
+    var flowId = document.getElementById('hidden_td1').innerHTML;
+    var checks = $.map($('#destroyAskUsers1').bootstrapTable('getData'), function (row) {
+        return row.id;
+    });
+
+    console.log("checks  " + checks);
+    console.log("flowId  " + flowId);
+    if(checks.length==0){
+        $('#askDestorySure').removeClass("hidden");
+        return;
+    }
+
+    var data ={
+        checks:checks,
+        usrId:usrId,
+        flowId:flowId
+    }
+
+    $.axx({
+        type:'POST',
+        url: "/flowDestroy/process",
+        data:data,
+        success:function (json) {
+            alert(json.content);
+            $('#selectDetoryFlow').modal('hide');
+           // getFlowProcessByme('get',true,queryparams);
+            getProcessedDesTable();
+            $('#sendDestoryFlow').removeClass("hidden").hide().fadeIn(500).siblings().addClass("hidden");
+        }
+    });
+}
+
+
+$('#delPerson').on('show.bs.modal', function (event) {
+    getDestroyTree();
+    var button = $(event.relatedTarget) // 触发事件的按钮
+    var recipient = button.data('whatever');
+    $('#delPersonSubmit').one('click', function () {
+        if (recipient == 1)
+            addDestroyUser($('#destroyAskUsers'));
+        if (recipient == 2)
+            addDestroyUser($('#destroyAskUsers1'));
+    });
+
+});
+
+$('#selectDetoryFlow').on('show.bs.modal', function (event) {
+    var column = [{field: "name", title: "用户名"}, {field: "id", title: "id"}, {
+        field: "operate",
+        title: "remove",
+        events: operateEvents1,
+        formatter: operateFormatter
+    }]
+    createDestroyAskTable($('#destroyAskUsers1'), column);
+})
+
+$('#selectDetoryFlow').on('hidden.bs.modal', function (event) {
+
+})
+
+$('#xiaoHui').on('show.bs.modal', function (event) {
+    var column = [{field: "name", title: "用户名"}, {field: "id", title: "id"}, {
+        field: "operate",
+        title: "remove",
+        events: operateEvents,
+        formatter: operateFormatter
+    }]
+    createDestroyAskTable($('#destroyAskUsers'), column);
+})
+
+$('#xiaoHui').on('hidden.bs.modal', function (event) {
+    $(this).find("input").val("");
+})
+
+function createDestroyAskTable($table, column) {
+    $table.bootstrapTable('destroy');
+    $table.bootstrapTable({editable: true, columns: column, showHeader: false});
+    $table.bootstrapTable('hideColumn', 'id');
+
+    console.log("destroyAskUsers                        create")
+}
+
+function operateFormatter(value, row, index) {
+    return [
+        '<a class="remove" href="javascript:void(0)" title="Remove">',
+        '<i class="glyphicon glyphicon-remove"></i>',
+        '</a>'
+    ].join('');
+}
+
+function AddRemoveButton(value, row, index) {
+
+    if (row.result == "") {
+        return "正在审批中";
+    }
+    if (row.result == "ACCEPT") {
+        return [
+            // '<button id="docDelete" type="button" class ="btn btn-danger">销毁</button>'
+            '<a id="docDelete"><u>销毁</u></a>'
+        ].join("")
+    }
+    if (row.result == "REJECT") {
+        return "否决";
+    }
+    if (row.result == "DELETED")
+        return "已删除"
+    return "正在审批中";
+}
+
+
+window.operateEvents1 = {
+    'click .remove': function (e, value, row, index) {
+        $('#destroyAskUsers1').bootstrapTable('remove', {
+            field: 'id',
+            values: [row.id]
+        });
+    }
+};
+
+function addDestroyUser($table) {
+    var select_users = $('#destoryTableId').bootstrapTable('getSelections');
+    var array = [];
+    for (var i = 0; i < select_users.length; i++) {
+        console.log(select_users[i].id);
+        console.log(select_users[i].name);
+        var row = {name: select_users[i].name, id: select_users[i].id};
+        array.push(row)
+    }
+
+    $('#delPerson').modal('hide');
+    $table.bootstrapTable("append", array);
+    $('#destoryTableId').bootstrapTable("uncheckAll");
+
+}
+
+//获取审批用户模态框的左侧部门树  及右侧的用户列表
+function getDestroyTree() {
+    $.axx({
+        url: "depts",
+        type: 'GET',
+        data: {},
+        success: function (json) {
+            var models = json.content;
+            destroyTree($('#destoryTreeId'), models);
+        }
+    })
+}
+
+function dept(text, deptId, usrId) {
+    this.text = text;
+    this.deptId = deptId;
+    this.usrId = usrId;
+    this.nodes = [];
+}
+
+function destroyTree($tree, data) {
+    var tree = [];
+
+    for (var i = 0; i < data.length; i++) {
+        tree.push(new dept(data[i].name, data[i].id, usrId));
+    }
+    console.log("tree   " + tree);
+    var orgNa = {
+        bootstrap2: false,
+        // expandIcon: 'glyphicon glyphicon-plus',
+        emptyIcon: "glyphicon glyphicon-stop ",
+        showTags: true,
+        levels: 0,
+        enableLinks: true,
+        selectedIcon: "glyphicon glyphicon-map-marker",
+        showBorder: false,
+        data: tree,
+
+    }
+    $tree.treeview(orgNa);
+
+    $tree.on('nodeSelected', function (event, data) {
+        var data1 = data.deptId;
+        var column = [{"field": "status", "checkbox": true}, {"field": "name", "title": "用户名"}, {
+            "field": "id",
+            "title": "id"
+        }];
+        createDestroyTable($('#destoryTableId'), column);
+        getDestroyUserByDept($('#destoryTableId'), data1);
+    })
+}
+
+function createDestroyTable($table, $column) {
+    $table.bootstrapTable('destroy');
+    $table.bootstrapTable({
+        search: true, pagination: true, pageSize: 10, editable: true, clickToSelect: true,
+        columns: $column,
+    });
+}
+
+function getDestroyUserByDept($table, deptId) {
+    $.axx({
+        url: "depts/" + deptId + "/users",
+        type: "GET",
+        data: {},
+        success: function (json) {
+            $table.bootstrapTable("load", json.content);
+            $table.bootstrapTable("hideColumn", "id");
+        }
+    })
+}
+
+//已销毁
+var deletedCol = [{field: "title", title: "题名"}, {field: "reelNum", title: "档号"}, {
+    field: "reelType",
+    title: "类型"
+}, {field: "destroyUser", title: "责任人"},
+    {field: "deadLine", title: "销毁时间"}, {field: "name", title: "销毁人"}];
+
+function getDeletedTable() {
+    $('.pagination').addClass()
+    console.log("deletedddddddddd")
+    var url = "/flowDestroy/deleted/" + deptId;
+    $('#oldFeiQi').bootstrapTable('destroy');
+    $('#oldFeiQi').bootstrapTable({
+        method: 'get', url: url, columns: deletedCol, search: true, pagination: true,
+        //是否启用排序
+        sortable: false, showRefresh: true, responseHandler: function (result) {
+            return result.content;
+        }
+    });
+    $('#oldFeiQiDiv').removeClass("hidden").hide().fadeIn(500).siblings().addClass("hidden");
+}
+
+$('.depApproUser').on('change','input',function(){
+    console.log("111111111");
+    $('#askSure').addClass("hidden");
+});
+
+$('.fileDepApproUser').on('change','input',function(){
+    console.log("111111111");
+    $('#askSure').addClass("hidden");
+});
+
+$('.companyLead').on('change','input',function(){
+    console.log("111111111");
+    $('#askSure').addClass("hidden");
+});
+
+$('#selectDetoryId').on('click', function () {
+    $('#askDestorySure').addClass("hidden");
+})
+

@@ -1,0 +1,72 @@
+package org.quetzaco.archives.web.restful;
+
+import java.util.List;
+
+import org.quetzaco.archives.application.biz.FolderService;
+import org.quetzaco.archives.model.Dept;
+import org.quetzaco.archives.model.Folder;
+import org.quetzaco.archives.model.User;
+import org.quetzaco.archives.model.api.APIEntity;
+import org.quetzaco.archives.web.config.session.WebSecurityConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.SessionAttribute;
+
+@RestController
+public class FolderController extends BaseRestContoller {
+	@Autowired
+	FolderService folderService;
+
+	@RequestMapping(value = "folder/create", method = RequestMethod.POST)
+	public HttpEntity<APIEntity> create(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user,
+			@RequestBody Folder folder) {
+		folderService.createFolder(folder);
+		return buildEntity(APIEntity.create(null), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "folder/all", method = RequestMethod.GET)
+	public HttpEntity<APIEntity> getAll(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user) {
+		List<Folder> all = folderService.getAllFolder();
+		return buildEntity(APIEntity.create(all), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "folder/{id}", method = RequestMethod.GET)
+	public HttpEntity<APIEntity> getFolderById(
+			@PathVariable String id) {
+		Folder folder = folderService.getFolder(id);
+		return buildEntity(APIEntity.create(folder), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "folder", method = RequestMethod.PUT)
+	public HttpEntity<APIEntity> updateFolder(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user,
+			@RequestBody Folder folder) {
+		Folder updatedFolder = folderService.updateFolder(folder);
+		return buildEntity(APIEntity.create(updatedFolder), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "folder/delete", method = RequestMethod.DELETE)
+	public HttpEntity<APIEntity> deleteFolders(@SessionAttribute(WebSecurityConfig.SESSION_KEY) User user,
+			@RequestBody List<String> ids) {
+		for (String id : ids) {
+			folderService.deleteFolder(id);
+		}
+		return buildEntity(APIEntity.create(null), HttpStatus.OK);
+	}
+	
+	//根据用户得到 后台部门列表
+	@RequestMapping(value = "/folder/child/{usrId}/{folderId}",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<List<Folder>>>  getChildByFolder(@PathVariable Long usrId,@PathVariable String folderId){
+	  return buildEntity(APIEntity.create(folderService.getFoldersByUser(usrId,folderId)),HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/folder/model/{usrId}/{folderId}",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<List<Folder>>>  getModelByFolder(@PathVariable Long usrId,@PathVariable String folderId){
+	  return buildEntity(APIEntity.create(folderService.getFoldersByUser(usrId,folderId)),HttpStatus.OK);
+	}
+}

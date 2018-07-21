@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.MainDocMapper">
+    <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.MainDoc">
+        <result column="mid" jdbcType="VARCHAR" property="mid"/>
+        <result column="doc_name" jdbcType="VARCHAR" property="docName"/>
+        <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt"/>
+        <result column="update_flag" jdbcType="VARCHAR" property="updateFlag"/>
+        <result column="archive_login_name" jdbcType="VARCHAR" property="archiveLoginName"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+    mid, doc_name, created_dt, update_flag, archive_login_name
+  </sql>
+    <select id="selectByExample" parameterType="org.quetzaco.archives.model.MainDocExample" resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from main_doc
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.MainDocExample">
+        delete from main_doc
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="org.quetzaco.archives.model.MainDoc">
+    insert into main_doc (mid, doc_name, created_dt, 
+      update_flag, archive_login_name)
+    values (#{mid,jdbcType=VARCHAR}, #{docName,jdbcType=VARCHAR}, #{createdDt,jdbcType=TIMESTAMP}, 
+      #{updateFlag,jdbcType=VARCHAR}, #{archiveLoginName,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="org.quetzaco.archives.model.MainDoc">
+        insert into main_doc
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mid != null">
+                mid,
+            </if>
+            <if test="docName != null">
+                doc_name,
+            </if>
+            <if test="createdDt != null">
+                created_dt,
+            </if>
+            <if test="updateFlag != null">
+                update_flag,
+            </if>
+            <if test="archiveLoginName != null">
+                archive_login_name,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mid != null">
+                #{mid,jdbcType=VARCHAR},
+            </if>
+            <if test="docName != null">
+                #{docName,jdbcType=VARCHAR},
+            </if>
+            <if test="createdDt != null">
+                #{createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateFlag != null">
+                #{updateFlag,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveLoginName != null">
+                #{archiveLoginName,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="org.quetzaco.archives.model.MainDocExample" resultType="java.lang.Long">
+        select count(*) from main_doc
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update main_doc
+        <set>
+            <if test="record.mid != null">
+                mid = #{record.mid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.docName != null">
+                doc_name = #{record.docName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createdDt != null">
+                created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateFlag != null">
+                update_flag = #{record.updateFlag,jdbcType=VARCHAR},
+            </if>
+            <if test="record.archiveLoginName != null">
+                archive_login_name = #{record.archiveLoginName,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update main_doc
+        set mid = #{record.mid,jdbcType=VARCHAR},
+        doc_name = #{record.docName,jdbcType=VARCHAR},
+        created_dt = #{record.createdDt,jdbcType=TIMESTAMP},
+        update_flag = #{record.updateFlag,jdbcType=VARCHAR},
+        archive_login_name = #{record.archiveLoginName,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+
+    <insert id="insertToDocs" parameterType="map">
+        INSERT INTO
+        documents(file_name,user_id,dept_id,title,document_creatime,document_local_id,data_source,before_num)
+        select doc_name,${usrId},${deptId},doc_name,created_dt,a.mid,'OA',(
+        CASE when form_data_type IN (
+        '昆明航公司收文',
+        '昆明航工会发文',
+        '昆明航党委发文',
+        '昆明航团委发文',
+        '昆明航公司发文'
+        ) THEN
+        form_data_value
+        WHEN form_data_type in (
+        '昆明航团委阅批件',
+        '昆明航党委阅批件') THEN form_data_type
+        ELSE form_data_type||form_data_value
+        END
+        ) AS before_num from
+        (select doc_name,mid,created_dt from main_doc where update_flag='OA') a LEFT JOIN
+        (select mid,form_data_value,form_data_type from oa_history_form_data where form_data_name='document_number') b
+        on a.mid=b.mid
+  </insert>
+
+    <update id="syncAppendies">
+      update documents b set appendices = (SELECT num from (select mid,count(1) as num from doc_files where update_flag='oa' GROUP BY mid) a where b.document_local_id = a.mid)
+    </update>
+</mapper>

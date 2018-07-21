@@ -1,0 +1,175 @@
+package org.quetzaco.archives.application.biz.sync.oa.Impl;
+
+import org.quetzaco.archives.application.biz.sync.oa.OADocService;
+import org.quetzaco.archives.application.dao.DocFilesMapper;
+import org.quetzaco.archives.application.dao.FileMapper;
+import org.quetzaco.archives.application.dao.MainDocMapper;
+import org.quetzaco.archives.model.DocFiles;
+import org.quetzaco.archives.model.DocFilesExample;
+import org.quetzaco.archives.model.MainDoc;
+import org.quetzaco.archives.model.MainDocExample;
+import org.quetzaco.archives.util.runnable.TaskConsumer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class OADocServiceImpl implements OADocService {
+
+    @Autowired
+    MainDocMapper mainDocMapper;
+    @Autowired
+    DocFilesMapper docFilesMapper;
+    @Autowired
+    FileMapper fileMapper;
+    @Value("${quetzaco.archive.config.file-storage}")
+    private String prefixPath;
+    @Value("${oa.prefix}")
+    private String oaPrefixPath;
+    @Autowired
+    RedisTemplate redisTemplate;
+    @Autowired
+    TaskConsumer taskConsumer;
+
+    @Value("${CONVERT_DOCUMENT_FORMAT}")
+    String docFormat;
+    @Value("${kmhk.userId}")
+    Long usrId;
+    @Value("${kmhk.deptId}")
+    Long deptId;
+
+    @Override
+    public int syncDoc() {
+        int a = mainDocMapper.insertToDocs(usrId, deptId);
+        MainDoc mainDoc = new MainDoc();
+        mainDoc.setUpdateFlag("ED");
+        MainDocExample mainDocExample = new MainDocExample();
+        mainDocExample.createCriteria().andUpdateFlagEqualTo("OA");
+        mainDocMapper.updateByExampleSelective(mainDoc, mainDocExample);
+        mainDocMapper.syncAppendies();
+        return a;
+    }
+
+    @Override
+    public int syncFiles() {
+        int b = docFilesMapper.insertToFiles();
+        copyFiles(getOaLocation());
+        DocFiles docFiles = new DocFiles();
+        docFiles.setUpdateFlag("ED");
+        DocFilesExample docFilesExample = new DocFilesExample();
+        docFilesExample.createCriteria().andUpdateFlagEqualTo("oa");
+        docFilesMapper.updateByExampleSelective(docFiles, docFilesExample);
+
+        fileMapper.updateFileType("accessory", "attachment");
+        fileMapper.updateFileType("main", "document");
+
+        return b;
+    }
+
+    public void copyFiles(List<DocFiles> docFiles) {
+        int pdfCount = 1;
+        redisTemplate.opsForValue().set("isCopyComplete", false);
+        redisTemplate.delete("task-queue");
+        for (DocFiles docFiles1 : docFiles) {
+            if (docFiles1.getRealPath() == null && docFiles1.getRealFilename() == null) {
+                handleSyncError(docFiles1);
+                continue;
+            }
+            String string = docFiles1.getRealPath() + "/" + docFiles1.getRealFilename();
+            File source = new File(oaPrefixPath + "/" + string);
+
+            if (!source.exists())
+                continue;
+            String dir = prefixPath + "/" + string.substring(0,
+                    string.lastIndexOf("/"));
+
+            if (!new File(dir).exists()) {
+                (new File(dir)).mkdirs();
+            }
+
+            File dest = new File(prefixPath + "/" + string);
+            if (dest.exists())
+                continue;
+            try {
+                copyFileUsingFileChannels(source, dest);
+                String suffixPath = dest.getPath().substring(dest.getPath().lastIndexOf(".") + 1);
+                if (useLoop(suffixPath)) {
+                    redisTemplate.opsForList().leftPush("task-queue", docFiles1);
+                    if (pdfCount > 0) {
+                        taskConsumer.start();
+                        pdfCount--;
+                    }
+                }
+                System.out.println("task-queue 插入" + dest);
+            } catch (IOException e) {
+                handleSyncError(docFiles1);
+            }
+        }
+        redisTemplate.opsForValue().set("isCopyComplete", true);
+    }
+
+    private boolean useLoop(String targetValue) {
+        String[] arr = docFormat.split(",");
+        for (String s : arr) {
+            if (s.equals(targetValue))
+                return true;
+        }
+        return false;
+    }
+
+    private void handleSyncError(DocFiles docFiles1) {
+        DocFiles df = new DocFiles();
+        df.setUpdateFlag("error");
+        DocFilesExample docFilesExample = new DocFilesExample();
+        docFilesExample.createCriteria().andFidEqualTo(docFiles1.getFid());
+        docFilesMapper.updateByExampleSelective(df, docFilesExample);
+        fileMapper.updateFile(docFiles1.getFid());
+    }
+
+    private List<DocFiles> getOaLocation() {
+        DocFilesExample docFilesExample = new DocFilesExample();
+        docFilesExample.createCriteria().andUpdateFlagEqualTo("oa");
+        List<DocFiles> docFiles = docFilesMapper.selectByExample(docFilesExample);
+        List<String> strings = new ArrayList<String>();
+        for (DocFiles docFiles1 : docFiles) {
+            if (docFiles1.getRealPath() != null && docFiles1.getRealFilename() != null) {
+                String str = docFiles1.getRealPath() + "/" + docFiles1.getRealFilename();
+                strings.add(str);
+            }
+        }
+        return docFiles;
+    }
+
+
+    private static void copyFileUsingFileChannels(File source, File dest)
+            throws IOException {
+        FileChannel inputChannel = null;
+        FileChannel outputChannel = null;
+        try {
+            inputChannel = new FileInputStream(source).getChannel();
+            outputChannel = new FileOutputStream(dest).getChannel();
+            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+        } finally {
+            inputChannel.close();
+            outputChannel.close();
+        }
+    }
+
+
+    @Scheduled(cron = "${cron.docSync}")
+    private void syncDocAndFile() {
+        syncDoc();
+        syncFiles();
+    }
+
+}

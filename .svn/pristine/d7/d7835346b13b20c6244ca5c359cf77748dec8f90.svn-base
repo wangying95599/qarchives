@@ -1,0 +1,40 @@
+package org.quetzaco.archives.application.biz;
+
+import com.github.pagehelper.PageInfo;
+import org.quetzaco.archives.model.Documents;
+import org.quetzaco.archives.model.Record;
+
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/14.
+ */
+public interface RecordService {
+    PageInfo selectRecords(Long deptId, int offset, int limit);
+
+    void createRecord(Record record);
+
+    Record selectRecordDetial(Long recordId);
+
+    List<Documents> selectDocumentFromRecord(Long recordId);
+
+    List<String> insertDocumentToRecord(Long recordId, List<Documents> docIds, int type);
+
+    PageInfo selectRecordFromArchive(Long archiveId,int offset, int limit);
+
+    PageInfo searchRecordList(Record record,int offset,int limit);
+
+  PageInfo searchGlobalRecordList(Record record, int offset, int limit);
+
+    List<Record>selectArchiveRecords(Long deptId,String important);
+
+    Record selectByFileCode(String reelNum);
+
+    void removeDocumentFromRecord(Long recordId, Long docId);
+
+    void modifyRecord(Record record);
+
+    PageInfo sortSearchRecordList(Record record);
+
+    List<Record> getRecordsByIds(List<Long> ids);
+}

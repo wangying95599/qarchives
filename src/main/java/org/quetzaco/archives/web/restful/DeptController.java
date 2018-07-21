@@ -1,0 +1,94 @@
+package org.quetzaco.archives.web.restful;
+
+import org.quetzaco.archives.application.biz.DeptService;
+import org.quetzaco.archives.model.Dept;
+import org.quetzaco.archives.model.api.APIEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by deya on 2017/7/11.
+ */
+@RestController
+public class DeptController extends BaseRestContoller {
+	@Autowired
+  	DeptService deptService;
+
+	/*@RequestMapping(value = "/depts",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<List<Dept>>>  getDeptList(){
+	  return buildEntity(APIEntity.create(deptService.getDeptList(null)), HttpStatus.OK);
+	}*/
+	@RequestMapping(value = {"/depts/{deptId}","/depts"},method = RequestMethod.GET)
+    public HttpEntity<APIEntity<List<Dept>>> getDeptList(@PathVariable(required = false) Long deptId) {
+        return buildEntity(APIEntity.create(deptService.getDeptList(deptId)), HttpStatus.OK);
+    }
+
+	@RequestMapping(value = "/depts",method = RequestMethod.POST)
+	public HttpEntity<APIEntity<Dept>> createDept(Dept dept){
+		Dept dept1 = deptService.getDeptByNameAndPrtId(dept);
+		if(dept1!=null)
+			return buildEntity(APIEntity.create(dept), HttpStatus.OK);
+		deptService.createDept(dept);
+		//根据部门名称和父部门id 得到部门对象(父部门id默认null)
+		Dept newDept = deptService.getDeptByNameAndPrtId(dept);
+	  return buildEntity(APIEntity.create(newDept), HttpStatus.CREATED);
+	}
+
+	@RequestMapping(value = "/depts",method = RequestMethod.PUT)
+	public HttpEntity<APIEntity<Dept>> updateDept(Dept dept){
+		Dept dept1 = deptService.getDeptByNameAndPrtId(dept);
+		if(dept1!=null)
+			return buildEntity(APIEntity.create(null), HttpStatus.OK);
+	  deptService.updateDept(dept);
+	  return buildEntity(APIEntity.create(dept), HttpStatus.ACCEPTED);
+	}
+
+	@RequestMapping(value = "/depts/{deptId}/users",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<List<Map>>>  getDeptUsers(@PathVariable("deptId") Long deptId){
+		return buildEntity(APIEntity.create(deptService.getDeptUsers(deptId)), HttpStatus.OK);
+	}
+
+	/*@RequestMapping(value = "/depts/{deptId}",method = RequestMethod.GET ,produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	public HttpEntity  getDeptUsers(@PathVariable("deptId") Long deptId,
+	 @Param("offset") int offset, @Param("limit") int limit){
+	  return buildEntity(APIEntity.create(deptService.getDeptUsers(deptId,offset,limit)), HttpStatus.OK);
+	}*/
+
+
+	@RequestMapping(value = "/depts/{deptId}/users/{userId}",method = RequestMethod.PUT)
+	public HttpEntity<APIEntity<Object>> addUserToDept(@PathVariable("userId") Long userId, @PathVariable("deptId") Long deptId){
+	  deptService.addUserToDept(userId,deptId);
+	  return buildEntity(APIEntity.create(null), HttpStatus.ACCEPTED);
+	}
+
+	//根据用户得到 后台部门列表
+	@RequestMapping(value = "/depts/{usrId}/byuser",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<List<Dept>>>  getDeptsByUser(@PathVariable Long usrId){
+	  return buildEntity(APIEntity.create(deptService.getDeptsByUser(usrId)),HttpStatus.OK);
+	}
+
+	//用户更改部门（只考虑一个用户关联一个部门）
+	@RequestMapping(value="/depts/{oldDeptId}/update/{newDeptId}/users/{usrId}",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<Map>>  updateDeptsForUser(@PathVariable("oldDeptId")Long oldDeptId,@PathVariable("newDeptId")Long newDeptID,@PathVariable Long usrId){
+		deptService.updateDeptsForUser(oldDeptId,newDeptID,usrId);
+		Map map = new HashMap();
+		map.put("oldDeptId", oldDeptId);
+		map.put("usrId", usrId);
+		return buildEntity(APIEntity.create(map),HttpStatus.OK);
+	}
+
+	//根据部门description 得到dept
+	@RequestMapping(value = "/depts/{description}/dsc",method = RequestMethod.GET)
+	public HttpEntity<APIEntity<Dept>>  getDeptByDes(@PathVariable String description){
+		return buildEntity(APIEntity.create(deptService.getDeptByDes(description)),HttpStatus.OK);
+	}
+}

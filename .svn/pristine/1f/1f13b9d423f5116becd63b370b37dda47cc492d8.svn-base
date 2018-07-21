@@ -1,0 +1,1 @@
+###拿本包下的catalina.bat 替换掉tomcat中的catalina.bat文件可以解决debug 模式下不进入断点的问题。

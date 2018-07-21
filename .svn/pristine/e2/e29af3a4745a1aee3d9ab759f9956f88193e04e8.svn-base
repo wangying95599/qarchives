@@ -1,0 +1,166 @@
+package org.quetzaco.archives.web.restful;
+
+import org.apache.ibatis.annotations.Param;
+import org.quetzaco.archives.application.biz.FileService;
+import org.quetzaco.archives.model.Files;
+import org.quetzaco.archives.model.User;
+import org.quetzaco.archives.util.config.ArchiveProperties;
+import org.quetzaco.archives.web.config.session.WebSecurityConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.SessionAttribute;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLConnection;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+@RestController
+public class SwfPushController {
+
+    @Autowired
+    FileService fileService;
+    @Autowired
+    ArchiveProperties archiveProperties;
+    @Autowired
+    RedisTemplate redisTemplate;
+    final static Logger LOGGER = LoggerFactory.getLogger(FileController.class);
+
+    @RequestMapping("/swfPush/{fileId}")
+    public ResponseEntity<Resource> swfPush(@PathVariable("fileId") UUID fileId,
+                                            @Param("pageNum") String pageNum, @SessionAttribute(WebSecurityConfig.SESSION_KEY) User user
+            , HttpServletRequest request, HttpServletResponse response) {
+        try {
+            Resource resource = new InputStreamResource(getFile(fileId, pageNum));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.add("Pragma", "no-cache");
+            headers.add("Expires", "0");
+            headers.add("charset", "utf-8");
+            //设置下载文件名x-shockwave-flash
+            // headers.add("Content-Disposition", "attachment;filename="+fileId+pageNum+".swf");
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.parseMediaType("application/x-msdownload")).body(resource);
+        } catch (Exception e) {
+            LOGGER.debug(e.getMessage());
+            return null;
+        }
+    }
+
+    private FileInputStream getFile(UUID fileId, String strCurPageNum) throws FileNotFoundException {
+        // Files files = fileService.getFilesById(fileId);
+        Files files = (Files) redisTemplate.opsForValue().get(fileId);
+        redisTemplate.opsForValue().set(fileId, files, 30, TimeUnit.MINUTES);
+        String location = archiveProperties.getFileStorage() + "/" + files.getLocation();
+      /*  User currentUser = (User) request.getSession().getAttribute(WebSecurityConfig.SESSION_KEY);
+        Long currentId = currentUser.getId();
+            *//*if(usrId.equals(currentUser.getId()))
+        return;*/
+        String strFilePath = location.substring(0, location.lastIndexOf(".")) + ".swf";
+
+        File targetFile = new File(strFilePath);
+        // added by Tony Liu 2008-10-10
+        if (!targetFile.exists()) {
+            targetFile = new File(strFilePath.substring(0, strFilePath
+                    .indexOf(".swf")));
+            if (targetFile.exists() && targetFile.isDirectory()) {
+                if (strCurPageNum != null && strCurPageNum.toString() != "")
+                    targetFile = new File(strFilePath.substring(0,
+                            strFilePath.indexOf(".swf"))
+                            + File.separatorChar + strCurPageNum + ".frm");
+                else
+                    targetFile = new File(strFilePath.substring(0,
+                            strFilePath.indexOf(".swf"))
+                            + File.separatorChar + "1.frm");
+            }
+        }
+        return new FileInputStream(targetFile);
+    }
+
+    // @RequestMapping("/swfPush/{fileId}/{usrId}")
+    public void swfPush(@PathVariable("fileId") Long fileId, @PathVariable("usrId") Long usrId, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        OutputStream out = null;
+        InputStream inputStream = null;
+        try {
+            // Files files = fileService.getFilesById(fileId);
+            Files files = (Files) redisTemplate.opsForValue().get(fileId);
+            String location = archiveProperties.getFileStorage() + "/" + files.getLocation();
+            User currentUser = (User) request.getSession().getAttribute(WebSecurityConfig.SESSION_KEY);
+            Long currentId = currentUser.getId();
+            if (usrId.equals(currentUser.getId()))
+                return;
+            String strFilePath = location.substring(0, location.lastIndexOf(".")) + ".swf";
+            String strCurPageNum = request.getParameter("pageNum");
+
+            File targetFile = new File(strFilePath);
+
+            // added by Tony Liu 2008-10-10
+            if (!targetFile.exists()) {
+                targetFile = new File(strFilePath.substring(0, strFilePath
+                        .indexOf(".swf")));
+                if (targetFile.exists() && targetFile.isDirectory()) {
+                    if (strCurPageNum != null && strCurPageNum.toString() != "")
+                        targetFile = new File(strFilePath.substring(0,
+                                strFilePath.indexOf(".swf"))
+                                + File.separatorChar + strCurPageNum + ".frm");
+                    else
+                        targetFile = new File(strFilePath.substring(0,
+                                strFilePath.indexOf(".swf"))
+                                + File.separatorChar + "1.frm");
+                }
+            }
+            // get the mime type
+            String contentType = URLConnection.getFileNameMap()
+                    .getContentTypeFor(strFilePath);
+
+            // set the content type (=mime type)
+            response.reset();
+            response.setContentType(contentType);
+            //modify by eric 2010-01-29 , to disable IE Cache
+            response.setHeader("Content-Disposition",
+                    "inline;filename=\"FloViewer.flo\"");
+            response.setHeader("Pragma", "no-Cache");
+            response.setHeader("Cache-Control", "no-Cache");
+            response.setDateHeader("Expires", 0);
+            //end of modify eric
+            // write the bytes
+            out = response.getOutputStream();
+            inputStream = new BufferedInputStream(new FileInputStream(
+                    targetFile));
+
+            byte[] buf = new byte[4 * 1024];
+            int charInput = 0;
+            int clen = 0;
+            Date startDT = Calendar.getInstance().getTime();
+            //QuetzacoWebLogger.getInstance().debug("SWF file [" + targetFile.getAbsolutePath() + "] start to download at " + startDT);
+            while ((charInput = inputStream.read(buf, 0, buf.length)) != -1) {
+                clen = clen + charInput;
+                out.write(buf, 0, charInput);
+            }
+            response.setContentLength(clen);
+            out.flush();
+            Date endDT = Calendar.getInstance().getTime();
+            long interval = (endDT.getTime() - startDT.getTime());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            if (inputStream != null)
+                inputStream.close();
+            if (out != null)
+                out.close();
+        }
+    }
+}

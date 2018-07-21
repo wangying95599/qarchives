@@ -1,0 +1,18 @@
+﻿.slider {
+	position: relative;
+	height: 12px;
+	background-image:url('../images/sliderbg.gif');
+}
+.slider .handle {
+	position: absolute;
+	width: 11px;
+	height: 12px;
+	color: #FFF;
+	line-height: 10px;
+	text-align: center;
+	background-image:url(data:image/gif;base64,R0lGODlhCwAMAMZjAElxvlNvtVRxtkp1v0p9wVh7vkqBwl58vml6vml7vm19qHJ+qXSBwXiAwHWBv2eFxk+QzHCJx36HwlCUzoKJw3eNyluY1XuQy1Od1lSh2FWi22qe14uaz4ybz2Sn3ZKdxJKeyZWexI+k1ZilznCv4XOw4Y2u1Xuz4Xe05H2z4JKv1aKs0qSs1Kas1H245oS76Iy63o2637S1wI696Yu+6Yy+6Y2/6Y/B6o/C6ry8vJrD68DAwJ3H7J3I7JvJ7p3J7p7J8aXK66DL8KHL76LL7arJ7q/M76zO7azT9c/Pz6/W+LHW+LLY+rrX8b3X77vY8b7Z8sPa8Mrd7snf8svg883h9M/h8MHk/8Hl/8To/9nn9dvp9d7q98/y/dDy/ezw+Ozx+Nj7//L3+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH5BAEKAH8ALAAAAAALAAwAAAd4gH+CSTs5O0mCiTIfHCIdITKJORVFXWFeRhc5gg8zSlhZV0w6EX8KFi9ASEtIQjYbCwUaKDc/Qz44Lh4HABgkND1EPDUlGQMBECdHT1BNQSkTAiAEMVFUVVNOMAYgfwgmVltcWlIqCYkMI2BiXysOiYIsEg0ULYmBADs%3D) ; 
+	background-repeat:no-repeat;
+}
+.slider .disabled {
+	
+}

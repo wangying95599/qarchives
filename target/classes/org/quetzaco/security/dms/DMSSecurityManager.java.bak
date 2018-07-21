@@ -1,0 +1,3512 @@
+package org.quetzaco.security.dms;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.quetzaco.archives.application.biz.Impl.FolderServiceImpl;
+import org.quetzaco.archives.model.BaseModel;
+import org.quetzaco.archives.model.Document;
+import org.quetzaco.archives.model.Folder;
+import org.quetzaco.archives.model.Cabinet;
+import org.quetzaco.archives.model.Group;
+import org.quetzaco.archives.model.Space;
+import org.quetzaco.archives.model.User;
+import org.quetzaco.security.exception.*;
+import org.quetzaco.security.util.QuetzacoReadQuery;
+import org.quetzaco.security.dms.constant.DMSConstants;
+import org.quetzaco.security.dms.constant.DMSRightConstants;
+import org.quetzaco.security.dms.constant.DMSSortableColumnConstants;
+import org.quetzaco.security.dms.model.ACL;
+import org.quetzaco.security.dms.model.Permission;
+import org.quetzaco.security.dms.model.Right;
+import org.quetzaco.security.dms.model.RightGroup;
+import org.quetzaco.security.exception.InvalidModelException;
+import org.quetzaco.security.exception.SecurityException;
+import org.quetzaco.security.exception.InvalidModel.InvalidAssigneeException;
+import org.quetzaco.security.exception.InvalidModel.InvalidRightException;
+import org.quetzaco.security.exception.InvalidModel.InvalidRightGroupException;
+import org.quetzaco.security.exception.InvalidModel.InvalidSecurityRuleSetException;
+import org.quetzaco.security.exception.InvalidModel.InvalidTargetModelException;
+import org.quetzaco.security.exception.invalidObjectType.InvalidAssigneeTypeException;
+import org.quetzaco.security.exception.invalidObjectType.InvalidSecurityRuleSetTypeException;
+import org.quetzaco.security.exception.invalidObjectType.InvalidTargetTypeException;
+import org.quetzaco.security.model.SecurityRuleSet;
+import org.quetzaco.security.model.SecurityRuleSetItem;
+import org.quetzaco.security.util.DBHelper;
+import org.quetzaco.security.util.SecurityReadQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DMSSecurityManager{
+	final static Logger Logger = LoggerFactory.getLogger(DMSSecurityManager.class);
+
+	private DMSSecurityManager (){
+		initRightGroupMap();
+		initRightMap();
+		initDefaultSortableColumnMap();
+		readQuery = SecurityReadQuery.getInstance();
+	}
+
+	private static DMSSecurityManager _instance = null;
+
+	public static synchronized DMSSecurityManager getInstance(){
+		if(_instance==null){
+			_instance = new DMSSecurityManager();
+		}
+		return _instance;
+	}
+
+	private Map<String ,String> rightGroupMap = null;
+	private Map<String ,String> rightMap = null;
+	private Map<String ,String[][]> defaultSortableColumnsMap = null;
+	private SecurityReadQuery readQuery = null;
+	private void initRightGroupMap(){
+		rightGroupMap = new HashMap<String, String>();
+		rightGroupMap.put("userdefinded".toLowerCase(), "A4AAECB2-93C3-CA2C-2626-FB3735851B6C");
+		rightGroupMap.put("noAccess".toLowerCase(), "B5C7AEC6-3ADC-588F-90C5-31CDF74CFBF4");
+		rightGroupMap.put("viewCanCopy".toLowerCase(), "8DAB9F09-C395-7473-0C78-74F8038DEDF2");
+		rightGroupMap.put("viewCanPrint".toLowerCase(), "01D87DE2-DF3E-8EBB-8054-A62717CEC390");
+		rightGroupMap.put("visible".toLowerCase(), "A50E84A7-4D00-C71B-72D2-CFC6D7B7FB75");
+		rightGroupMap.put("Download".toLowerCase(), "4151A22D-40E6-3CD8-73C9-B8DA52486A90");
+		rightGroupMap.put("Upload".toLowerCase(), "831D41E6-C1F1-1D2D-1730-4D1C049D3C24");
+		rightGroupMap.put("DownloadSrcDoc".toLowerCase(), "EA4F1730-F69A-20C8-EBFF-2724062668D5");
+		rightGroupMap.put("fullControl".toLowerCase(), "8F130AE4-8DA7-D685-1B4C-E1F268FBCBB6");
+		rightGroupMap.put("modify".toLowerCase(), "B85E645F-8AF8-A46D-387E-9D2458C76B59");
+		rightGroupMap.put("view".toLowerCase(), "6FDDFD4C-9883-E60F-7C99-579A08275BB4");
+	}
+
+	private void initRightMap(){
+		rightMap = new HashMap<String, String>();
+		rightMap.put("canCopy".toLowerCase(),DMSRightConstants.CAN_COPY);
+		rightMap.put("canPrint".toLowerCase(),DMSRightConstants.CAN_PRTINT);
+		rightMap.put("checkInDocuments".toLowerCase(),DMSRightConstants.CHECKIN_DOCUMENTS);
+		rightMap.put("checkOutDocuments".toLowerCase(),DMSRightConstants.CHECKOUT_DOCUMENTS);
+		rightMap.put("copyDocuments".toLowerCase(),DMSRightConstants.COPY_DOCUMENTS);
+		rightMap.put("copyFolders".toLowerCase(),DMSRightConstants.COPY_FOLDERS);
+		rightMap.put("copyLinks".toLowerCase(),DMSRightConstants.COPY_LINKS);
+		rightMap.put("createDocuments".toLowerCase(),DMSRightConstants.CREATE_DOCUMENTS);
+		rightMap.put("createEmptyDocuments".toLowerCase(),DMSRightConstants.CREATE_EMPTYDOCUMENTS);
+		rightMap.put("createFolders".toLowerCase(),DMSRightConstants.CREATE_FOLDERS);
+		rightMap.put("createLinks".toLowerCase(),DMSRightConstants.CREATE_LINKS);
+		rightMap.put("deleteCabinets".toLowerCase(),DMSRightConstants.DELETE_CABINETS);
+		rightMap.put("deleteDocuments".toLowerCase(),DMSRightConstants.DELETE_DOCUMENTS);
+		rightMap.put("deleteFolders".toLowerCase(),DMSRightConstants.DELETE_FOLDERS);
+		rightMap.put("deleteLinks".toLowerCase(),DMSRightConstants.DELETE_LINKS);
+		rightMap.put("editCabinets".toLowerCase(),DMSRightConstants.EDIT_CABINETS);
+		rightMap.put("editFolders".toLowerCase(),DMSRightConstants.EDIT_FOLDERS);
+		rightMap.put("editLinks".toLowerCase(),DMSRightConstants.EDIT_LINKS);
+		rightMap.put("getCabinetDetails".toLowerCase(),DMSRightConstants.GET_CABINET_DETAILS);
+		rightMap.put("getDocumentDetails".toLowerCase(),DMSRightConstants.GET_DOCUMENT_DETAILS);
+		rightMap.put("getDocumentRevisions".toLowerCase(),DMSRightConstants.GET_DOCUMENT_REVISIONS);
+		rightMap.put("getFolderDetails".toLowerCase(),DMSRightConstants.GET_FOLDER_DETAILS);
+		rightMap.put("getFolderItems".toLowerCase(),DMSRightConstants.GET_FOLDER_ITEMS);
+		rightMap.put("getItems".toLowerCase(),DMSRightConstants.GET_ITEMS);
+		rightMap.put("getLinkDetails".toLowerCase(),DMSRightConstants.GET_LINK_DETAILS);
+		rightMap.put("getSecurity".toLowerCase(),DMSRightConstants.GET_SECURITY);
+		rightMap.put("lockDocuments".toLowerCase(),DMSRightConstants.LOCK_DOCUMENTS);
+		rightMap.put("moveDocuments".toLowerCase(),DMSRightConstants.MOVE_DOCUMENTS);
+		rightMap.put("moveFolders".toLowerCase(),DMSRightConstants.MOVE_FOLDERS);
+		rightMap.put("moveLinks".toLowerCase(),DMSRightConstants.MOVE_LINKS);
+		rightMap.put("setSecurity".toLowerCase(),DMSRightConstants.SET_SECURITY);
+		rightMap.put("unlockDocuments".toLowerCase(),DMSRightConstants.UNLOCK_DOCUMENTS);
+		rightMap.put("updateDocuments".toLowerCase(),DMSRightConstants.UPDATE_DOCUMENTS);
+		rightMap.put("viewDocumentDetails".toLowerCase(),DMSRightConstants.VIEW_DOCUMEN_TDETAILS);
+		rightMap.put("viewDocuments".toLowerCase(),DMSRightConstants.VIEW_DOCUMENTS);
+		rightMap.put("showAccessLog".toLowerCase(),DMSRightConstants.SHOW_ACCESSLOG);
+		rightMap.put("viewDiscussion".toLowerCase(),DMSRightConstants.VIEW_DISCUSSION);
+		rightMap.put("createDiscussion".toLowerCase(),DMSRightConstants.CREATE_DISCUSSION);
+		rightMap.put("checkinFolders".toLowerCase(),DMSRightConstants.CHECKIN_FOLDERS);
+		rightMap.put("createCabinets".toLowerCase(),DMSRightConstants.CREATE_CABINET);
+		/**
+		 * no using
+		 */
+		rightMap.put("editDocuments".toLowerCase(),DMSRightConstants.UPDATE_DOCUMENTS);//FunctionConstants 	static String EDIT_DOCUMENT = "updateDocuments";
+	}
+
+	private void initDefaultSortableColumnMap(){
+		defaultSortableColumnsMap = new HashMap<String, String[][]>();
+		String[][] cabsortCols = {{DMSSortableColumnConstants.Cabinet_OrderNum,DMSConstants.ASCEND},{DMSSortableColumnConstants.Cabinet_Name,DMSConstants.ASCEND}};
+		String[][] fldsortCols = {{DMSSortableColumnConstants.Folder_OrderNum,DMSConstants.ASCEND},{DMSSortableColumnConstants.Folder_Name,DMSConstants.ASCEND}};
+		String[][] allsortCols ={{DMSSortableColumnConstants.OrderNum,DMSConstants.ASCEND},{DMSSortableColumnConstants.ObjectName,DMSConstants.ASCEND}};
+
+		defaultSortableColumnsMap.put(DMSConstants.OBJ_TYPE_CABINET, cabsortCols);
+		defaultSortableColumnsMap.put(DMSConstants.OBJ_TYPE_FOLDER, fldsortCols);
+		defaultSortableColumnsMap.put(DMSConstants.OBJ_TYPE_ALL, allsortCols);
+	}
+
+	public String getrgtgrpIdByName(String rgtgrpName){
+		return rightGroupMap.get(rgtgrpName.toLowerCase());
+	}
+	public String getRightIdByName(String rightName){
+		return rightMap.get(rightName.toLowerCase());
+	}
+
+
+	public static void main(String[] args) {
+	}
+
+	/**
+	 * 取消dms对象和对象下子节点的继承状态
+	 * @param targetModel 对象为设置继承的dms根节点，类型一般为fld 或者 cab;
+	 * 					targetModel 必须设置ObjectId 属性。
+	 * @throws InvalidTargetModelException
+	 * 			传入取消继承的对象为空或者其ObjectId不存在
+	 * @throws SQLException
+	 * 			数据库执行过程中发生错误
+	 * @throws SecurityException
+	 * 			其他异常
+	 * @throws DMSException
+	 * 			关闭数据库链接失败 -ErrorCode:1151
+	 */
+	public void cancelInheritance(BaseModel targetModel)
+			throws InvalidTargetModelException ,SQLException,SecurityException,DMSException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCancelInheritance"));
+			preparedStmt.setString(1, targetModel.getId());
+			Logger.debug("开始执行cancelInheritance..............");
+			preparedStmt.execute();
+			Logger.debug("cancelInheritance执行完成..............");
+
+		} finally {
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 权限转移	：将某个用户权限全部转移给另外的用户 ；包括 对象中已赋予权限和ruleset中的权限
+	 * @param oldUser  需要进行权限转移的用户 ；必须设置ObjectId 属性。
+	 * @param newUser  将权限转移给某个用户 ；必须设置ObjectId 属性。
+	 * @throws InvalidAssigneeException 传入的用户为空或者用户的ID 为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void transferAcl(User oldUser,User newUser)
+			throws InvalidAssigneeException, DMSException, SQLException, SecurityException{
+		if(oldUser==null||oldUser.getId() == null)
+			throw new InvalidAssigneeException(User.class.getName()+" oldUser ");
+		if(newUser==null||newUser.getId() == null)
+			throw new InvalidAssigneeException(User.class.getName()+" newUser ");
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strTransferAcl"));
+			preparedStmt.setString(1, oldUser.getId());
+			preparedStmt.setString(2, newUser.getId());
+			Logger.debug("开始执行transferAcl..............");
+			preparedStmt.execute();
+			Logger.debug("transferAcl执行完成..............");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 从回收站中删除dms对象的权限  ， 只能用于doc 和link
+	 * @param targetModel 需要删除权限的DMS 对象 ；必须设置ObjectId 属性和objectType属性
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetTypeException 传入dms对象 类型未设置
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void deleteAclForDocOrLnk(BaseModel targetModel)
+		throws InvalidTargetModelException,InvalidTargetTypeException,DMSException, SQLException, SecurityException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(targetModel.getType()==null)
+			throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		connection = DBHelper.getConnection();
+		try {
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strTransferAcl"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, targetModel.getType());
+			Logger.debug("开始执行deleteDocLinkAcl..............");
+			preparedStmt.execute();
+			Logger.debug("deleteDocLinkAcl执行完成..............");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 获取dms对象权限列表：查询哪些人可以对此DMS对象有哪些些权限
+	 * @param targetModel 查询的dms对象，必须设置ObjectId 属性和objectType属性
+	 * @param currentSpace 当前dms对象所在工作空间 ，必须设置ObjectId 属性
+	 * @return ArrayList<Permission>： dms对象权限列表 ；permission 中包括 类中所有属性值。
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetTypeException 传入dms对象类型未设置
+	 * @throws InvalidModelException currentSpace 为空或者其ObjectId不存在
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public ArrayList<Permission> getPermissions(BaseModel targetModel,Space currentSpace,Connection connection )
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SecurityException, SQLException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(currentSpace==null||currentSpace.getId()==null){
+			currentSpace = new Space(getSpaceId(targetModel));
+			if(currentSpace.getId()==null)
+				throw new InvalidModelException(Space.class.getName());
+		}
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Permission> PermissionList = null;
+		try {
+			String sql = QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetPermissions");
+			Logger.debug("strGetPermissions------------------------------------"+sql);
+			preparedStmt = connection.prepareStatement(sql);
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, "");
+			preparedStmt.setString(3, currentSpace.getId());
+
+			resultSet = preparedStmt.executeQuery();
+			PermissionList = new ArrayList<Permission>();
+			while(resultSet.next()){
+				RightGroup rgtGroup = new RightGroup();
+				Permission premission = new Permission();
+				premission.setAssigneeId(resultSet.getString("assignee_guid"));
+
+				String firstName = resultSet.getString(2)==null?"":resultSet.getString(2).trim();
+				String lastName = resultSet.getString(3)==null?"":resultSet.getString(3).trim();
+
+				premission.setAssigneeName(firstName+" "+lastName);
+
+				premission.setAssigneeType(resultSet.getString(4));
+				rgtGroup.setRgtgrpId(resultSet.getString("rgtgrp_guid"));
+				rgtGroup.setName(resultSet.getString("rgtgrp_name"));
+				premission.setExpiredId(resultSet.getString(7));
+				premission.setExpiredDate(resultSet.getTimestamp(8));
+				premission.setRgtGroup(rgtGroup);
+				PermissionList.add(premission);
+			}
+
+		}finally{
+			DBHelper.cleanup(null, preparedStmt, resultSet);
+		}
+		return PermissionList;
+	}
+
+	/**
+	 * 检查某个用户对某个dms 对象有没有某个特定权限
+	 * @param currentUser 用户，必须设置其ObjectId
+	 * @param targetModel  dms对象 ；必须设置其objectId 和objectType
+	 * @param rightId 检查用户对dms对象拥有的权限；取自DMSRightConstants
+	 * @param currentSpace dms对象所在工作空间；必须设置其objectId
+	 * @param roleType 当前用户的角色类型 ； 只支持sysadmin和User 。取自DMSConstants
+	 * @return 如果对此DMS对象有 相应的权限 返回True ；否则返回false。如果当前用户角色类型为 sysadmin 那么一定返回True。
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetModelException	传入dms对象	类型未设置
+	 * @throws InvalidModelException	传入工作区为空 或传入用户为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public boolean hasRight(User currentUser,BaseModel targetModel,String rightId,Space currentSpace,String roleType)
+			throws InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,
+				SecurityException,DMSException, SQLException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		Logger.debug("DMSSecurityManager=========targetModel.getType()+++++++++++++++++++++++"+targetModel.getType());
+		if(targetModel.getType()==null){
+			if (targetModel instanceof Document) {
+				targetModel.setType(DMSConstants.DOCUMENT);
+			}else if (targetModel instanceof Folder) {
+				targetModel.setType(DMSConstants.FOLDER);
+			}else if (targetModel instanceof Cabinet) {
+				targetModel.setType(DMSConstants.CABINET);
+			}else if (targetModel instanceof Link) {
+				targetModel.setType(DMSConstants.LINK);
+			}else
+			 	throw new InvalidTargetTypeException();
+		}
+
+		if(currentSpace==null||currentSpace.getId()==null){
+			currentSpace = new Space(getSpaceId(targetModel));
+			if(currentSpace.getId()==null)
+				throw new InvalidModelException(Space.class.getName());
+		}
+		if(currentUser==null||currentUser.getId()==null)
+			throw new InvalidModelException(User.class.getName());
+		//无论targetModel为版本ID还是doc_id,最终获得doc_guid
+
+		boolean has = false;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		String objectType = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strHasRight"));
+			if(targetModel.getType().equalsIgnoreCase("Document")){
+				objectType = DMSConstants.OBJ_TYPE_DOC;
+				targetModel.setId(getDocId(targetModel));
+			}else if(targetModel.getType().equalsIgnoreCase("Cabinet")){
+				objectType = DMSConstants.OBJ_TYPE_CABINET;
+			}else if(targetModel.getType().equalsIgnoreCase("Folder")){
+				objectType = DMSConstants.OBJ_TYPE_FOLDER;
+			}else if(targetModel.getType().equalsIgnoreCase("Link")){
+				objectType = DMSConstants.OBJ_TYPE_LINK;
+			}else{
+				objectType = targetModel.getType();
+			}
+			Logger.debug("currentUser.getId()+++++++++++++++++++++++++++++"+currentUser.getId());
+			preparedStmt.setString(1, currentUser.getId());
+			Logger.debug("targetModel.getId()+++++++++++++++++++++++++++++"+targetModel.getId());
+			preparedStmt.setString(2, targetModel.getId());
+			Logger.debug("objectType+++++++++++++++++++++++++++++"+objectType);
+			preparedStmt.setString(3, objectType);
+			Logger.debug("rightId+++++++++++++++++++++++++++++"+rightId);
+			preparedStmt.setString(4, rightId);
+			Logger.debug("currentSpace.getId()+++++++++++++++++++++++++++++" + currentSpace.getId());
+			preparedStmt.setString(5, currentSpace.getId());
+			Logger.debug("roleType+++++++++++++++++++++++++++++" + roleType);
+			preparedStmt.setString(6, roleType);
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				if(resultSet.getString(1).equalsIgnoreCase("t"))
+					has = true;
+				else if(resultSet.getString(1).equalsIgnoreCase("f"))
+					has = false;
+				else
+					has = Boolean.getBoolean(resultSet.getString(1));
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt, resultSet);
+		}
+		Logger.debug("================++++++++++++++++++right==============ture?false"+has);
+		return has;
+	}
+
+	/**
+	 * 给指定dms对象设置默认安全
+	 * @param targetModel 指定DMS对象  ；必须设置其objectId 和objectType
+	 * @param currentUser 用户，必须设置其ObjectId
+	 * @param currentSpace dms对象所在工作空间；必须设置其objectId
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetModelException	传入dms对象	类型未设置
+	 * @throws InvalidModelException	传入工作区为空 或传入用户为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void setDefaultSecurityRuleset(BaseModel targetModel,User currentUser,Space currentSpace)
+			throws InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,
+				SecurityException,DMSException, SQLException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(targetModel.getType()==null)
+			throw new InvalidTargetTypeException();
+		if(currentSpace==null||currentSpace.getId()==null){
+			currentSpace = new Space(getSpaceId(targetModel));
+			if(currentSpace.getId()==null)
+				throw new InvalidModelException(Space.class.getName());
+		}
+		if(currentUser==null||currentUser.getId()==null)
+			throw new InvalidModelException(User.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		String objectType = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strSetDefaultSecurityRuleset"));
+			if(targetModel.getType().equalsIgnoreCase("Document")){
+				objectType = DMSConstants.OBJ_TYPE_DOC;
+			}else if(targetModel.getType().equalsIgnoreCase("Cabinet")){
+				objectType = DMSConstants.OBJ_TYPE_CABINET;
+			}else if(targetModel.getType().equalsIgnoreCase("Folder")){
+				objectType = DMSConstants.OBJ_TYPE_FOLDER;
+			}else if(targetModel.getType().equalsIgnoreCase("Link")){
+				objectType = DMSConstants.OBJ_TYPE_LINK;
+			}else{
+				objectType = targetModel.getType();
+			}
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, objectType);
+			preparedStmt.setString(3, currentUser.getId());
+			preparedStmt.setString(4, currentSpace.getId());
+			Logger.debug("开始执行setDefaultSecurityRuleset..............");
+			preparedStmt.execute();
+			Logger.debug("setDefaultSecurityRuleset执行完成..............");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 给指定dms对象设置用户选择的预定义安全
+	 * @param targetModel dms对象；必须设置其objectId
+	 * @param ruleSet 用户选择的预定义安全集  ;必须设置其RulesetId 和类型RulesetType 。类型只能使用UD
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其ObjectId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void setPredefinedRuleset(BaseModel targetModel,SecurityRuleSet ruleSet)
+	throws DMSException, InvalidTargetModelException, InvalidSecurityRuleSetException, SQLException,SecurityException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(ruleSet==null||ruleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		if(ruleSet.getRulesetType()==null||"".equalsIgnoreCase(ruleSet.getRulesetType().trim()))
+			ruleSet.setRulesetType("UD");
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strSetPredefinedRuleset"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, ruleSet.getRulesetId());
+			preparedStmt.setString(3, ruleSet.getRulesetType());
+			Logger.debug("开始执行setPredefinedRuleset..............");
+			preparedStmt.execute();
+			Logger.debug("setPredefinedRuleset执行完成..............");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 为指定dms对象设置继承权限。
+	 * 设置继承后，此DMS 对象是此继承树的根节点。
+	 * @param targetModel dms对象；必须设置其objectId;只能为fld 或者cab
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void inheritFrom(BaseModel targetModel)
+		throws DMSException, InvalidTargetModelException, SQLException,SecurityException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInheritFrom"));
+			preparedStmt.setString(1, targetModel.getId());
+			Logger.debug("start inheritFrom..............");
+			Logger.debug("targetModel.getId()::::::"+targetModel.getId());
+			preparedStmt.execute();
+			Logger.debug("inheritFrom ending..............");
+ 		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 从回收战中删除dms对象以及其下子对象的权限，仅限fld 和 cab
+	 * @param targetModel dms 对象 ：此对象必须在回收站中，必须设置其objectId和objectType;只能为fld 或者cab
+	 * @param targetModel dms对象；必须设置其objectId;只能为fld 或者cab
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetTypeException 	或 dms对象类型为空
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void deleteAclWithSubitems(BaseModel targetModel)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,SQLException,SecurityException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(targetModel.getType()==null)
+			throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteAclWithSubitems"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, targetModel.getType());
+			Logger.debug("开始执行deleteAclWithSubitems..............");
+			preparedStmt.execute();
+			Logger.debug("deleteAclWithSubitems执行完成..............");
+
+		} catch (Exception e) {
+			throw new SecurityException("删除权限失败 ："+e.getMessage(),e.getCause());
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+ 	}
+
+	/**
+	 * 检查某个用户对某个dms 对象及其子对象有没有某个特定权限，仅限于fld 和cab
+	 * @param currentUser 用户，必须设置其ObjectId
+	 * @param targetModel  dms对象 ；必须设置其objectId 和objectType
+	 * @param rightId 检查用户对dms对象拥有的权限；取自DMSRightConstants
+	 * @param currentSpace dms对象所在工作空间；必须设置其objectId
+	 * @param roleType 当前用户的角色类型 ； 只支持sysadmin和User 。取自DMSConstants
+	 * @return 如果对此DMS对象有 相应的权限 返回True ；否则返回false。如果当前用户角色类型为 sysadmin 那么一定返回True。
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetTypeException 	类型未设置
+	 * @throws InvalidModelException 传入工作区为空 或传入用户为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public boolean hasRightForTree(User currentUser,BaseModel targetModel, String rightId,Space currentSpace,String roleType)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SQLException,SecurityException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(targetModel.getType()==null)
+			throw new InvalidTargetTypeException();
+		if(currentSpace==null||currentSpace.getId()==null){
+			currentSpace = new Space(getSpaceId(targetModel));
+			if(currentSpace.getId()==null)
+				throw new InvalidModelException(Space.class.getName());
+		}
+		if(currentUser==null||currentUser.getId()==null)
+			throw new  InvalidModelException(User.class.getName());
+		boolean has = false;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strHasRightForTree"));
+			Logger.debug("hasRightForTree.............."+currentUser.getId());
+			preparedStmt.setString(1, currentUser.getId());
+			preparedStmt.setString(2, targetModel.getId());
+			preparedStmt.setString(3, targetModel.getType());
+			preparedStmt.setString(4, rightId);
+			preparedStmt.setString(5, currentSpace.getId());
+			preparedStmt.setString(6, roleType);
+			Logger.debug("开始执行hasRightForTree..............");
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				if(resultSet.getString(1).equalsIgnoreCase("t"))
+					has = true;
+				else if(resultSet.getString(1).equalsIgnoreCase("f"))
+					has = false;
+				else
+					has = Boolean.getBoolean(resultSet.getString(1));
+			}
+			Logger.debug("hasRightForTree执行完成..............");
+
+		}catch (Exception e ){
+			e.printStackTrace();
+			throw  new SecurityException(e.getMessage());
+		}
+		finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return has;
+ 	}
+
+	/**
+	 * 从回收站恢复DMS对象时进行恢复权限操作
+	 * @param targetModel dms对象；对象只针对于回收站里的对象；必须设置其objectId 和objectType
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	 * @throws InvalidTargetTypeException 	类型未设置
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void restoreAclFromRecyclebin(BaseModel targetModel)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException, SQLException,SecurityException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(targetModel.getType()==null)
+			throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strRestoreAclFromRecyclebin"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, targetModel.getType());
+			Logger.debug("开始执行restoreAclFromRecyclebin..............");
+			preparedStmt.execute();
+			Logger.debug("restoreAclFromRecyclebin执行完成..............");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+ 	}
+
+	/**
+	 * 创建安全集（一般用于创建预定义安全集）
+	 * @param secRuleSet 需要进行创建的安全集；需要SecurityRuleSet 的所有属性
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	 * @throws InvalidSecurityRuleSetTypeException 传入安全集类型为空
+	 * @throws InvalidSecurityRuleSetException  传入安全集的应用对象类型为空
+	 * @throws InvalidModelException 安全集所在工作空间为空 或 当前用户为空
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void createSecurityRuleset(SecurityRuleSet secRuleSet)
+		throws DMSException, InvalidSecurityRuleSetException,InvalidSecurityRuleSetTypeException,
+		InvalidSecurityRuleSetException,InvalidModelException,SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		if(secRuleSet.getRulesetType()==null)
+			throw new InvalidSecurityRuleSetTypeException();
+		if(secRuleSet.getRulesetType()==null)
+			throw new InvalidSecurityRuleSetException();
+		if(secRuleSet.getSpaceModel()==null||secRuleSet.getSpaceModel().getId()==null)
+			throw new InvalidModelException(Space.class.getName());
+		if(secRuleSet.getContextUser()==null||secRuleSet.getContextUser().getId()==null)
+			throw new InvalidModelException(User.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCreateSecurityRuleset"));
+			preparedStmt.setString(1, secRuleSet.getRulesetId());
+			preparedStmt.setString(2, secRuleSet.getName());
+			preparedStmt.setString(3, secRuleSet.getRulesetType());
+			preparedStmt.setString(4, secRuleSet.getRulesetType());
+			preparedStmt.setString(5, secRuleSet.getSpaceModel().getId());
+			preparedStmt.setString(6, secRuleSet.getContextUser().getId());
+			Logger.debug("开始执行createSecurityRuleset:::::insert into security_ruleset..............");
+			preparedStmt.execute();
+			Logger.debug("createSecurityRuleset:::::insert into security_ruleset执行完成..............");
+			insertSecurityRuleSetItems(secRuleSet, connection);
+ 		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	 }
+
+	/**
+	  * 修改安全集
+	  * @param secRuleSet 需要进行修改的安全集；需要SecurityRuleSet 的所有属性
+	  * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	  * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	  * @throws InvalidSecurityRuleSetTypeException 传入安全集类型为空
+	  * @throws InvalidSecurityRuleSetException  传入安全集的应用对象类型为空
+	  * @throws InvalidModelException 安全集所在工作空间为空 或 当前用户为空
+	  * @throws SQLException 数据库执行过程中发生错误
+	  * @throws SecurityException 其他异常
+	  */
+	public void updateSecurityRuleSet(SecurityRuleSet secRuleSet)
+			throws DMSException, InvalidSecurityRuleSetException,InvalidSecurityRuleSetTypeException,
+				InvalidSecurityRuleSetException,InvalidModelException,SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		if(secRuleSet.getRulesetType()==null)
+			throw new InvalidSecurityRuleSetTypeException();
+		if(secRuleSet.getRulesetType()==null)
+			throw new InvalidSecurityRuleSetException();
+		if(secRuleSet.getSpaceModel()==null||secRuleSet.getSpaceModel().getId()==null)
+			throw new InvalidModelException(Space.class.getName());
+		if(secRuleSet.getContextUser()==null||secRuleSet.getContextUser().getId()==null)
+			throw new InvalidModelException(User.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		connection = DBHelper.getConnection();
+		try {
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strUpdateSecurityRuleSet"));
+			preparedStmt.setString(1, secRuleSet.getName());
+			preparedStmt.setString(2, secRuleSet.getRulesetType());
+			preparedStmt.setString(3, secRuleSet.getRulesetType());
+			preparedStmt.setString(4, secRuleSet.getSpaceModel().getId());
+			preparedStmt.setString(5, secRuleSet.getContextUser().getId());
+			preparedStmt.setString(6, secRuleSet.getRulesetId());
+			Logger.debug("开始执行updateSecurityRuleSet..............");
+			preparedStmt.execute();
+			Logger.debug("updateSecurityRuleSet执行完成..............");
+			deleteSecurityRuleSetItems(secRuleSet, connection);
+			insertSecurityRuleSetItems(secRuleSet,connection);
+
+		} finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	 }
+
+	/**
+	  * 删除安全集
+	  * @param secRuleSet  需要进行修改的安全集；需要SecurityRuleSet 的rulesetId 属性
+	  * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	  * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	  * @throws SQLException 数据库执行过程中发生错误
+	  * @throws SecurityException 其他异常
+	  */
+	public void deleteSecurityRuleset(SecurityRuleSet secRuleSet)
+	 	throws DMSException, InvalidSecurityRuleSetException, SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			deleteSecurityRuleSetItems(secRuleSet, connection);
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDelSecurityRuleset"));
+			preparedStmt.setString(1, secRuleSet.getRulesetId());
+			Logger.debug("开始执行deleteSecurityRuleset:::::delete from security_ruleset..............");
+			preparedStmt.execute();
+			Logger.debug("deleteSecurityRuleset:::::delete from security_ruleset执行完成..............");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	 }
+
+	/**
+	  * 设置 DMS对象 的定义安全集
+	  * 对象类型 为   cab|doc|lnk|fld
+	  * @param  targetModel 需要设置安全的对象 必须传入 objectid 和objectType
+	  * @param  acl 需要进行设定的安全集合 需要进行设定的所有字段
+	  * @throws InvalidTargetModelException 传入dms对象为空或者其ObjectId不存在
+	  * @throws InvalidAssigneeException 被赋予权限的assigneeId不存在
+	  * @throws InvalidAssigneeTypeException 未指定被赋予权限的assignee类型
+	  * @throws InvalidRightGroupException 未指定赋予的权限组其RgtgrpId不存在
+	  * @throws InvalidRightException  未指定赋予的权限
+	  * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	  * @throws SQLException 数据库执行过程中发生错误
+	  * @throws SecurityException 传入工作区为空 或传入用户为空 或其他异常
+	  * @throws InvalidTargetTypeException 传入dms对象类型为空
+	  */
+	public void setCustomSecurity(BaseModel targetModel,ACL acl)
+	 		throws InvalidTargetModelException,InvalidAssigneeException,
+	 			InvalidAssigneeTypeException,InvalidRightGroupException
+	 				,InvalidRightException,SecurityException, SQLException, DMSException, InvalidTargetTypeException{
+
+		if(targetModel == null|| targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(targetModel.getType()==null)
+			throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		String assigneeId = null;
+		String assigneeType = null;
+		RightGroup rhtGroup = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			//deleteAclByObjectId(targetModel,connection);
+			//insert into acl_Settings
+			 preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertACLSettingSQL"));
+			 preparedStmt.setString(1, targetModel.getId());
+			 preparedStmt.setInt(2, acl.isInheritRoot());
+			 preparedStmt.setString(3, acl.getRulesetType());
+			 preparedStmt.execute();
+
+			 preparedStmt.clearParameters();
+
+			 for (Permission permission : acl.getPermissionList()) {
+				 assigneeId = permission.getAssigneeId();
+				 assigneeType =permission.getAssigneeType();
+				 rhtGroup = permission.getRgtGroup();
+				 if(assigneeId==null)
+					 throw  new InvalidAssigneeException();
+				 if(assigneeType==null)
+					 throw  new InvalidAssigneeTypeException();
+				 if(rhtGroup==null||rhtGroup.getRgtgrpId()==null)
+					 throw new InvalidRightGroupException();
+				 if(permission.getExpiredId() != null){
+					 insertExpireddate(targetModel,permission,connection);
+				 }
+				 int i = 1;
+				if("noAccess".equalsIgnoreCase(permission.getRgtGroup().getName())) {
+					preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertACLNoaccess"));
+					preparedStmt.setString(i++, targetModel.getId());
+					preparedStmt.setString(i++, permission.getAssigneeId());
+					preparedStmt.setString(i++, permission.getAssigneeType());
+					preparedStmt.setString(i++, permission.getExpiredId());
+				}else if("userdefinded".equalsIgnoreCase(permission.getRgtGroup().getName())){
+					preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertACLSQL"));
+					preparedStmt.setString(i++, targetModel.getId());
+					preparedStmt.setString(i++, permission.getAssigneeId());
+					preparedStmt.setString(i++, permission.getAssigneeType());
+					preparedStmt.setString(i++, permission.getExpiredId());
+					preparedStmt.setString(i++, DMSConstants.USER_DEFINDED);
+					preparedStmt.setString(i++, permission.getRgtGroup().getRgtgrpId());
+				}else{
+					preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertACLSQL"));
+					preparedStmt.setString(i++, targetModel.getId());
+					preparedStmt.setString(i++, permission.getAssigneeId());
+					preparedStmt.setString(i++, permission.getAssigneeType());
+					preparedStmt.setString(i++, permission.getExpiredId());
+					preparedStmt.setString(i++, permission.getRgtGroup().getRgtgrpId());
+					preparedStmt.setString(i++, null);
+				}
+				 preparedStmt.execute();
+				 preparedStmt.clearParameters();
+
+				 if("userdefinded".equalsIgnoreCase(permission.getRgtGroup().getName())){
+					 for (Right right : permission.getRgtGroup().getRights()) {
+						 if(right==null||right.getRightId()==null)
+							 throw new InvalidRightException();
+						 int j=1;
+						 preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertUserDefinedRightSQL"));
+						 preparedStmt.setString(j++,permission.getRgtGroup().getRgtgrpId());
+						 preparedStmt.setString(j++, right.getRightId());
+						 preparedStmt.execute();
+						 preparedStmt.clearParameters();
+					}
+				 }
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	 }
+
+	/**
+	  * 获取默认安全集列表，包括其内部Items
+	  * @param curSpace 当前工作空间  ，必须设置其ObjectId
+	  * @param contextUser 当前用户 ，必须设置其ObjectId
+	  * @return 默认安全集列表，也就是RulesetType为SY 的安全集；SecurityRuleSet 包含所有属性信息
+	  * @throws InvalidModelException 无效的用户或无效的工作空间
+	  * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	  * @throws SQLException 数据库执行过程中发生错误
+	  * @throws SecurityException 其他异常
+	  */
+	public List<SecurityRuleSet> getDefaultSecurityRulesetList(Space curSpace,User contextUser)
+	 	throws InvalidModelException, DMSException,  SQLException,SecurityException{
+		if(contextUser==null||contextUser.getId() == null)
+				throw new InvalidModelException(User.class.getName());
+		if(curSpace==null||curSpace.getId() == null)
+				throw new InvalidModelException(Space.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		connection = DBHelper.getConnection();
+		List<SecurityRuleSet> rulesetList = new ArrayList<SecurityRuleSet>();
+		try {
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetDefaultSecurityRulesetList"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(2, curSpace.getId());
+			resultSet = preparedStmt.executeQuery();
+			while(resultSet.next()){
+				SecurityRuleSet ruleSet = new SecurityRuleSet();
+				ruleSet.setContextUser(contextUser);
+				ruleSet.setName(resultSet.getString("name"));
+				ruleSet.setRulesetId(resultSet.getString("sec_rs_guid"));
+				ruleSet.setRulesetType(resultSet.getString("type"));
+				ruleSet.setRulesetType(resultSet.getString("obj_type"));
+				ruleSet.setSpaceModel(curSpace);
+				rulesetList.add(ruleSet);
+			}
+			for(int i = 0;i<rulesetList.size();i++){
+				ArrayList<SecurityRuleSetItem> items = getItemByRulesetId(rulesetList.get(i),connection);
+				rulesetList.get(i).setItems(items);
+			}
+			Logger.debug("end:::::::::::::::::::getDefaultSecurityRulesetList");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return rulesetList;
+	}
+
+	/**
+	  * 获取预定义安全集列表，包括其内部Items
+	  * @param curSpace 当前工作空间  ，必须设置其ObjectId
+	  * @param contextUser 当前用户 ，必须设置其ObjectId
+	  * @return 默认安全集列表，也就是RulesetType为UD 的安全集；SecurityRuleSet 包含所有属性信息
+	  * @throws InvalidModelException 无效的用户或无效的工作空间
+	  * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	  * @throws SQLException 数据库执行过程中发生错误
+	  * @throws SecurityException 其他异常
+	  */
+	public List<SecurityRuleSet> getPredefinedSecurityRulesetList(Space curSpace,User contextUser)
+	 		throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser==null||contextUser.getId() == null)
+			throw new InvalidModelException(User.class.getName());
+		if(curSpace==null||curSpace.getId() == null)
+			throw new InvalidModelException(Space.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		List<SecurityRuleSet> rulesetList = new ArrayList<SecurityRuleSet>();
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetPredefinedSecurityRulesetList"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(2, curSpace.getId());
+			resultSet = preparedStmt.executeQuery();
+			while(resultSet.next()){
+				SecurityRuleSet ruleSet = new SecurityRuleSet();
+				ruleSet.setContextUser(contextUser);
+				ruleSet.setName(resultSet.getString("name"));
+				ruleSet.setRulesetId(resultSet.getString("sec_rs_guid"));
+				ruleSet.setRulesetType(resultSet.getString("type"));
+				ruleSet.setRulesetType(resultSet.getString("obj_type"));
+				ruleSet.setSpaceModel(curSpace);
+				rulesetList.add(ruleSet);
+			}
+			for(int i = 0;i<rulesetList.size();i++){
+				ArrayList<SecurityRuleSetItem> items = getItemByRulesetId(rulesetList.get(i),connection);
+				rulesetList.get(i).setItems(items);
+				Logger.debug("end:::::::::::::::::::getPredefinedSecurityRulesetList");
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return rulesetList;
+	}
+
+	/**
+	 * 添加安全集中的安全条目信息
+	 * @param secRuleSet 需要添加安全条目的安全集；必须添加RulesetId和Items 、items 中的SecurityRuleSetItem 中所有的属性信息
+	 * @param connection 数据库连接
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	private void insertSecurityRuleSetItems(SecurityRuleSet secRuleSet ,Connection connection)
+		throws DMSException, InvalidSecurityRuleSetException, SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		PreparedStatement preparedStmt = null;
+		try {
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertSecurityRuleSetItems"));
+			for(int i = 0; i < secRuleSet.getItems().size(); i++){
+				SecurityRuleSetItem ruleSetItem = secRuleSet.getItems().get(i);
+				preparedStmt.setString(1, secRuleSet.getRulesetId());
+				preparedStmt.setString(2, ruleSetItem.getAssigneeId());
+				preparedStmt.setString(3, ruleSetItem.getAssigneeType());
+				preparedStmt.setString(4, ruleSetItem.getRgtGroup().getRgtgrpId());
+				Logger.debug("开始执行insertItems.............. " + i);
+				preparedStmt.addBatch();
+				Logger.debug("insertItems执行完成..............");
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+		}finally{
+			DBHelper.cleanup(null, preparedStmt);
+		}
+	}
+	/**
+	 * 删除安全集中的安全条目信息
+	 * @param secRuleSet 需要添加安全条目的安全集；必须添加RulesetId和Items 、items 中的SecurityRuleSetItem 中所有的属性信息
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	private void deleteSecurityRuleSetItems(SecurityRuleSet secRuleSet,Connection connection)
+		throws DMSException, InvalidSecurityRuleSetException, SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		PreparedStatement preparedStmt = null;
+		try {
+			Logger.debug("开始执行deleteItems..............");
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteSecurityRuleSetItems"));
+			preparedStmt.setString(1, secRuleSet.getRulesetId());
+			preparedStmt.execute();
+			Logger.debug("deleteItems执行完成..............");
+
+		} finally{
+			DBHelper.cleanup(null, preparedStmt);
+		}
+	}
+
+	/**
+	 * 获取DMS对象所拥有的所有安全信息
+	 * @param targetModel 查询的dms对象，必须设置ObjectId 属性和objectType属性
+	 * @param currentSpace  当前dms对象所在工作空间 ，必须设置ObjectId 属性
+	 * @return ACL 包含其dms对象所拥有的所有安全属性信息
+	 * @throws InvalidTargetTypeException 传入dms对象类型未设置
+	 * @throws InvalidModelException currentSpace 为空或者其ObjectId不存在
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException  其他异常
+	 */
+	public ACL getACL(BaseModel targetModel,Space currentSpace)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SecurityException, SQLException{
+		if(targetModel==null||targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		if(currentSpace==null||currentSpace.getId()==null){
+			currentSpace = new Space(getSpaceId(targetModel));
+			if(currentSpace.getId()==null)
+				throw new InvalidModelException(Space.class.getName());
+		}
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ACL acl = new ACL();
+
+		try {
+			connection = DBHelper.getConnection();
+			acl = getAclSetting(targetModel, connection);
+			ArrayList<Permission> permissionList = getPermissions(targetModel,currentSpace,connection);
+			for(Permission permission : permissionList){
+				if(permission.getAssigneeId().equals("1")){
+					acl.setAnonymousSec(1);
+					break;
+				}
+			}
+			User owner = getObjectOwnerById(targetModel);
+			acl.setOwner(owner);
+			acl.setPermissionList(permissionList);
+			Logger.debug("end:::::::::::::::::::getSecurity");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+		return acl;
+	}
+
+	public ACL getAclSetting(BaseModel  targetModel,Connection connection)
+			throws DMSException, InvalidTargetModelException,InvalidModelException,SecurityException, SQLException{
+		if(targetModel==null||targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		ACL acl = new ACL();
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetAclSetting"));
+		preparedStmt.setString(1, targetModel.getId());
+		resultSet = preparedStmt.executeQuery();
+		while(resultSet.next()){
+			acl.setInheritance(Integer.parseInt(resultSet.getString("inherit_flag")));
+			if(1==acl.isInheritance()){
+				if((resultSet.getString("obj_guid")).equals(targetModel.getId())){
+					acl.setInheritRoot(1);
+					acl.setInheritRootGuid(resultSet.getString("obj_guid"));
+				}else{
+					acl.setInheritRoot(0);
+					acl.setInheritRootGuid(resultSet.getString("obj_guid"));
+				}
+			}
+			acl.setRulesetType(resultSet.getString("type"));
+		}
+
+		return acl;
+	}
+
+
+	public ACL getAclSetting(BaseModel  targetModel)
+			throws DMSException, InvalidTargetModelException,InvalidModelException,SecurityException, SQLException{
+		if(targetModel==null||targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		ACL acl = new ACL();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			acl = getAclSetting(targetModel, connection);
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+		return acl;
+	}
+
+	/**
+	 * 根据安全集ID 查询安全集中的安全条目信息
+	 * @param secRuleSet  需要获取安全条目的安全集；必须添加RulesetId
+	 * @return ArrayList<SecurityRuleSetItem> 安全集中的安全条目列表 包含SecurityRuleSetItem中的所有属性信息
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public ArrayList<SecurityRuleSetItem> getItemByRulesetId(SecurityRuleSet secRuleSet,Connection connection)
+		throws DMSException, InvalidSecurityRuleSetException, SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<SecurityRuleSetItem> items = new ArrayList<SecurityRuleSetItem>();
+		try {
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetItemByRulesetId"));
+			preparedStmt.setString(1, secRuleSet.getRulesetId());
+			preparedStmt.setString(2, secRuleSet.getRulesetId());
+			resultSet = preparedStmt.executeQuery();
+			while(resultSet.next()){
+				SecurityRuleSetItem item = new SecurityRuleSetItem();
+				RightGroup rgtGroup = new RightGroup();
+				item.setAssigneeId(resultSet.getString("assignee_guid"));
+				item.setAssigneeType(resultSet.getString("assignee_type"));
+				item.setAssigneeName(resultSet.getString(4)+" "+resultSet.getString(5));
+				rgtGroup.setRgtgrpId(resultSet.getString("rgtgrp_guid"));
+				rgtGroup.setName(resultSet.getString("name"));
+				item.setRgtGroup(rgtGroup);
+				items.add(item);
+			}
+
+		}finally{
+			DBHelper.cleanup(null, preparedStmt,resultSet);
+		}
+		return items;
+
+	}
+	/**
+	 * 根据对象ID 查询对象的OWNER
+	 * @param  targetModel  对象ID，必须包含objectid,objectType
+	 * @return User OWNER对象 包含ID 和 firstname ,lastName
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入对象为空或其objectId 为空
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public User getObjectOwnerById(BaseModel targetModel)
+		throws DMSException,InvalidTargetTypeException, InvalidTargetModelException, SQLException,SecurityException{
+		if(targetModel == null || targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		if( targetModel.getType() == null)
+				throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		User owner = null;
+		String objectType = null;
+
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetObjectOwnerById"));
+			if(targetModel.getType().equalsIgnoreCase("Document")){
+				objectType = DMSConstants.OBJ_TYPE_DOC;
+			}else if(targetModel.getType().equalsIgnoreCase("Cabinet")){
+				objectType = DMSConstants.OBJ_TYPE_CABINET;
+			}else if(targetModel.getType().equalsIgnoreCase("Folder")){
+				objectType = DMSConstants.OBJ_TYPE_FOLDER;
+			}else if(targetModel.getType().equalsIgnoreCase("Link")){
+				objectType = DMSConstants.OBJ_TYPE_LINK;
+			}else{
+				objectType = targetModel.getType();
+			}
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, objectType);
+			preparedStmt.setString(3, targetModel.getId());
+			preparedStmt.setString(4, objectType);
+			resultSet = preparedStmt.executeQuery();
+			while(resultSet.next()){
+				owner = new User(resultSet.getString(1));
+				owner.setType(resultSet.getString(2));
+				owner.setFirstName(resultSet.getString(3));
+				owner.setLastName(resultSet.getString(4));
+			}
+			if(owner == null){
+				throw new InvalidSecurityRuleSetException();
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+		return owner;
+	}
+	/**
+	 * 根据对象ID 删除该对象权限（数据库中永久删除！）
+	 * @param targetModel  对象ID，必须包含objectid
+	 * @return
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入对象为空或其objectId 为空
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void deleteAclByObjectId(BaseModel targetModel)
+			throws DMSException, InvalidTargetModelException, SQLException,SecurityException{
+		if(targetModel == null || targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteAclByObjectId"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.execute();
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 插入过期时间记录
+	 * @param targetModel 有过期权限的对象 必须有objectID
+	 * @param permission 设定自动过期时间的权限记录 必须有过期时间ID 和过期时间
+	 * @param connection 数据库连接
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入对象为空或其objectId 为空
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void insertExpireddate(BaseModel targetModel,Permission permission,Connection connection)
+			throws DMSException, InvalidTargetModelException, SQLException,SecurityException{
+		if(targetModel == null || targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		PreparedStatement preparedStmt = null;
+
+		try {
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertExpireddate"));
+			preparedStmt.setString(1, permission.getExpiredId());
+			preparedStmt.setTimestamp(2, permission.getExpiredDate());
+			preparedStmt.setString(3, targetModel.getId());
+			preparedStmt.execute();
+		}finally{
+			DBHelper.cleanup(null, preparedStmt);
+		}
+	}
+
+	/**
+	  * 获取默认安全集列表，包括其内部Items
+	  * @param curSpace 当前工作空间  ，必须设置其ObjectId
+	  * @param contextUser 当前用户 ，必须设置其ObjectId
+	  * @param baseModel 当前对象 ，必须设置其ObjectType
+	  * @return 默认安全集列表，也就是RulesetType为UD 的安全集；SecurityRuleSet 包含所有属性信息
+	  * @throws InvalidModelException 无效的用户或无效的工作空间
+	  * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	  * @throws SQLException 数据库执行过程中发生错误
+	  * @throws SecurityException 其他异常
+	  */
+	public SecurityRuleSet getDefaultSecurityRuleset(Space curSpace,User contextUser,BaseModel baseModel)
+	 		throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser==null||contextUser.getId() == null)
+			throw new InvalidModelException(User.class.getName());
+		if(curSpace==null||curSpace.getId() == null)
+			throw new InvalidModelException(Space.class.getName());
+		if(baseModel==null||baseModel.getType() == null)
+			throw new InvalidModelException(BaseModel.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		SecurityRuleSet ruleSet = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetDefaultSecurityRuleset"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(2, curSpace.getId());
+			preparedStmt.setString(3, baseModel.getType());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				ruleSet = new SecurityRuleSet();
+				ruleSet.setContextUser(contextUser);
+				ruleSet.setName(resultSet.getString("name"));
+				ruleSet.setRulesetId(resultSet.getString("sec_rs_guid"));
+				ruleSet.setRulesetType(resultSet.getString("type"));
+				ruleSet.setRulesetType(resultSet.getString("obj_type"));
+				ruleSet.setSpaceModel(curSpace);
+			}
+			ArrayList<SecurityRuleSetItem> items = getItemByRulesetId(ruleSet,connection);
+			if(ruleSet!=null)
+				ruleSet.setItems(items);
+			Logger.debug("end:::::::::::::::::::getDefaultSecurityRuleset");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return ruleSet;
+	}
+
+	/**
+	 * 检查DMS对象的权限是否更改了继承状态  为设置安全时是否需要进行继承和取消继承操作添加的方法
+	 * @param targetModel 需要进行安全设置的DMS对象，必须设定
+	 * @param inhertflag DMS对象继承状态
+	 * @return 继承状态是否改变  ，  false 状态未改变 ；true 状态改变
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入对象为空或其objectId 为空
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public boolean checkInheritanceChanged(BaseModel targetModel,int inhertflag)
+		throws InvalidTargetModelException, DMSException, SQLException,SecurityException{
+		if(targetModel == null || targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+
+		boolean hasChanged = false;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCheckInheritanceChangedGetDefaultSecurityRuleset"));
+			preparedStmt.setString(1, targetModel.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				if(resultSet.getInt(1)!=inhertflag)
+					hasChanged = true;
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return hasChanged ;
+	}
+
+	/**
+	 * 根据安全集ID 查询安全集中的安全条目信息
+	 * @param secRuleSet  需要获取安全条目的安全集；必须添加RulesetId
+	 * @return ArrayList<SecurityRuleSetItem> 安全集中的安全条目列表 包含SecurityRuleSetItem中的所有属性信息
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidSecurityRuleSetException 传入的安全集为空或者其RulesetId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public ArrayList<SecurityRuleSetItem> getItemByRulesetId(SecurityRuleSet secRuleSet)
+		throws DMSException, InvalidSecurityRuleSetException, SQLException,SecurityException{
+		if(secRuleSet==null||secRuleSet.getRulesetId()==null)
+			throw new InvalidSecurityRuleSetException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<SecurityRuleSetItem> items = new ArrayList<SecurityRuleSetItem>();
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetItemByRulesetId"));
+			preparedStmt.setString(1, secRuleSet.getRulesetId());
+			preparedStmt.setString(2, secRuleSet.getRulesetId());
+			resultSet = preparedStmt.executeQuery();
+			while(resultSet.next()){
+				SecurityRuleSetItem item = new SecurityRuleSetItem();
+				RightGroup rgtGroup = new RightGroup();
+				item.setAssigneeId(resultSet.getString("assignee_guid"));
+				item.setAssigneeType(resultSet.getString("assignee_type"));
+				item.setAssigneeName(resultSet.getString(4)+" "+resultSet.getString(5));
+				rgtGroup.setRgtgrpId(resultSet.getString("rgtgrp_guid"));
+				rgtGroup.setName(resultSet.getString("name"));
+				item.setRgtGroup(rgtGroup);
+				items.add(item);
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return items;
+	}
+
+	/**
+	 * 根据targetModel 查询SpaceId
+	 * @param targetModel  必须添加ObjectId、ObjectType
+	 * @throws InvalidTargetTypeException  targetModel的objectType为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException targetModel为空或者objectId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public String getSpaceId(BaseModel targetModel)
+			throws DMSException,InvalidTargetTypeException, InvalidTargetModelException, SQLException,SecurityException{
+			if(targetModel == null || targetModel.getId() == null)
+				throw new InvalidTargetModelException();
+			if( targetModel.getType() == null)
+					throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		String spaceId = null;
+		String objectType = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetSpaceId"));
+			if(targetModel.getType().equalsIgnoreCase(DMSConstants.OBJ_TYPE_DOC)){
+				objectType = "Document";
+			}else if(targetModel.getType().equalsIgnoreCase(DMSConstants.OBJ_TYPE_CABINET)){
+				objectType = "Cabinet";
+			}else if(targetModel.getType().equalsIgnoreCase(DMSConstants.OBJ_TYPE_FOLDER)){
+				objectType = "Folder";
+			}else if(targetModel.getType().equalsIgnoreCase(DMSConstants.OBJ_TYPE_LINK)){
+				objectType = "Link";
+			}else{
+				objectType = targetModel.getType();
+			}
+			preparedStmt.setString(1,  targetModel.getId());
+			preparedStmt.setString(2,  objectType);
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				spaceId = resultSet.getString(1);
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return spaceId;
+	}
+
+	/**
+	 * 新建dms 如果是继承则使用根节点的权限
+	 * @param targetModel  必须添加ObjectId
+	 * @param parentId   根节点ID
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException 传入的targetModel为空或者其ObjectId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void insertDmsInherit(BaseModel targetModel,String parentId)
+		throws DMSException, InvalidTargetModelException, SQLException,SecurityException{
+		if(targetModel == null || targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		if(parentId == null)
+			throw new SecurityException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertDmsInherit"));
+			preparedStmt.setString(1,  targetModel.getId());
+			preparedStmt.setString(2,  parentId);
+			preparedStmt.execute();
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 检查创建的安全集名称是否存在。
+	 * @param securityRuleSet 需要进行创建的安全集 必须包含安全集名称
+	 * @return 安全集名称是否存在 如果存在 返回 true ; 如果不存在 返回false
+	 * @throws InvalidSecurityRuleSetException 安全集为空或者其name 不存在
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public boolean checkRuleSetNameexisted(SecurityRuleSet securityRuleSet)
+		throws InvalidSecurityRuleSetException, DMSException, SQLException,SecurityException{
+		if(securityRuleSet==null||securityRuleSet.getName()==null)
+			throw new InvalidSecurityRuleSetException();
+		boolean isExisted = false;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCheckRuleSetNameexisted"));
+			preparedStmt.setString(1, securityRuleSet.getName());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				isExisted = resultSet.getBoolean(1);
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return isExisted ;
+	}
+
+	/**
+	 * 根据安全集ID 查询安全集详细信息
+	 * @param securityRuleSet 需要获取详细信息的安全集 必须包含RulesetId
+	 * @return 安全集的详细信息
+	 * @throws InvalidSecurityRuleSetException 需要查询的安全集为空 或者ID 为空；或未查询出安全集
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public SecurityRuleSet getSecurityRuleSetById(SecurityRuleSet securityRuleSet)
+		throws InvalidSecurityRuleSetException, DMSException, SQLException,SecurityException{
+			if(securityRuleSet==null||securityRuleSet.getRulesetId()==null)
+				throw new InvalidSecurityRuleSetException();
+			Connection connection = null;
+			PreparedStatement preparedStmt = null;
+			ResultSet resultSet = null;
+			SecurityRuleSet ruleSet = null;
+			try {
+				connection = DBHelper.getConnection();
+				preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetSecurityRuleSetById"));
+				preparedStmt.setString(1, securityRuleSet.getRulesetId());
+				resultSet = preparedStmt.executeQuery();
+				if(resultSet.next()){
+					ruleSet = new SecurityRuleSet();
+					ruleSet.setContextUser(new User(resultSet.getString("usr_guid")));
+					ruleSet.setName(resultSet.getString("name"));
+					ruleSet.setRulesetId(resultSet.getString("sec_rs_guid"));
+					ruleSet.setRulesetType(resultSet.getString("type"));
+					ruleSet.setRulesetType(resultSet.getString("obj_type"));
+					ruleSet.setSpaceModel(new Space(resultSet.getString("space_guid")));
+				}
+				ArrayList<SecurityRuleSetItem> items = getItemByRulesetId(ruleSet,connection);
+				ruleSet.setItems(items);
+				Logger.debug("end:::::::::::::::::::getDefaultSecurityRuleset");
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return ruleSet;
+	}
+
+	/**
+	 * 将用户添加进组织/部门/项目时创建默认安全集。
+	 * @param user 当前用户  必须包含ObjectId
+	 * @param space 用户加入的组织/部门/项目的工作空间 必须包含ObjectId
+	 * @param group 当前用户所在的Team组   必须包含ObjectId
+	 * @throws InvalidModelException 传入用户，工作空间，组为空或没有objectid
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void createDefaultDMSRuleSet(User user , Space space , Group group)
+		throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(user == null || user.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(space == null || space.getId() ==null)
+			throw new InvalidModelException(Space.class.getName());
+		if(group == null || group.getId() ==null)
+			throw new InvalidModelException(Group.class.getName());
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		String cabRuleSetId = DocUtil.getGUID();
+		String fldRuleSetId = DocUtil.getGUID();
+		String docRuleSetId = DocUtil.getGUID();
+		String lnkRuleSetId = DocUtil.getGUID();
+
+		String[] ruleSetType = {DMSConstants.OBJ_TYPE_CABINET,DMSConstants.OBJ_TYPE_FOLDER,DMSConstants.OBJ_TYPE_DOC,DMSConstants.OBJ_TYPE_LINK};
+		String[] ruleSetIds = {cabRuleSetId,fldRuleSetId,docRuleSetId,lnkRuleSetId};
+		String[] defaultRightGroup = new String[4];
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strSelectDefaultRuleSet"));
+			resultSet = preparedStmt.executeQuery();
+			while(resultSet.next()){
+				Logger.debug(resultSet.getString(2)+"     "+getrgtgrpIdByName(resultSet.getString(2)));
+				if(DMSConstants.CABINET.equalsIgnoreCase(resultSet.getString(1)))
+					defaultRightGroup[0] = getrgtgrpIdByName(resultSet.getString(2));
+				else if(DMSConstants.FOLDER.equalsIgnoreCase(resultSet.getString(1)))
+					defaultRightGroup[1] = getrgtgrpIdByName(resultSet.getString(2));
+				else if(DMSConstants.DOCUMENT.equalsIgnoreCase(resultSet.getString(1)))
+					defaultRightGroup[2] = getrgtgrpIdByName(resultSet.getString(2));
+				else if(DMSConstants.LINK.equalsIgnoreCase(resultSet.getString(1)))
+					defaultRightGroup[3] = getrgtgrpIdByName(resultSet.getString(2));
+			}
+			preparedStmt.clearParameters();
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCheckDefaultRuleSet"));
+			preparedStmt.setString(1, space.getId());
+			preparedStmt.setString(2, user.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				if("1".equals(resultSet.getString(1))){
+					return;
+				}else  {
+					Boolean existed = false;
+					try {
+						existed = Boolean.parseBoolean(resultSet.getString(1));
+					}catch (Exception e ){}
+					if(existed)
+						return;
+				}
+
+			}
+
+			preparedStmt.clearParameters();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strRuleSetSql"));
+			for (int i = 0; i < ruleSetIds.length; i++) {
+				preparedStmt.setString(1, ruleSetIds[i]);
+				preparedStmt.setString(2, DMSConstants.Default_RULESET_NAME);
+				preparedStmt.setString(3, "SY");
+				preparedStmt.setString(4, ruleSetType[i]);
+				preparedStmt.setString(5, space.getId());
+				preparedStmt.setString(6, user.getId());
+				preparedStmt.addBatch();
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+			preparedStmt.clearParameters();
+
+			String ruleSetItemSql ="insert into security_ruleset_items VALUES (?,?,?,?)";
+
+			preparedStmt = connection.prepareStatement(ruleSetItemSql);
+
+			for (int i = 0; i < ruleSetIds.length; i++) {
+				preparedStmt.setString(1, ruleSetIds[i]);
+				preparedStmt.setString(2, group.getId());
+				preparedStmt.setString(3, DMSConstants.ASSIGNEE_TYPE_GROUP);
+				preparedStmt.setString(4, defaultRightGroup[i]);
+				preparedStmt.addBatch();
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+	}
+	/**
+	 * 更新DMS对象的权限条目 用于当用户设为组织管理员等时 为智能文件夹/预创建的文档柜添加权限
+	 * @param targetModel 需要修改权限的对象 必须包含objectid
+	 * @param permissions 修改的权限 必须包含  assigneeID assigneeType rightgroup
+	 * @throws InvalidTargetModelException 修改权限的对象为空或者objectid为空
+	 * @throws InvalidModelException   权限集合为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public void updateObjACL(BaseModel targetModel,ArrayList<Permission> permissions)
+		throws InvalidTargetModelException , InvalidModelException,DMSException, SQLException,SecurityException {
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(permissions==null)
+			throw new InvalidModelException(ArrayList.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeletePermission"));
+			for (Permission permission : permissions) {
+				preparedStmt.setString(1, targetModel.getId());
+				preparedStmt.setString(2, permission.getAssigneeId());
+				preparedStmt.addBatch();
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+			preparedStmt.clearParameters();
+
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeletePermissionForNoAccess"));
+			for (Permission permission : permissions) {
+				preparedStmt.setString(1, targetModel.getId());
+				preparedStmt.setString(2, permission.getAssigneeId());
+				preparedStmt.addBatch();
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+			preparedStmt.clearParameters();
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertPermission"));
+			for (Permission permission : permissions) {
+				if(!getrgtgrpIdByName("noAccess").equalsIgnoreCase(permission.getRgtGroup().getRgtgrpId())){
+					preparedStmt.setString(1, targetModel.getId());
+					preparedStmt.setString(2, permission.getAssigneeId());
+					preparedStmt.setString(3, permission.getAssigneeType());
+					preparedStmt.setString(4, permission.getRgtGroup().getRgtgrpId());
+					preparedStmt.addBatch();
+				}
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertPermissionForNoAccess"));
+			for (Permission permission : permissions) {
+				if(getrgtgrpIdByName("noAccess").equalsIgnoreCase(permission.getRgtGroup().getRgtgrpId())){
+					preparedStmt.setString(1, targetModel.getId());
+					preparedStmt.setString(2, permission.getAssigneeId());
+					preparedStmt.setString(3, permission.getAssigneeType());
+					preparedStmt.addBatch();
+				}
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	/**
+	 * 清空回收站
+	 * @param contextUser 当前用户 必须包含objectid
+	 * @throws InvalidModelException 当前用户不存在或者其objectid为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+
+	public void emptyRecycleBinDMSSecurity(User contextUser)
+		throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		List<BaseModel> models = new ArrayList<BaseModel>();
+
+
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strRecycleBinSql"));
+			preparedStmt.setString(1, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			BaseModel temp = null;
+			while(resultSet.next()){
+				temp = new BaseModel(resultSet.getString(1));
+				temp.setType(resultSet.getString(2));
+				models.add(temp);
+			}
+
+			for (BaseModel model : models) {
+				if(model.getType().equalsIgnoreCase(DMSConstants.DOCUMENT)||model.getType().equalsIgnoreCase(DMSConstants.LINK))
+					deleteAclForDocOrLnk(model);
+				else if(model.getType().equalsIgnoreCase(DMSConstants.CABINET)||model.getType().equalsIgnoreCase(DMSConstants.FOLDER))
+					deleteAclWithSubitems(model);
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+	}
+
+
+	/**
+	 * 获取用户某父节点下有权限查看的文档柜列表
+	 * @param contextUser 当前用户 必须包含objectid
+	 * @param targetModel 请求查看其下子文档柜的DMS 对象  （目前是Module） 必须包含objectID
+	 * @param sortableColumns 以某些列进行升序或者降序排列查询 可以为空 取默认值
+	 * @return 用户有权限查看的文档柜  包含文档柜的基础信息
+	 * @throws InvalidModelException 当前用户为空 或者其objectid不存在
+	 * @throws InvalidTargetModelException 请求查看子文档柜列表的对象 为空 或者ID 为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public ArrayList<Cabinet> getCabinets(User contextUser,BaseModel targetModel,String[][] sortableColumns)
+		throws InvalidModelException,InvalidTargetModelException,DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+			/*if(sortableColumns==null||sortableColumns.length==0){
+				sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_CABINET);
+			}*/
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Cabinet> cabinets = new ArrayList<Cabinet>();
+		Cabinet cabinet =null;
+		BaseModel bm =null;
+		User user_Updated =null;
+		User user_Created =null;
+		ArrayList alist = new ArrayList();
+
+			/*String sortQuery = getSortingColumnQuery(DMSConstants.OBJ_TYPE_CABINET, sortableColumns)
+									.replaceAll("#"+DMSConstants.OBJ_TYPE_CABINET+"#", "a")
+									.replaceAll("#"+DMSConstants.ASSIGNEE_TYPE_USER+"#", "b");*/
+
+		try{
+			connection = DBHelper.getConnection();
+
+			int i = 1;
+			String strListCabsql=QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strListCabsql");
+			if(sortableColumns!=null){
+				strListCabsql+=" "+switchTrueOrder(sortableColumns[0][0], (sortableColumns[0][1] == null ? "ASC": sortableColumns[0][1]));
+			}else {
+				strListCabsql+=" "+"ordernum,convert_to(name,'GBK')";
+			}
+			preparedStmt = connection.prepareStatement(strListCabsql);
+			preparedStmt.setString(i++, targetModel.getId());
+			preparedStmt.setString(i++, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+
+			while (resultSet.next()) {
+				cabinet = new Cabinet();
+				bm = new BaseModel();
+				alist = new ArrayList();
+				user_Updated = new User();
+				user_Created = new User();
+
+				cabinet.setId(resultSet.getString(1));
+				cabinet.setName(resultSet.getString(2));
+				alist.add(resultSet.getString(3));
+				cabinet.setRepository(alist);
+				bm.setId(resultSet.getString(4));
+				cabinet.setParentModel(bm);
+				cabinet.setDescription(resultSet.getString(5));
+				user_Created.setId(resultSet.getString(6));
+				cabinet.setCreatedDate(resultSet.getTimestamp(7));
+				user_Updated.setId(resultSet.getString(8));
+				cabinet.setUpdatedDate(resultSet.getTimestamp(9));
+				user_Created.setName(resultSet.getString(10));
+				cabinet.setCabinetType(resultSet.getString(11));
+				cabinet.setUpdateFlag(resultSet.getString(12));
+				cabinet.setType(DMSConstants.CABINET);
+				cabinet.setCreatedBy(user_Created);
+				cabinet.setUpdatedBy(user_Updated);
+				cabinets.add(cabinet);
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+		return cabinets;
+	}
+
+
+	/**
+	 * 拼接排序用 sql 语句
+	 * @param strObjectType 当前使用排序列的对象 cab|fld|doc|lnk
+	 * @param sortableColumns 需要排序的列
+	 * @return 排序用字符串  拼接于sql查询语句之后进行排序   以 order by 起 至 asc|desc结束
+	 */
+	private String getSortingColumnQuery(String strObjectType, String [][]sortableColumns ) {
+
+		StringBuffer strBuffer = new StringBuffer();
+		String strQuery = "";
+		strBuffer.append(DMSConstants.ORDERBY_CLAUSE+" ");
+
+		for (int iCount = 0; iCount <sortableColumns.length; iCount++) {
+			try{
+			strBuffer.append(readQuery.getSortQueryValue(strObjectType+"_"+sortableColumns[iCount][0]));
+
+			if ( sortableColumns[iCount][1] != null &&
+				sortableColumns[iCount][1].equals(DMSConstants.DESCEND))
+
+				strBuffer.append(" "+DMSConstants.DESCEND_QUERY+", ");
+			else
+				strBuffer.append(" "+DMSConstants.ASCEND_QUERY+", ");
+			}catch(Exception e ){
+				Logger.error("e ========="+e.getMessage());
+				continue;
+			}
+		}
+
+		strQuery = strQuery +" "+strBuffer.toString().trim();
+
+		if ( strQuery.endsWith(","))
+			strQuery = strQuery.substring(0,strQuery.length()-1);
+		if(!strQuery.trim().equalsIgnoreCase(DMSConstants.ORDERBY_CLAUSE))
+			return strQuery;
+		else
+			return " ";
+	}
+	/**
+	 * 根据Folder的ID查出继承根节点的ID
+	 * @param targetModel 需要查询的DMS 对象 必须包含  objectID
+	 * @throws InvalidTargetModelException 传入对象为空或者其objectid为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+     * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public String getInheritRootGuidForfolder(BaseModel targetModel)
+		throws InvalidTargetModelException , DMSException, SQLException,SecurityException {
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		String prtGuid = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetInheritRootGuidForfolder"));
+			preparedStmt.setString(1, targetModel.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				prtGuid = resultSet.getString(1);
+			}
+			if(prtGuid == null)
+				throw new InvalidTargetModelException();
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return prtGuid;
+	}
+
+
+	/**
+	 * @Deprecated  instead by getAclSettings
+	 * @param targetModel
+	 * @return
+	 * @throws DMSException
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidTargetTypeException
+	 * @throws InvalidModelException
+	 * @throws SecurityException
+	 * @throws SQLException
+	 */
+	@Deprecated
+	public int inheritFlag(BaseModel targetModel)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SecurityException, SQLException{
+		if(targetModel==null||targetModel.getId() == null)
+			throw new InvalidTargetModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		int inherit = 0;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInheritFlag"));
+			preparedStmt.setString(1, targetModel.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				inherit = Integer.parseInt(resultSet.getString("inherit_flag"));
+			}
+			Logger.debug("end:::::::::::::::::::inheritFlag");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return inherit;
+	}
+
+	@Deprecated
+	public void deleteCabOrFld(BaseModel bModel,User contextUser)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SecurityException, SQLException{
+		if(bModel==null||bModel.getId() == null||bModel.getType() == null)
+			throw new InvalidTargetModelException();
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteCabOrFld"));
+			preparedStmt.setString(1, bModel.getId());
+			if (bModel instanceof Folder) {
+				preparedStmt.setString(2, DMSConstants.FOLDER);
+			} else if (bModel instanceof Cabinet) {
+				preparedStmt.setString(2, DMSConstants.CABINET);
+			}
+			preparedStmt.setString(3, contextUser.getId());
+
+			preparedStmt.setString(4, bModel.getSpaceId());
+			preparedStmt.execute();
+			Logger.debug("end:::::::::::::::::::dms_deleteCabOrFld");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+	@Deprecated
+	public void insertAclForAnonymousUser(BaseModel bModel,String dmsRightGroupName)
+		throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SecurityException, SQLException{
+		if(bModel==null||bModel.getId() == null)
+			throw new InvalidTargetModelException();
+
+		if(dmsRightGroupName == null||dmsRightGroupName.isEmpty()){
+			throw new InvalidRightGroupException();
+		}
+		String dmsRightGroupId  = getrgtgrpIdByName(dmsRightGroupName);
+		if(dmsRightGroupId==null){
+			throw new InvalidRightGroupException();
+		}
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteAclForAnonymousUser"));
+			preparedStmt.setString(1, bModel.getId());
+			preparedStmt.executeUpdate();
+			preparedStmt.clearParameters();
+
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertAclForSinglePermission"));
+			preparedStmt.setString(1, null);
+			preparedStmt.setString(2, bModel.getId());
+			preparedStmt.setString(3, "1");
+			preparedStmt.setString(4, "usr");
+			preparedStmt.setString(5,dmsRightGroupId);
+			preparedStmt.setString(6, null);
+			preparedStmt.execute();
+			Logger.debug("end:::::::::::::::::::insertAclForAnonymousUser");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+
+	public void insertAclForSinglePermission(BaseModel bModel, Permission permission)
+			throws DMSException, InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,SecurityException, SQLException {
+		if (bModel == null || bModel.getId() == null)
+			throw new InvalidTargetModelException();
+		if (permission == null )
+			throw new SecurityException();
+		if (permission.getAssigneeId() == null ||permission.getAssigneeId().isEmpty()){
+			throw new InvalidAssigneeException();
+		}
+		if (permission.getAssigneeType() == null ||permission.getAssigneeType().isEmpty()){
+			throw new InvalidAssigneeTypeException();
+		}
+		
+		if (permission.getRgtGroup() == null ) {
+			throw new InvalidRightGroupException();
+		}
+		if (permission.getRgtGroup().getRgtgrpId() == null || permission.getRgtGroup().getRgtgrpId().isEmpty()){
+			if(permission.getRgtGroup().getName() == null || permission.getRgtGroup().getName().isEmpty())
+				throw new InvalidRightGroupException();
+			String dmsRightGroupId = getrgtgrpIdByName(permission.getRgtGroup().getName());
+			if (dmsRightGroupId == null) {
+				throw new InvalidRightGroupException();
+			}
+			permission.getRgtGroup().setRgtgrpId(dmsRightGroupId);
+		}
+
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteAclForSinglePermission"));
+			preparedStmt.setString(1, bModel.getId());
+			preparedStmt.setString(2, permission.getAssigneeId());
+			preparedStmt.executeQuery();
+			preparedStmt.clearParameters();
+
+
+			if(permission.getExpiredId() != null){
+				insertExpireddate(bModel,permission,connection);
+			}
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strInsertAclForSinglePermission"));
+			preparedStmt.setString(1, null);
+			preparedStmt.setString(2, bModel.getId());
+			preparedStmt.setString(3, permission.getAssigneeId());
+			preparedStmt.setString(4, permission.getAssigneeType());
+			preparedStmt.setString(5, permission.getRgtGroup().getRgtgrpId());
+			preparedStmt.setString(6, permission.getExpiredId());
+			preparedStmt.execute();
+			Logger.debug("end:::::::::::::::::::strInsertAclForSinglePermission");
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+	/**
+	 * 将对象的权限从一个旧的权限组更改为新的权限组
+	 * @param bModel 不可为空 ， 必须包含strObjectId, 否则抛出 {@link InvalidTargetModelException}
+	 * @param oldRightGroup		不可为空，必须包含 rgtgrpId 或者 name ,否则抛出 {@link InvalidRightGroupException}
+	 * @param newRightGroup		不可为空，必须包含 rgtgrpId 或者 name ,否则抛出 {@link InvalidRightGroupException}
+	 * @throws DMSException
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidModelException
+	 * @throws SecurityException
+	 * @throws InvalidRightGroupException
+	 * @throws SQLException
+	 */
+	public void updateAclByRightGroup(BaseModel bModel,RightGroup oldRightGroup, RightGroup newRightGroup)
+		throws DMSException, InvalidTargetModelException,
+			InvalidModelException,SecurityException,InvalidRightGroupException,SQLException{
+			if(bModel==null||bModel.getId() == null)
+				throw new InvalidTargetModelException();
+			if(oldRightGroup==null||(oldRightGroup.getRgtgrpId() == null&&oldRightGroup.getName() == null))
+				throw new InvalidRightGroupException("oldRightGroup");
+			if(newRightGroup==null||(newRightGroup.getRgtgrpId() == null&&newRightGroup.getName() == null))
+				throw new InvalidRightGroupException("newRightGroup");
+
+
+			if(oldRightGroup.getRgtgrpId()==null){
+				oldRightGroup.setRgtgrpId(getrgtgrpIdByName(oldRightGroup.getName().toLowerCase()));
+			}
+			if(newRightGroup.getRgtgrpId()==null){
+				newRightGroup.setRgtgrpId(getrgtgrpIdByName(oldRightGroup.getName().toLowerCase()));
+			}
+
+			Connection connection = null;
+			PreparedStatement preparedStmt = null;
+
+			try {
+				connection = DBHelper.getConnection();
+				preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strUpdateAclByRightGroup"));
+				preparedStmt.setString(1, newRightGroup.getRgtgrpId());
+				preparedStmt.setString(2, bModel.getId());
+				preparedStmt.setString(3, oldRightGroup.getRgtgrpId());
+				preparedStmt.execute();
+				Logger.debug("end::::::::"+bModel.getId()+"::::::::::updateAclByRole  FROM "+oldRightGroup.getRgtgrpId()+"   TO    "+newRightGroup.getRgtgrpId());
+
+			}finally{
+				DBHelper.cleanup(connection, preparedStmt);
+			}
+
+	}
+
+	/**
+	 * 将对象的权限以一个旧的权限组为条件进行移除
+	 * @param bModel 不可为空 ， 必须包含strObjectId, 否则抛出 {@link InvalidTargetModelException}
+	 * @param rightGroup		不可为空，必须包含 rgtgrpId 或者 name ,否则抛出 {@link InvalidRightGroupException}
+	 * @throws DMSException
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidModelException
+	 * @throws SecurityException
+	 * @throws InvalidRightGroupException
+	 * @throws SQLException
+	 */
+	public void deleteAclByRightGroup(BaseModel bModel,RightGroup rightGroup)
+		throws DMSException, InvalidTargetModelException,
+			InvalidModelException,SecurityException, SQLException{
+			if(bModel==null||bModel.getId() == null)
+				throw new InvalidTargetModelException();
+			if(rightGroup==null||(rightGroup.getRgtgrpId() == null&&rightGroup.getName() == null))
+				throw new InvalidRightGroupException("rightGroup");
+
+			if(rightGroup.getRgtgrpId()==null){
+				rightGroup.setRgtgrpId(getrgtgrpIdByName(rightGroup.getName().toLowerCase()));
+			}
+
+			Connection connection = null;
+			PreparedStatement preparedStmt = null;
+
+			try {
+				connection = DBHelper.getConnection();
+				preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteAclByRightGroup"));
+				preparedStmt.setString(1, bModel.getId());
+				preparedStmt.setString(2, rightGroup.getRgtgrpId());
+				preparedStmt.execute();
+				Logger.debug("end::::::::"+bModel.getId()+"::::::::::deleteAclByRightGroup  FROM "+rightGroup.getRgtgrpId());
+
+			}finally{
+				DBHelper.cleanup(connection, preparedStmt);
+			}
+
+	}
+
+	/**
+	 * 将对象的权限以一个旧的权限组为条件进行移除
+	 * @param bModel 不可为空 ， 必须包含strObjectId, 否则抛出 {@link InvalidTargetModelException}
+	 * @param assignee		不可为空，必须包含 strObjectId   ,否则抛出 {@link InvalidTargetModelException}
+	 * @throws DMSException
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidModelException
+	 * @throws SecurityException
+	 * @throws SQLException
+	 */
+	public void deleteAclByAssignee(BaseModel bModel,BaseModel assignee)
+		throws DMSException, InvalidTargetModelException,
+			InvalidModelException,SecurityException, SQLException{
+			if(bModel==null||bModel.getId() == null)
+				throw new InvalidTargetModelException();
+			if(assignee==null||assignee.getId() == null)
+				throw new InvalidTargetModelException("assignee");
+
+			Connection connection = null;
+			PreparedStatement preparedStmt = null;
+
+			try {
+				connection = DBHelper.getConnection();
+				preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteAclByAssignee"));
+				preparedStmt.setString(1, bModel.getId());
+				preparedStmt.setString(2, assignee.getId());
+				preparedStmt.execute();
+				Logger.debug("end::::::::"+bModel.getId()+"::::::::::deleteAclByUser  FROM "+assignee.getId());
+
+			}finally{
+				DBHelper.cleanup(connection, preparedStmt);
+			}
+
+	}
+
+
+	/**
+	 * 获取文件夹列表  只会得到用户有权限看到的文档。
+	 * @param contextUser
+	 * @param targetModel
+	 * @param sortableColumns
+	 * @param isCheckedForUpdated
+	 * @return
+	 * @throws InvalidModelException
+	 * @throws DMSException
+	 * @throws SQLException
+	 * @throws SecurityException
+	 */
+	public ArrayList<Folder> getFolders(User contextUser,BaseModel targetModel ,String[][] sortableColumns,boolean isCheckedForUpdated)
+				throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		/*if(sortableColumns==null||sortableColumns.length==0){
+			sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_FOLDER);
+		}*/
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Folder> folders = new ArrayList<Folder>();
+		Folder folder = null;
+		Folder prtFLd = null;
+
+		Cabinet folderCabinet =null;
+/*		String sortQuery = getSortingColumnQuery(DMSConstants.OBJ_TYPE_FOLDER, sortableColumns)
+				.replaceAll("#"+DMSConstants.OBJ_TYPE_FOLDER+"#", "a")
+				.replaceAll("#"+DMSConstants.ASSIGNEE_TYPE_USER+"#", "b");*/
+
+		try{
+			Logger.debug("------------------"  + sortableColumns );
+			connection = DBHelper.getConnection();
+			String strGetFolders=QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetFolders");
+			if(sortableColumns!=null){
+				strGetFolders+=" "+switchTrueOrder(sortableColumns[0][0],(sortableColumns[0][1] == null ? "ASC": sortableColumns[0][1]));
+			}else{
+				strGetFolders+=" ordernum,convert_to(name,'GBK') ";
+			}
+			preparedStmt = connection.prepareStatement(strGetFolders);
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				User usr = new User();
+				folder = new Folder();
+				folder.setId(resultSet.getString(1));
+				folder.setName(resultSet.getString(2));
+				folder.setUpdatedDate(resultSet.getTimestamp(3));
+				usr.setName(resultSet.getString(4));
+				folder.setUpdateFlag(resultSet.getString(5));
+
+				folderCabinet = new Cabinet(resultSet.getString("cab_guid"));
+				folder.setFolderCabinet(folderCabinet);
+				folder.setType(DMSConstants.FOLDER);
+				folder.setCreatedBy(usr);
+				folder.setDescription(resultSet.getString("description"));
+
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+					folder.setParentModel(prtFLd);
+				}
+				folders.add(folder);
+
+				usr = null;
+				folder = null;
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+		return folders;
+	}
+	public ArrayList<Folder> getFolders4Offical(User contextUser,BaseModel targetModel ,String[][] sortableColumns,boolean isCheckedForUpdated)
+		throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		if(sortableColumns==null||sortableColumns.length==0){
+		sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_FOLDER);
+		}
+
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+	ArrayList<Folder> folders = new ArrayList<Folder>();
+	Folder folder = null;
+		Folder prtFLd= null;
+
+	Cabinet folderCabinet =null;
+/*		String sortQuery = getSortingColumnQuery(DMSConstants.OBJ_TYPE_FOLDER, sortableColumns)
+			.replaceAll("#"+DMSConstants.OBJ_TYPE_FOLDER+"#", "a")
+			.replaceAll("#"+DMSConstants.ASSIGNEE_TYPE_USER+"#", "b");*/
+
+		try{
+			connection = DBHelper.getConnection();
+
+		preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetFolders4Offical"));
+		Logger.debug("::::getFolders4Offical::");
+		preparedStmt.setString(1, targetModel.getId());
+		preparedStmt.setString(2, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+			User usr = new User();
+			folder = new Folder();
+			folder.setId(resultSet.getString(1));
+			folder.setName(resultSet.getString(2));
+			folder.setUpdatedDate(resultSet.getTimestamp(3));
+			usr.setName(resultSet.getString(4));
+			folder.setUpdateFlag(resultSet.getString(5));
+
+			folderCabinet = new Cabinet(resultSet.getString("cab_guid"));
+			folder.setFolderCabinet(folderCabinet);
+			folder.setType(DMSConstants.FOLDER);
+			folder.setCreatedBy(usr);
+			folder.setDescription(resultSet.getString("description"));
+
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+				folder.setParentModel(prtFLd);
+				}
+			folders.add(folder);
+
+			usr = null;
+			folder = null;
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+	return folders;
+	}
+
+
+	public ArrayList<Document> getDocumentsInFolderForList(User contextUser,BaseModel targetModel ,String[][] sortableColumns)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		if(sortableColumns==null||sortableColumns.length==0){
+			sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_ALL);
+		}
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Document> documents = new ArrayList<Document>();
+		Document document = null;
+		String strFilterType = null;
+		User user = null;
+		String strRevId = null;
+		String doc_number = null;
+		Revision rev = null;
+		Folder prtFLd= null;
+
+		if (targetModel.getFilterType() == null || targetModel.getFilterType().equals(""))
+			strFilterType = "All";
+		else
+			strFilterType = targetModel.getFilterType();
+		Logger.debug("strFilterType = " + strFilterType);
+
+
+	/*	String sortQuery = getSortingColumnQuery(DMSConstants.OBJ_TYPE_DOC, sortableColumns)
+				.replaceAll("#"+DMSConstants.OBJ_TYPE_DOC+"#", DMSConstants.OBJ_TYPE_DOC)
+				.replaceAll("#"+DMSConstants.OBJ_TYPE_DOC+"_rev#", DMSConstants.OBJ_TYPE_DOC+"_rev")
+				.replaceAll("#"+DMSConstants.ASSIGNEE_TYPE_USER+"#", DMSConstants.ASSIGNEE_TYPE_USER);
+		*/
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetDocumentsInFolderForList")+" ");
+			preparedStmt.setString(2, targetModel.getId());
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(3, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				document = new Document(resultSet.getString(1));
+				document.setName(resultSet.getString(2));
+
+				user = new User();
+				user.setId(resultSet.getString(13));
+				user.setFirstName(resultSet.getString(3));
+				user.setLastName(resultSet.getString(4));
+				document.setCreatedBy(user);
+
+				document.setUpdatedDate(resultSet.getTimestamp(5));
+				document.setLockStatus(resultSet.getInt(6));
+
+				strRevId = resultSet.getString(7);
+				rev = new Revision(strRevId);
+				rev.setType(DMSConstants.REVISION);
+				rev.setRevisionNumber(resultSet.getString(18));
+				rev.setFileName(resultSet.getString(8));
+				rev.setSize(resultSet.getLong(9));
+				rev.setExtension(resultSet.getString(10));
+				document.setDiscussionStatus(resultSet.getInt(11));
+				document.setCurrentRevision(rev);
+				document.setUpdateFlag(resultSet.getString(14));
+
+				document.setType(DMSConstants.DOCUMENT);
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+					document.setParentModel(prtFLd);
+			}
+
+				doc_number = resultSet.getString(15);
+				if (null != doc_number && !("").equals(doc_number))
+					doc_number = ReferenceNumberRules.getInstance()
+							.getDocNumberToShow(doc_number);
+				document.setDocumentNumber(doc_number);
+
+
+				document.setRelationType(resultSet.getString(12));
+				document.setRefDocFlag(resultSet.getString(17));
+				document.setDocType(resultSet.getString("doc_type"));
+
+				if (strFilterType.equalsIgnoreCase("Locked")) {
+					if (document.isLockStatus() == 1)
+						documents.add(document);
+				} else {
+					documents.add(document);
+				}
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return documents;
+	}
+
+	public ArrayList<Link> getLinksInFolderForList(User contextUser,BaseModel targetModel ,String[][] sortableColumns)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		if(sortableColumns==null||sortableColumns.length==0){
+			sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_ALL);
+		}
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Link> links = new ArrayList<Link>();
+		Link link = null;
+		String strFilterType = null;
+		User user = null;
+		Folder prtFLd= null;
+
+		if (targetModel.getFilterType() == null ||targetModel.getFilterType().equals(""))
+			strFilterType = "All";
+		else
+			strFilterType = targetModel.getFilterType();
+		Logger.debug("strFilterType = " + strFilterType);
+
+
+		/*String sortQuery = getSortingColumnQuery(DMSConstants.OBJ_TYPE_LINK, sortableColumns)
+				.replaceAll("#"+DMSConstants.OBJ_TYPE_LINK+"#", DMSConstants.OBJ_TYPE_LINK)
+				.replaceAll("#"+DMSConstants.ASSIGNEE_TYPE_USER+"#", DMSConstants.ASSIGNEE_TYPE_USER);
+		*/
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetLinksInFolderForList")+" ");
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				link = new Link(resultSet.getString(1));
+				link.setName(resultSet.getString(2));
+				user = new User();
+				user.setFirstName(resultSet.getString(3));
+				user.setLastName(resultSet.getString(4));
+				link.setCreatedBy(user);
+				link.setUpdatedDate(resultSet.getTimestamp(5));
+				link.setType(DMSConstants.LINK);
+				links.add(link);
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return links;
+	}
+
+	public ArrayList getFolderItemsForList(User contextUser,BaseModel targetModel ,String[][] sortableColumns,boolean isCheckedForUpdated,boolean isCheckRights)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		/*if(sortableColumns==null||sortableColumns.length==0){
+			//sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_ALL);
+			//Logger.debug("--------------------" + sortableColumns[0][0] + "-------------" + sortableColumns[0][1]);
+		}*/
+
+		boolean  withFolders = false;
+		boolean  withDocuments = false;
+		boolean  withLink = false;
+		String strFilterType = null;
+		if (targetModel.getFilterType() == null ||targetModel.getFilterType().equals(""))
+			strFilterType = "All";
+		else
+			strFilterType = targetModel.getFilterType();
+		Logger.debug("strFilterType = " + strFilterType);
+
+		ArrayList items = new ArrayList();
+		if (strFilterType.equalsIgnoreCase("All") || strFilterType.equalsIgnoreCase("Folder"))
+			withFolders = true;
+		if (strFilterType.equalsIgnoreCase("All") || strFilterType.equalsIgnoreCase("Document") || strFilterType.equalsIgnoreCase("Locked"))
+			withDocuments = true;
+		if (strFilterType.equalsIgnoreCase("All") || strFilterType.equalsIgnoreCase("Link"))
+			withLink = true;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("getFolderItemsForList", new Class[]{boolean.class,String[][].class},new Object[]{isCheckRights,sortableColumns}));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				if("1".equalsIgnoreCase(resultSet.getString("obj_type"))&&withFolders){
+					items.add(fillFolder(resultSet));
+				}else if("2".equalsIgnoreCase(resultSet.getString("obj_type"))&&withDocuments){
+					Document doc = fillDocument(resultSet,strFilterType);
+					if(doc!=null)
+						items.add(doc);
+				}else if("3".equalsIgnoreCase(resultSet.getString("obj_type"))&&withLink){
+					items.add(fillLink(resultSet));
+				}
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return items;
+	}
+
+	@Deprecated
+	public ArrayList getFolderPagingItemsForList(User contextUser,BaseModel targetModel ,String[][] sortableColumns,boolean isCheckedForUpdated,boolean isCheckRights)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		if(sortableColumns==null||sortableColumns.length==0){
+			//sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_ALL);
+		}
+
+		String strFilterType = null;
+		if (targetModel.getFilterType() == null ||targetModel.getFilterType().equals(""))
+			strFilterType = "All";
+		else
+			strFilterType = targetModel.getFilterType();
+		Logger.debug("strFilterType = " + strFilterType);
+
+		ArrayList items = new ArrayList();
+		/*	if (strFilterType.equalsIgnoreCase("All") || strFilterType.equalsIgnoreCase("Folder"))
+			items.addAll(getFolders(contextUser, targetModel, sortableColumns, isCheckedForUpdated));
+		if (strFilterType.equalsIgnoreCase("All") || strFilterType.equalsIgnoreCase("Document") || strFilterType.equalsIgnoreCase("Locked")){
+			//items.addAll(getEmptyDocumentsInFolderForList(contextUser, targetModel, sortableColumns));
+			items.addAll(getDocumentsInFolderForList(contextUser, targetModel, sortableColumns));
+		}
+		if (strFilterType.equalsIgnoreCase("All") || strFilterType.equalsIgnoreCase("Link"))
+			items.addAll(getLinksInFolderForList(contextUser, targetModel, sortableColumns));*/
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("getFolderPagingItemsForList",new Class[]{boolean.class},new Object[]{isCheckRights}));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				if("1".equalsIgnoreCase(resultSet.getString("obj_type"))){
+					Folder folder = new Folder() ;
+					folder.setId(resultSet.getString("obj_guid"));
+					items.add(folder);
+				}else if("2".equalsIgnoreCase(resultSet.getString("obj_type"))){
+					Document doc = new Document();
+					doc.setId(resultSet.getString("obj_guid"));
+					items.add(doc);
+				}else if("3".equalsIgnoreCase(resultSet.getString("obj_type"))){
+					Link link = new Link();
+					link.setId(resultSet.getString("obj_guid"));
+					items.add(link);
+				}
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return items;
+	}
+
+	private Link fillLink(ResultSet resultSet) throws SQLException {
+		Link link = new Link(resultSet.getString("obj_guid"));
+		link.setName(resultSet.getString("obj_name"));
+		link.setType(DMSConstants.LINK);
+		User user = new User();
+		user.setFirstName(resultSet.getString("created_by_f_name"));
+		user.setLastName(resultSet.getString("created_by_l_name"));
+		link.setCreatedBy(user);
+		link.setCreatedDate(resultSet.getTimestamp("created_dt"));
+		link.setUpdatedDate(resultSet.getTimestamp("updated_dt"));
+		User updatedBy = new User();
+		updatedBy.setFirstName(resultSet.getString("updated_by_f_name"));
+		updatedBy.setLastName(resultSet.getString("updated_by_l_name"));
+		link.setUpdatedBy(updatedBy);
+		return link;
+	}
+
+	private Document fillDocument(ResultSet resultSet,String strFilterType)  throws SQLException{
+		Document document = new Document(resultSet.getString("obj_guid"));
+		document.setLockStatus(resultSet.getInt("lock_status"));
+
+		if (strFilterType.equalsIgnoreCase("Locked")&&document.isLockStatus() != 1) {
+			return null;
+		}
+		document.setName(resultSet.getString("obj_name"));
+		document.setType(DMSConstants.DOCUMENT);
+		User user = new User();
+		user.setId(resultSet.getString("created_by_guid"));
+		user.setFirstName(resultSet.getString("created_by_f_name"));
+		user.setLastName(resultSet.getString("created_by_l_name"));
+		document.setCreatedBy(user);
+		User updatedBy = new User();
+		updatedBy.setFirstName(resultSet.getString("updated_by_f_name"));
+		updatedBy.setLastName(resultSet.getString("updated_by_l_name"));
+		document.setUpdatedBy(updatedBy);
+		document.setCreatedDate(resultSet.getTimestamp("created_dt"));
+
+		document.setUpdatedDate(resultSet.getTimestamp("updated_dt"));
+
+		String strRevId = resultSet.getString("doc_current_rev");
+		if(strRevId!=null){
+			Revision rev = new Revision(strRevId);
+			rev.setType(DMSConstants.REVISION);
+			rev.setRevisionNumber(resultSet.getString("revision_num"));
+			rev.setFileName(resultSet.getString("doc_file_name"));
+			rev.setSize(resultSet.getLong("obj_size"));
+			rev.setExtension(resultSet.getString("doc_extension"));
+			document.setCurrentRevision(rev);
+		}
+
+		document.setDiscussionStatus(resultSet.getInt("dis_indicator"));
+
+		document.setUpdateFlag(resultSet.getString("update_flag"));
+
+		document.setType(DMSConstants.DOCUMENT);
+
+		Folder prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+		prtFLd.setName(resultSet.getString("prt_name"));
+		document.setParentModel(prtFLd);
+
+		String doc_number = resultSet.getString("doc_num");
+		/*if (null != doc_number && !("").equals(doc_number))
+			doc_number = ReferenceNumberRules.getInstance()
+					.getDocNumberToShow(doc_number);*/
+		document.setDocumentNumber(doc_number);
+
+
+		document.setRelationType(resultSet.getString("msg_flag"));
+		document.setRefDocFlag(resultSet.getString("ref_doc_flag"));
+		document.setDocType(resultSet.getString("doc_type"));
+		if(resultSet.getString("tags_guid")!=null) {
+			String[] tagIds = resultSet.getString("tags_guid").split(",");
+			for (String tagId : tagIds) {
+				if(!tagId.isEmpty())
+				document.getTags().add(new Tag(tagId));
+			}
+		}
+
+		return document;
+
+	}
+
+	private Folder fillFolder(ResultSet resultSet)  throws SQLException {
+		User usr = new User();
+		Folder folder = new Folder();
+		User updatedBy = new User();
+		folder.setId(resultSet.getString("obj_guid"));
+		folder.setType(DMSConstants.FOLDER);
+		folder.setName(resultSet.getString("obj_name"));
+		folder.setCreatedDate(resultSet.getTimestamp("created_dt"));
+		folder.setUpdatedDate(resultSet.getTimestamp("updated_dt"));
+		usr.setFirstName(resultSet.getString("created_by_f_name"));
+		usr.setLastName(resultSet.getString("created_by_l_name"));
+		folder.setUpdateFlag(resultSet.getString("update_flag"));
+		updatedBy.setFirstName(resultSet.getString("updated_by_f_name"));
+		updatedBy.setLastName(resultSet.getString("updated_by_l_name"));
+
+		Cabinet folderCabinet = new Cabinet(resultSet.getString("cab_guid"));
+		folder.setFolderCabinet(folderCabinet);
+		folder.setType(DMSConstants.FOLDER);
+		folder.setCreatedBy(usr);
+		folder.setUpdatedBy(updatedBy);
+		folder.setDescription(resultSet.getString("description"));
+
+		Folder prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+		prtFLd.setName(resultSet.getString("prt_name"));
+		folder.setParentModel(prtFLd);
+
+		return folder;
+	}
+
+	public ArrayList<Document> getDocumentsInFolderByRight(User contextUser,BaseModel targetModel ,String rightId)
+			throws InvalidModelException,InvalidTargetModelException,InvalidRightException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+		if(rightId == null)
+			throw new InvalidRightException();
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Document> documents = new ArrayList<Document>();
+		Document document = null;
+		User user = null;
+		String strRevId = null;
+		String doc_number = null;
+		Revision rev = null;
+		Folder prtFLd= null;
+
+	try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetDocumentsInFolderByRight"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(2, targetModel.getId());
+			preparedStmt.setString(3, contextUser.getId());
+			preparedStmt.setString(4, rightId);
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				document = new Document(resultSet.getString(1));
+				document.setName(resultSet.getString(2));
+
+				user = new User();
+				user.setId(resultSet.getString(13));
+				user.setFirstName(resultSet.getString(3));
+				user.setLastName(resultSet.getString(4));
+				document.setCreatedBy(user);
+
+				document.setUpdatedDate(resultSet.getTimestamp(5));
+				document.setLockStatus(resultSet.getInt(6));
+
+				strRevId = resultSet.getString(7);
+				rev = new Revision(strRevId);
+				rev.setType(DMSConstants.REVISION);
+				rev.setRevisionNumber(resultSet.getString(18));
+				rev.setFileName(resultSet.getString(8));
+				rev.setSize(resultSet.getLong(9));
+				rev.setExtension(resultSet.getString(10));
+				rev.setInternalFileName(resultSet.getString("int_filename"));
+				rev.setPath(resultSet.getString("parpath") +"~=~"+resultSet.getString("docpath"));
+				document.setDiscussionStatus(resultSet.getInt(11));
+				document.setCurrentRevision(rev);
+				document.setUpdateFlag(resultSet.getString(14));
+
+				document.setType(DMSConstants.DOCUMENT);
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+					document.setParentModel(prtFLd);
+				}
+
+				doc_number = resultSet.getString(15);
+				document.setDocumentNumber(doc_number);
+
+
+				document.setRelationType(resultSet.getString(12));
+				document.setRefDocFlag(resultSet.getString(17));
+				document.setDocType(resultSet.getString("doc_type"));
+
+				documents.add(document);
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return documents;
+	}
+
+	public ArrayList<Document> getEmptyDocumentsInFolderByRight(User contextUser,BaseModel targetModel ,String rightId)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Document> documents = new ArrayList<Document>();
+		Document document = null;
+		User user = null;
+		Folder prtFLd= null;
+		String doc_number = null;
+
+
+
+
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetEmptyDocumentsInFolderByRight"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			preparedStmt.setString(3, rightId);
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				document = new Document(resultSet.getString(1));
+				document.setName(resultSet.getString(2));
+				user = new User();
+				user.setId(resultSet.getString(8));
+				user.setFirstName(resultSet.getString(3));
+				user.setLastName(resultSet.getString(4));
+				document.setCreatedBy(user);
+				document.setUpdatedDate(resultSet.getTimestamp(5));
+				document.setLockStatus(resultSet.getInt(6));
+				document.setDiscussionStatus(-1);
+
+				document.setType(DMSConstants.DOCUMENT);
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+					document.setParentModel(prtFLd);
+				}
+				document.setRelationType(resultSet.getString(7));
+				document.setRefDocFlag(resultSet.getString(9));
+
+				doc_number = resultSet.getString(10);
+				document.setDocumentNumber(doc_number);
+				documents.add(document);
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return documents;
+	}
+
+	public ArrayList<Link> getLinksInFolderByRight(User contextUser,BaseModel targetModel ,String rightId)
+			throws InvalidModelException,InvalidTargetModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Link> links = new ArrayList<Link>();
+		Link link = null;
+		User user = null;
+
+
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetLinksInFolderByRight"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			preparedStmt.setString(3, rightId);
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				link = new Link(resultSet.getString(1));
+				link.setName(resultSet.getString(2));
+				user = new User();
+				user.setFirstName(resultSet.getString(3));
+				user.setLastName(resultSet.getString(4));
+				link.setCreatedBy(user);
+				link.setUpdatedDate(resultSet.getTimestamp(5));
+				link.setType(DMSConstants.LINK);
+				links.add(link);
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return links;
+	}
+
+	public ArrayList<Folder> getFoldersByRight(User contextUser,BaseModel targetModel ,String rightId)
+			throws InvalidModelException,InvalidTargetModelException,InvalidRightException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+		if(rightId == null)
+			throw new InvalidRightException();
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Folder> folders = new ArrayList<Folder>();
+		Folder folder = null;
+		Folder prtFLd = null;
+		Cabinet folderCabinet =null;
+
+
+		try{
+			connection = DBHelper.getConnection();
+
+			//listfldsql=listfldsql.replaceFirst("#ALL_FOLDERS_FOR_UPDATED#","''");
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetFoldersByRight"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			preparedStmt.setString(3, rightId);
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				User usr = new User();
+				folder = new Folder();
+				folder.setId(resultSet.getString(1));
+				folder.setName(resultSet.getString(2));
+				folder.setUpdatedDate(resultSet.getTimestamp(3));
+				usr.setName(resultSet.getString(4));
+				folder.setUpdateFlag(resultSet.getString(5));
+
+				folderCabinet = new Cabinet(resultSet.getString("cab_guid"));
+				folder.setFolderCabinet(folderCabinet);
+				folder.setType(DMSConstants.FOLDER);
+				folder.setCreatedBy(usr);
+				folder.setDescription(resultSet.getString("description"));
+
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+					folder.setParentModel(prtFLd);
+				}
+				folders.add(folder);
+
+				usr = null;
+				folder = null;
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+		return folders;
+	}
+	/**
+	 * for folder customize curl
+	 * @param contextUser
+	 * @param targetModel
+	 * @return
+	 * @throws InvalidModelException
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidRightException
+	 * @throws DMSException
+	 * @throws SQLException
+	 * @throws SecurityException
+	 */
+	public ArrayList getFolderItemsByDownloadRight(User contextUser,BaseModel targetModel)
+			throws InvalidModelException,InvalidTargetModelException,InvalidRightException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+		ArrayList items = new ArrayList();
+
+		items.addAll(getFoldersByRight(contextUser, targetModel, DMSRightConstants.GET_ITEMS));
+
+		items.addAll(getDocumentsInFolderByRight(contextUser, targetModel, DMSRightConstants.CHECKOUT_DOCUMENTS));
+
+		return items;
+	}
+
+	public ArrayList getFolderItemsByRight(User contextUser,BaseModel targetModel ,String rightId,boolean withEmptyDoc)
+			throws InvalidModelException,InvalidTargetModelException,InvalidRightException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+		if(rightId == null)
+			throw new InvalidRightException();
+		ArrayList items = new ArrayList();
+
+		String checkRightForFolderAndLink =rightId;
+		if(DMSRightConstants.CHECKOUT_DOCUMENTS.equalsIgnoreCase(rightId)){
+			checkRightForFolderAndLink = DMSRightConstants.GET_SECURITY;
+		}
+
+		items.addAll(getFoldersByRight(contextUser, targetModel, checkRightForFolderAndLink));
+
+		if(withEmptyDoc)
+			items.add(getEmptyDocumentsInFolderByRight(contextUser, targetModel, rightId));
+		items.addAll(getDocumentsInFolderByRight(contextUser, targetModel, rightId));
+
+		items.addAll(getLinksInFolderByRight(contextUser, targetModel, checkRightForFolderAndLink));
+
+		return items;
+	}
+
+	public ArrayList checkRightsForSearchResultByRightGroup(User contextUser,ArrayList  searchResultList, String rgtgrpId)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		ArrayList returnValues = new ArrayList();
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(searchResultList == null || searchResultList.size() ==0)
+			throw new InvalidModelException("searchResultList");
+		if(rgtgrpId == null)
+			throw new InvalidRightException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		HashMap<String,String> map = new HashMap<String,String>();
+
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt=connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCheckRightsForSearchResultByRightGroup"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(2, rgtgrpId);
+			resultSet = preparedStmt.executeQuery();
+
+			while (resultSet.next()) {
+				map.put(resultSet.getString(1), "");
+			}
+		}
+		finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		
+		String objId = null;
+		for (Object object : searchResultList) {
+			if(object ==null)
+				continue;
+
+			if(Integer.parseInt((String)((HashMap)object).get("object_type"))==30) {
+				objId = (String)((HashMap)object).get("doc_guid");
+			}else {
+				objId = (String)((HashMap)object).get("object_id");
+			}
+			if(map.containsKey(objId))
+				returnValues.add(object);
+		}
+		map.clear();
+		map = null;
+		return returnValues;
+	}
+
+	public ArrayList checkRightsForSearchResultByRight(User contextUser ,ArrayList  searchResultList,String rightId,boolean isCheckPrt)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		ArrayList returnValues = new ArrayList();
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(searchResultList == null || searchResultList.size() ==0)
+			throw new InvalidModelException("searchResultList");
+		if(rightId == null)
+			throw new InvalidRightException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		HashMap<String,String> map = new HashMap<String,String>();
+
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt=connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCheckRightsForSearchResultByRight"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(2, rightId);
+			preparedStmt.setBoolean(3, isCheckPrt);
+			resultSet = preparedStmt.executeQuery();
+			
+			while (resultSet.next()) {
+				map.put(resultSet.getString(1), "");
+			}
+
+		}
+		finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		String objId = null;
+		for (Object object : searchResultList) {
+			if(object ==null)
+				continue;
+			if (object instanceof HashMap) {
+				if(Integer.parseInt((String)((HashMap)object).get("object_type"))==30) {
+					objId = (String)((HashMap)object).get("doc_guid");
+				}else {
+					objId = (String)((HashMap)object).get("object_id");
+				}
+			}else if(object instanceof BaseModel){
+				objId = ((BaseModel) object).getId();
+			}else{
+				throw new  InvalidModelException();
+			}
+			
+//			System.out.println("objId----------"+objId);
+			
+			if(map.containsKey(objId))
+				returnValues.add(object);
+		}
+		System.out.println("searchResultList size:"+searchResultList.size());
+		System.out.println("returnValues size:"+returnValues.size());
+
+		map.clear();
+		map = null;
+		return returnValues;
+	}
+
+	public ArrayList checkAnonymousRightsForSearchResult(ArrayList  searchResultListUser)
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		ArrayList returnValues = new ArrayList();
+		if(searchResultListUser == null || searchResultListUser.size() ==0)
+			throw new InvalidModelException("searchResultList");
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		HashMap<String,String> map = new HashMap<String,String>();
+		try{
+			connection = DBHelper.getConnection();
+			preparedStmt=connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strCheckAnonymousRightsForSearchResult"));
+
+			resultSet = preparedStmt.executeQuery();
+
+			while (resultSet.next()) {
+				map.put(resultSet.getString(1), "");
+			}
+		}
+		finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		String objId = null;
+		for (Object object : searchResultListUser) {
+			if(object ==null)
+				continue;
+			
+			if(Integer.parseInt((String)((HashMap)object).get("object_type"))==30) {
+				objId = (String)((HashMap)object).get("doc_guid");
+			}else {
+				objId = (String)((HashMap)object).get("object_id");
+			}
+			
+			if(map.containsKey(objId))
+				returnValues.add(object);
+		}
+		map.clear();
+		map = null;
+		return returnValues;
+	}
+
+	public void setSearchResutTempData(User contextUser ,ArrayList searchResultListUser )
+	 	throws InvalidModelException, DMSException, SQLException,SecurityException{
+
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(searchResultListUser == null || searchResultListUser.size() ==0)
+			throw new InvalidModelException("searchResultList");
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt= connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteSearchResutTempData"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.executeUpdate();
+
+			preparedStmt= connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strSetSearchResutTempData"));
+
+			String objId = null;
+			for (Object object : searchResultListUser) {
+				if(object ==null)
+					throw new  InvalidModelException();
+
+				if (object instanceof HashMap) {
+					if(Integer.parseInt((String)((HashMap)object).get("object_type"))==30) {
+						objId = (String)((HashMap)object).get("doc_guid");
+					}else {
+						objId = (String)((HashMap)object).get("object_id");
+					}
+				}else if(object instanceof BaseModel){
+					objId = ((BaseModel) object).getId();
+				}else{
+					throw new  InvalidModelException();
+				}
+
+
+
+				preparedStmt.setString(1, objId);
+				preparedStmt.setString(2, contextUser.getId());
+				preparedStmt.addBatch();
+			}
+			preparedStmt.executeBatch();
+			preparedStmt.clearBatch();
+
+		} finally {
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+
+	}
+
+	public void clearSearchResutTempData(User contextUser)throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt= connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strDeleteSearchResutTempData"));
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.execute();
+		} finally {
+			DBHelper.cleanup(connection, preparedStmt);
+		}
+	}
+	/**
+	 * 是否对父级目录可见，检查所有父级目录，只要有一个不可见就返回false
+	 * @param contextUser
+	 * @param targetModel
+	 * @return
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidModelException
+	 * @throws SecurityException
+	 * @throws DMSException
+	 * @throws SQLException
+	 */
+	public boolean hasPrtVisiableRight(User contextUser,BaseModel targetModel)throws InvalidTargetModelException,InvalidModelException,
+		SecurityException,DMSException, SQLException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(contextUser==null||contextUser.getId()==null)
+			throw new InvalidModelException(User.class.getName());
+		boolean has = false;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strHasPRTVisiableRight"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				if(resultSet.getString(1).equalsIgnoreCase("1")){
+					has = true;
+				}
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt, resultSet);
+		}
+
+		return has;
+	}
+
+
+	public BaseModel getPrtModel(BaseModel targetModel) throws InvalidTargetModelException,InvalidModelException ,DMSException, SQLException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		BaseModel prtModel = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetPrtModel"));
+			preparedStmt.setString(1, targetModel.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				prtModel = new BaseModel(resultSet.getString(1));
+				prtModel.setType(resultSet.getString(2));
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt, resultSet);
+		}
+		return prtModel;
+	}
+
+	/**
+	 * 使用一个特定对象的权限
+	 * @param targetModel
+	 * @param baseModel
+	 * @throws InvalidTargetModelException
+	 * @throws InvalidModelException
+	 * @throws DMSException
+	 * @throws SQLException
+	 */
+	public void setaclbybasemodel(BaseModel targetModel,BaseModel baseModel) throws InvalidTargetModelException,InvalidModelException ,DMSException, SQLException{
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+		if(baseModel==null||baseModel.getId()==null)
+			throw new InvalidModelException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strSetaclbybasemodel"));
+			preparedStmt.setString(1, targetModel.getId());
+			preparedStmt.setString(2, baseModel.getId());
+			 preparedStmt.execute();
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt, resultSet);
+		}
+	}
+
+	/**
+	 * 根据targetModel 查询doc_Id
+	 * @throws InvalidTargetTypeException  targetModel的objectType为空
+	 * @throws DMSException 关闭数据库链接失败 -ErrorCode:1151
+	 * @throws InvalidTargetModelException targetModel为空或者objectId不存在
+	 * @throws SQLException 数据库执行过程中发生错误
+	 * @throws SecurityException 其他异常
+	 */
+	public String getDocId(BaseModel targetModel)
+			throws DMSException,InvalidTargetTypeException, InvalidTargetModelException, SQLException,SecurityException{
+			if(targetModel == null || targetModel.getId() == null)
+				throw new InvalidTargetModelException();
+			if( targetModel.getType() == null)
+					throw new InvalidTargetTypeException();
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		String docId = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetDocId"));
+			preparedStmt.setString(1,  targetModel.getId());
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				docId = resultSet.getString(1);
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+		return docId;
+	}
+
+	/**
+	 * 检查用户对某个权限组是否有权限
+	 */
+	public boolean hasRightGroup(User currentUser,BaseModel targetModel, String rightGroupName, String roleType)
+			throws InvalidTargetModelException,InvalidTargetTypeException,InvalidModelException,
+				SecurityException,DMSException, SQLException{
+
+		if(targetModel==null||targetModel.getId()==null)
+			throw new InvalidTargetModelException();
+
+		if(currentUser==null||currentUser.getId()==null)
+			throw new InvalidModelException(User.class.getName());
+		//无论targetModel为版本ID还是doc_id,最终获得doc_guid
+
+		boolean has = false;
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+
+		try {
+			connection = DBHelper.getConnection();
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strHasRightGroup"));
+			Logger.debug("currentUser.getId()+++++++++++++++++++++++++++++"+currentUser.getId());
+			preparedStmt.setString(1, currentUser.getId());
+			Logger.debug("targetModel.getId()+++++++++++++++++++++++++++++"+targetModel.getId());
+			preparedStmt.setString(2, targetModel.getId());
+			preparedStmt.setString(3, getrgtgrpIdByName(rightGroupName));
+			preparedStmt.setString(4, roleType);
+			resultSet = preparedStmt.executeQuery();
+			if(resultSet.next()){
+				if(resultSet.getString(1).equalsIgnoreCase("t"))
+					has = true;
+				else if(resultSet.getString(1).equalsIgnoreCase("f"))
+					has = false;
+				else
+					has = Boolean.getBoolean(resultSet.getString(1));
+			}
+
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt, resultSet);
+		}
+		return has;
+
+	}
+    public void transferInheritRootForMoveAction(BaseModel targetModel)throws InvalidTargetModelException,InvalidTargetTypeException,
+            SecurityException,DMSException, SQLException{
+        if(targetModel==null||targetModel.getId()==null)
+            throw new InvalidTargetModelException();
+        if(targetModel.getType()==null)
+            throw new InvalidTargetTypeException();
+        String strTargetType = "";
+        if(targetModel.getType().equals(DMSConstants.DOCUMENT))
+            strTargetType = DMSConstants.OBJ_TYPE_DOC;
+        else if(targetModel.getType().equals(DMSConstants.FOLDER))
+             strTargetType = DMSConstants.OBJ_TYPE_FOLDER;
+        else if(targetModel.getType().equals(DMSConstants.LINK))
+            strTargetType = DMSConstants.OBJ_TYPE_LINK;
+        else
+            throw  new InvalidTargetTypeException();
+
+        Connection connection = null;
+        PreparedStatement preparedStmt = null;
+
+        try {
+            connection = DBHelper.getConnection();
+            preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strChangeInheritSecurityForMove"));
+            preparedStmt.setString(1, targetModel.getId());
+            preparedStmt.setString(2, strTargetType);
+            preparedStmt.executeQuery();
+        }finally{
+            DBHelper.cleanup(connection, preparedStmt);
+        }
+
+    }
+
+	/**
+	 * 获取文件夹列表  只会得到用户有权限看到的文档。
+	 * @param contextUser
+	 * @param targetModel
+	 * @param sortableColumns
+	 * @param isCheckedForUpdated
+	 * @return
+	 * @throws InvalidModelException
+	 * @throws DMSException
+	 * @throws SQLException
+	 * @throws SecurityException
+	 */
+	public ArrayList<Folder> getFoldersLimitSize(User contextUser,BaseModel targetModel ,String[][] sortableColumns,boolean isCheckedForUpdated,int size )
+			throws InvalidModelException, DMSException, SQLException,SecurityException{
+		if(contextUser == null || contextUser.getId() ==null)
+			throw new InvalidModelException(User.class.getName());
+		if(targetModel == null || targetModel.getId() ==null)
+			throw new InvalidTargetModelException();
+
+		if(sortableColumns==null||sortableColumns.length==0){
+			sortableColumns = defaultSortableColumnsMap.get(DMSConstants.OBJ_TYPE_FOLDER);
+		}
+
+		Connection connection = null;
+		PreparedStatement preparedStmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Folder> folders = new ArrayList<Folder>();
+		Folder folder = null;
+		Folder prtFLd = null;
+
+		Cabinet folderCabinet =null;
+/*		String sortQuery = getSortingColumnQuery(DMSConstants.OBJ_TYPE_FOLDER, sortableColumns)
+				.replaceAll("#"+DMSConstants.OBJ_TYPE_FOLDER+"#", "a")
+				.replaceAll("#"+DMSConstants.ASSIGNEE_TYPE_USER+"#", "b");*/
+
+		try{
+			connection = DBHelper.getConnection();
+
+			preparedStmt = connection.prepareStatement(QuetzacoReadQuery.instance().getQuetzacoSecurityQueryValue("strGetFolders")+" limit " +size);
+			preparedStmt.setString(2, targetModel.getId());
+			preparedStmt.setString(1, contextUser.getId());
+			preparedStmt.setString(3, contextUser.getId());
+			resultSet = preparedStmt.executeQuery();
+			while (resultSet.next()) {
+				User usr = new User();
+				folder = new Folder();
+				folder.setId(resultSet.getString(1));
+				folder.setName(resultSet.getString(2));
+				folder.setUpdatedDate(resultSet.getTimestamp(3));
+				usr.setName(resultSet.getString(4));
+				folder.setUpdateFlag(resultSet.getString(5));
+
+				folderCabinet = new Cabinet(resultSet.getString("cab_guid"));
+				folder.setFolderCabinet(folderCabinet);
+				folder.setType(DMSConstants.FOLDER);
+				folder.setCreatedBy(usr);
+				folder.setDescription(resultSet.getString("description"));
+
+				if(resultSet.getString("prt_name")!=null&& !("").equalsIgnoreCase(resultSet.getString("prt_name"))){
+					if(prtFLd==null){
+						prtFLd = new Folder(resultSet.getString("prt_fld_guid"));
+						prtFLd.setName(resultSet.getString("prt_name"));
+					}
+					folder.setParentModel(prtFLd);
+				}
+				folders.add(folder);
+
+				usr = null;
+				folder = null;
+			}
+		}finally{
+			DBHelper.cleanup(connection, preparedStmt,resultSet);
+		}
+
+		return folders;
+	}
+
+	private static String switchTrueOrder(String displayRowName ,String order) {
+		if(order!=null)
+			order=	order.replace("END","");
+		if("displayName".equalsIgnoreCase(displayRowName)){
+			return "convert_to(name,'GBK') " +order;
+		}else if("modifieddate".equalsIgnoreCase(displayRowName)){
+			return "updated_dt " +order;
+		}else if("createdBy.name".equalsIgnoreCase(displayRowName)){
+			return "convert_to(b.last_name,'GBK') " +order;
+		} else if("currentRevision.showSize".equalsIgnoreCase(displayRowName)){
+			return "obj_size "  +order;
+		}
+		return " ordernum,convert_to(name,'GBK')";
+	}
+}

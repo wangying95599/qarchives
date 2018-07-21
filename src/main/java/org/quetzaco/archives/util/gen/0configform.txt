@@ -1,0 +1,5 @@
+formkey:folder,Folder,文件夹,文件夹信息
+form:新建文件夹,folder
+formbutton:提交,createFolder()
+input:文件夹名称,name_input,name
+area:描述,description_area,description

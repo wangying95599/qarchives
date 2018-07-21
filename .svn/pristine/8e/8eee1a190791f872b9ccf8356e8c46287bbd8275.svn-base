@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.BoxMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Box">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="importance" jdbcType="VARCHAR" property="importance" />
+    <result column="reel_num" jdbcType="VARCHAR" property="reelNum" />
+    <result column="records_location" jdbcType="VARCHAR" property="recordsLocation" />
+    <result column="file_num" jdbcType="BIGINT" property="fileNum" />
+    <result column="responsible" jdbcType="VARCHAR" property="responsible" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="dept_id" jdbcType="BIGINT" property="deptId" />
+    <result column="dept_name" jdbcType="VARCHAR" property="deptName"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, title, importance, reel_num, records_location, file_num, responsible, remark,
+    dept_id,is_archive,dept_name,create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from box
+      where id = #{id,jdbcType=BIGINT} and record_flag='t'
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from box
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.Box">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('box_id_seq')
+    </selectKey>
+    insert into box (id, title, importance, 
+      reel_num, records_location, file_num, 
+      responsible, remark, dept_id
+      )
+    values (#{id,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{importance,jdbcType=VARCHAR}, 
+      #{reelNum,jdbcType=BIGINT}, #{recordsLocation,jdbcType=VARCHAR}, #{fileNum,jdbcType=BIGINT}, 
+      #{responsible,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{deptId,jdbcType=BIGINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Box">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('box_id_seq')
+    </selectKey>
+    insert into box
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="title != null">
+        title,
+      </if>
+      <if test="importance != null">
+        importance,
+      </if>
+      <if test="reelNum != null">
+        reel_num,
+      </if>
+      <if test="recordsLocation != null">
+        records_location,
+      </if>
+      <if test="fileNum != null">
+        file_num,
+      </if>
+      <if test="responsible != null">
+        responsible,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="deptId != null">
+        dept_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id,jdbcType=BIGINT},
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="importance != null">
+        #{importance,jdbcType=VARCHAR},
+      </if>
+      <if test="reelNum != null">
+        #{reelNum,jdbcType=BIGINT},
+      </if>
+      <if test="recordsLocation != null">
+        #{recordsLocation,jdbcType=VARCHAR},
+      </if>
+      <if test="fileNum != null">
+        #{fileNum,jdbcType=BIGINT},
+      </if>
+      <if test="responsible != null">
+        #{responsible,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        #{deptId,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.Box">
+    update box
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="importance != null">
+        importance = #{importance,jdbcType=VARCHAR},
+      </if>
+      <if test="reelNum != null">
+        reel_num = #{reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="recordsLocation != null">
+        records_location = #{recordsLocation,jdbcType=VARCHAR},
+      </if>
+      <if test="fileNum != null">
+        file_num = #{fileNum,jdbcType=BIGINT},
+      </if>
+      <if test="responsible != null">
+        responsible = #{responsible,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        dept_id = #{deptId,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.Box">
+    update box
+    set title = #{title,jdbcType=VARCHAR},
+      importance = #{importance,jdbcType=VARCHAR},
+      reel_num = #{reelNum,jdbcType=VARCHAR},
+      records_location = #{recordsLocation,jdbcType=VARCHAR},
+      file_num = #{fileNum,jdbcType=BIGINT},
+      responsible = #{responsible,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      dept_id = #{deptId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectBoxs" resultType="org.quetzaco.archives.model.Box">
+    select  <include refid="Base_Column_List"/>
+    from box where dept_id = #{deptId} order by create_time DESC
+  </select>
+  <insert id="createBox" parameterType="org.quetzaco.archives.model.Box">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('box_id_seq')
+    </selectKey>
+      insert into box (id, title, importance,
+    reel_num, records_location, file_num,
+    responsible, remark, dept_id,create_time,dept_name
+    )
+      values (#{id}, #{title,jdbcType=VARCHAR}, #{importance,jdbcType=VARCHAR},
+    #{reelNum,jdbcType=BIGINT}, #{recordsLocation,jdbcType=VARCHAR}, #{fileNum,jdbcType=BIGINT},
+    #{responsible,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{deptId,jdbcType=BIGINT},#{createTime,jdbcType=VARCHAR},
+    #{deptName,jdbcType=VARCHAR}
+    )
+  </insert>
+  <select id="selectArchiveDetial" resultType="org.quetzaco.archives.model.Box">
+    select *from records where id = #{boxId};
+  </select>
+  <select id="selectRecordFromArchive" resultType="org.quetzaco.archives.model.Record">
+      select *from documents where id in (select id from link_records_documents where record_guid=#{boxId}) and
+      record_flag='t';
+  </select>
+  <insert id="insertArchiveToBox">
+    insert into link_box_achives(box_guid, archive_guid) values(#{boxId},#{archiveId});
+  </insert>
+
+  <select id="searchBoxList" parameterType="org.quetzaco.archives.model.Box" resultType="org.quetzaco.archives.model.Box">
+    select
+    <include refid="Base_Column_List"/>
+    from box
+      WHERE and record_flag='t'
+    <if test="title != null and title !=''">
+        and title LIKE '%'||#{title}||'%'
+    </if>
+    <if test="reelNum !=null and reelNum !=''">
+        and reel_num LIKE '%'||#{reelNum}||'%'
+    </if>
+    <if test="deptId !=null and deptId != 0">
+        and dept_id = #{deptId}
+    </if>
+  </select>
+
+  <select id="searchGlobalBoxList" parameterType="org.quetzaco.archives.model.Box" resultType="org.quetzaco.archives.model.Box">
+    select
+    <include refid="Base_Column_List"/>
+    from box
+      WHERE record_flag='t'
+    <if test="title != null and title !=''">
+      and  title LIKE   '%'||#{title}||'%'
+    </if>
+    <if test="reelNum !=null and reelNum !=''">
+      and  reel_num  LIKE '%'||#{reelNum}||'%'
+    </if>
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="selectByFileCode"
+          resultType="org.quetzaco.archives.model.Box">
+    select
+    <include refid="Base_Column_List"/>
+    from box
+    where reel_num=#{reelNum,jdbcType=VARCHAR} AND record_flag=#{recordFlag,jdbcType=BOOLEAN} ;
+  </select>
+
+    <delete id="removeArchiveFromBox">
+    DELETE FROM link_box_achives WHERE box_guid=#{boxId} and archive_guid = #{archiveId}
+  </delete>
+
+    <select id="isDuplicateTitle" resultType="Archive">
+    SELECT id,title FROM archives where id IN (SELECT archive_guid FROM link_box_achives WHERE box_guid = ${boxId}) and title = #{title};
+  </select>
+</mapper>

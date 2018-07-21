@@ -1,0 +1,53 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import org.quetzaco.archives.application.biz.SwiftService;
+import org.quetzaco.archives.application.dao.SwiftMapper;
+import org.quetzaco.archives.model.Swift;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
+
+@Service
+public class SwiftServiceImpl implements SwiftService {
+
+    @Autowired
+    SwiftMapper swiftMapper;
+
+    @Override
+    public synchronized String getSwiftNumber(String prefix, String fileNumberType) {
+        Swift swift = swiftMapper.selectByPrimaryKey(prefix);
+        String swiftNum;
+      DecimalFormat decimalFormat = new DecimalFormat("0000");
+      if ("jianji".equals(fileNumberType)) {
+        decimalFormat = new DecimalFormat("0000");
+      } else if ("juanji".equals(fileNumberType)) {
+        decimalFormat = new DecimalFormat("000");
+      }
+
+        String num;
+        if (swift == null) {
+            Swift swift1 = new Swift();
+            swift1.setPrefix(prefix);
+          swift1.setSwiftNumber(0);
+            swiftMapper.insert(swift1);
+            num = decimalFormat.format(1);
+        } else {
+          // swift.setSwiftNumber(swift.getSwiftNumber() + 1);
+          // swiftMapper.updateByPrimaryKey(swift);
+          num = decimalFormat.format(swift.getSwiftNumber() + 1);
+        }
+        swiftNum = prefix + "-" + num;
+        return swiftNum;
+    }
+
+
+  @Override
+  public synchronized int saveSwiftNumber(String prefix) {
+    Swift swift = swiftMapper.selectByPrimaryKey(prefix);
+    swift.setSwiftNumber(swift.getSwiftNumber() + 1);
+    swiftMapper.updateByPrimaryKey(swift);
+      return swift.getSwiftNumber();
+  }
+
+}

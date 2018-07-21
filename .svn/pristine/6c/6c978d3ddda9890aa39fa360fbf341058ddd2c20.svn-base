@@ -1,0 +1,62 @@
+package org.quetzaco.archives.application.biz;
+
+import com.github.pagehelper.PageInfo;
+import org.quetzaco.archives.model.BatchDocuments;
+import org.quetzaco.archives.model.Documents;
+import org.quetzaco.archives.model.Files;
+import org.quetzaco.archives.model.PageSortSearch;
+
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/13.
+ */
+public interface DocumentService {
+    PageInfo selectFileList(int type, Long deptId, int offset, int limit, String sortName, String sortOrder, String title, String startYear, String endYear);
+
+   // Document selectDocumentDetail(Long fildId);
+   Documents selectDocumentByFileCode(String fileCode);
+
+    void saveDocumentDetailInfo(Documents document);
+
+    int deleteDocument(List<Long> fileIds);
+
+    List<Files> selectFile(String docId);
+
+    //上传文件
+    public int uploadDocument(Documents document);
+
+    //上传附件正文
+    void uploadFiles(Files files);
+
+    //归档文件
+    List<Documents> selectComplete(Long deptId, String important);
+
+    //查看已经进入案卷的文档
+    PageInfo selectFromRecord(Long recordId, String archiveType, PageSortSearch pageSortSearch);
+
+    //查询文件
+    PageInfo searchDocumentList(Documents document, int offset, int limit);
+
+    PageInfo searchGlobalDocumentList(Documents document, int offset, int limit);
+
+ void destroyReelNumByType(Long flowId, String reelNum, String reelType);
+
+ Long getIdByReelNumAndType(String reelNum, String reelType);
+
+ boolean deleteFile(Long fileId, String location, Long docId);
+
+    boolean validReelNumByReelType(String reelNum, String reelType);
+
+    void ConvertFileToSwf(String filePath);
+
+    boolean ConvertFileToSwf1(String filePath);
+
+    void batchModify(List<Long> ids, Documents documents);
+
+    PageInfo searchFileList(BatchDocuments batchDocuments);
+
+    void saveDocumentDetailInfo1(Documents documents);
+
+    List<Documents> getDocumentsByIds(List<Long> ids);
+}

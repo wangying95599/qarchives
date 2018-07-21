@@ -1,0 +1,102 @@
+package org.quetzaco.archives.model;
+
+import java.util.Date;
+
+public class Files {
+    private String docId;
+
+    private Long id;
+
+    private String fileType;
+
+    private String location;
+
+    public Date getUploadDate() {
+        return uploadDate;
+    }
+
+    public void setUploadDate(Date uploadDate) {
+        this.uploadDate = uploadDate;
+    }
+
+    private Date uploadDate;
+
+    private String fileName;
+
+    private String fileId;
+
+    public Boolean getRecordFlag() {
+        return recordFlag;
+    }
+
+    public void setRecordFlag(Boolean recordFlag) {
+        this.recordFlag = recordFlag;
+    }
+
+    private Boolean recordFlag;
+
+
+    public String getDocId() {
+        return docId;
+    }
+
+    public void setDocId(String docId) {
+        this.docId = docId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType == null ? null : fileType.trim();
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location == null ? null : location.trim();
+    }
+
+
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileNname) {
+        this.fileName = fileNname;
+    }
+
+    public String getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
+    }
+
+    @Override
+    public String toString() {
+        return "Files{" +
+                "docId='" + docId + '\'' +
+                ", id=" + id +
+                ", fileType='" + fileType + '\'' +
+                ", location='" + location + '\'' +
+                ", uploadDate=" + uploadDate +
+                ", fileName='" + fileName + '\'' +
+                ", fileId='" + fileId + '\'' +
+                ", recordFlag=" + recordFlag +
+                '}';
+    }
+}

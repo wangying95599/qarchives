@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.RoleMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Role">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, name, description
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from role
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from role
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.Role">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('role_id_seq')
+    </selectKey>
+    insert into role (id, name, description
+      )
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Role">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('permission_id_seq')
+    </selectKey>
+    insert into role
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="name != null">
+        name,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id,jdbcType=BIGINT},
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.Role">
+    update role
+    <set>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.Role">
+    update role
+    set name = #{name,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="getRoleList" resultType="org.quetzaco.archives.model.Role">
+    select * from role;
+  </select>
+
+  <insert id="insertRoleWithUser" >
+    insert into link_users_dept_role(role_id,usr_id,dept_id) VALUES (#{roleId},#{usrId},#{deptId})
+  </insert>
+
+  <select id="getRoleByDeptAndUser" resultType="role">
+    select id,name from role where id =
+                                   (select role_id from link_users_dept_role where usr_Id = #{usrId} and dept_Id = #{deptId})
+  </select>
+
+  <insert id="assignDefaultRole">
+    INSERT  INTO  link_users_dept_role(role_id,usr_id,dept_id) select id,#{usrId},#{deptId} from role where name = 'readOnly'
+  </insert>
+
+  <select id="getUserByRoleAndDept" resultType="user">
+    select id,login_name,name from users where id in (select usr_id from link_users_dept_role where dept_id=#{deptId} and role_id=#{roleId});
+  </select>
+
+  <delete id="removeUserByRoleAndDept">
+    delete from link_users_dept_role where usr_id=#{usrId} and role_id=#{roleId} and dept_id=#{deptId}
+  </delete>
+
+  <update id="updateRoleByDeptAndUser">
+    update link_users_dept_role set role_id =#{roleId} where dept_id=#{deptId} and usr_id=#{usrId}
+  </update>
+
+  <delete id="deleteRoleByDeptAndUser">
+    DELETE from link_users_dept_role where usr_id=#{usrId} and dept_id=#{deptId}
+  </delete>
+
+  <select id="isSiteAdmin" resultType="java.lang.Integer">
+    select count(1) from
+     (select a.usr_id,a.role_id,b.name from link_users_dept_role a LEFT JOIN role b on a.role_id = b.id)c
+      where c.name ='档案管理员' and c.usr_id = #{usrId}
+  </select>
+
+  <delete id="deleteRoleByUser">
+    DELETE  FROM  link_users_dept_role where usr_id=#{usrId}
+  </delete>
+
+  <delete id="deleteBySiteDeptId">
+    DELETE FROM link_users_dept_role where usr_id=#{usrId} AND dept_id=#{siteDeptId}
+  </delete>
+  
+  <select id="selectRoles" resultType="org.quetzaco.archives.model.User">
+     select id,login_name,name from users where id in (select usr_id from link_users_dept_role where  role_id=#{roleId});
+  </select>
+</mapper>
+

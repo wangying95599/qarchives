@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/QuetzacoServer.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/QuetzacoConverter-client.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/core4tc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/ojdbc6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

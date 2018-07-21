@@ -1,0 +1,200 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.quetzaco.archives.application.biz.*;
+import org.quetzaco.archives.application.dao.FlowFormLendingMapper;
+import org.quetzaco.archives.model.FlowFormLending;
+import org.quetzaco.archives.model.FlowNodeHistories;
+import org.quetzaco.archives.model.Flows;
+import org.quetzaco.archives.model.User;
+import org.quetzaco.archives.web.restful.FlowLendingController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.text.ParseException;
+import java.util.*;
+
+/**
+ * @Description Created by dong on 2017/7/21.
+ */
+@Service
+public class FlowLendingServiceImpl implements FlowLendingService {
+
+  @Autowired
+  FlowFormLendingMapper flowFormLendingMapper;
+  @Autowired
+  FlowService flowService;
+  @Autowired
+  DocumentService documentService;
+  @Autowired
+  BoxService boxService;
+  @Autowired
+  RecordService recordService;
+  @Autowired
+  ArchiveService archiveService;
+  @Autowired
+  DeptService deptService;
+  @Autowired
+  RoleService roleService;
+
+
+  @Override
+  @Transactional
+  public void start(FlowFormLending flowFormLending) {
+    Long flowId = flowService.start(flowFormLending.getFlows());
+    flowFormLending.setFlowId(flowId);
+    flowFormLendingMapper.insert(flowFormLending);
+  }
+
+  @Override
+  public PageInfo selectStartByMeList(User contextUser, int pageNum, int pageSize,String[] searchInfo) {
+    String title ="";
+    String reelNum ="";
+    Date start = null;
+    Date end = null;
+    if(searchInfo!=null){
+      title = searchInfo[0];
+      reelNum = searchInfo[1];
+
+      try {
+        if(!"".equals(searchInfo[2].trim())) {
+          start = FlowLendingController.strToDate(searchInfo[2]);
+        }
+        if(!"".equals(searchInfo[3].trim())){
+          end = FlowLendingController.strToDate(searchInfo[3]);
+        }
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+
+    }
+    System.out.println(title+"  "+reelNum+"  "+ start+"  "+end);
+    PageHelper.startPage(pageNum, pageSize);
+    return new PageInfo(flowFormLendingMapper.selectStartByMeList(contextUser,title,reelNum,start,end));
+  }
+
+  @Override
+  public PageInfo getProcessByMe(Long usrId,Boolean isProcessed, int pageNum, int pageSize,String[] searchInfo) {
+    Map map = new HashMap();
+    Date start=null;
+    Date end =null;
+    if (searchInfo!=null) {
+      List list = new ArrayList();
+    /*ffl.flow_id, ffl.title, ffl.reel_num, ffl.reel_type, ffl.dep_id, ffl.lending_user, ffl.lending_permission, ffl.description,
+    ffl.record_flag, f.id, f.type, f.status, f.result, f.created_dt, f.dead_line, f.end_dt*/
+      list.add("ffl.title");
+      list.add("ffl.reel_num");
+      list.add("ffl.lending_user");
+      for(int i = 0;i<list.size();i++){
+        if(!"".equals(searchInfo[i])){
+          map.put(list.get(i),searchInfo[i]);
+        }
+      }
+
+      try {
+        if(!"".equals(searchInfo[3].trim()))
+          start = FlowLendingController.strToDate(searchInfo[3]);
+        if(!"".equals(searchInfo[4].trim()))
+          end = FlowLendingController.strToDate(searchInfo[4]);
+        System.out.println(searchInfo[3] + "    "+ searchInfo[4]);
+        System.out.println(start+"     start   end    "+end);
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+    }
+
+    System.out.println("this is a map   "+map.toString() );
+    PageHelper.startPage(pageNum, pageSize);
+    return new PageInfo(flowFormLendingMapper.selectProcessByMe(usrId,isProcessed,map,start,end));
+  }
+
+  @Override
+  public FlowFormLending getFormDetail(FlowFormLending flowFormLending) {
+    setLendingModel(flowFormLending);
+    return flowFormLending;
+  }
+
+  //查询借阅文档信息 document/archive/record/box
+  //flowFormLending.setLendingModel();
+  private void setLendingModel(FlowFormLending flowFormLending) {
+    switch (flowFormLending.getReelType()) {
+      case "document":
+        flowFormLending.setLendingModel(
+            documentService.selectDocumentByFileCode(flowFormLending.getReelNum()));
+        break;
+      case "archive":
+        flowFormLending
+            .setLendingModel(archiveService.selectByFileCode(flowFormLending.getReelNum()));
+        break;
+      case "record":
+        flowFormLending.setLendingModel(recordService.selectByFileCode(flowFormLending.getReelNum()));
+        break;
+      case "box":
+        flowFormLending.setLendingModel(boxService.selectByFileCode(flowFormLending.getReelNum()));
+        break;
+    }
+  }
+
+  @Override
+  public FlowFormLending getFlowHistory(FlowFormLending flowFormLending) {
+    Flows flows = null;
+    if (flowFormLending.getFlows() != null && flowFormLending.getFlows().getId() != null) {
+      flows = flowFormLending.getFlows();
+    } else {
+      flows = new Flows();
+      flows.setId(flowFormLending.getFlowId());
+      flows = flowService.detail(flows);
+    }
+
+    flowFormLending.setFlows(flowService.history(flows));
+    return flowFormLending;
+  }
+
+  @Transactional
+  @Override
+  public void proccess(FlowFormLending flowFormLending, FlowNodeHistories flowNodeHistories) {
+    if (flowFormLending == null || flowFormLending.getFlows() == null) {
+      throw new RuntimeException(" flowFormLending is null or empty ");
+    }
+
+    flowService.proccess(flowFormLending.getFlows(), flowNodeHistories);
+  }
+
+  @Transactional
+  @Override
+  public void end(FlowFormLending flowFormLending, FlowNodeHistories flowNodeHistories) {
+    if (flowFormLending == null || flowFormLending.getFlows() == null) {
+      throw new RuntimeException(" flowFormLending is null or empty ");
+    }
+    flowService.end(flowFormLending.getFlows(), flowNodeHistories);
+  }
+
+  @Override
+  public Map getFlowLendingDetail(FlowFormLending flowFormLending) {
+    String deptName=null;
+    if(flowFormLending.getDepId()!=null)
+    deptName = deptService.getDeptById(flowFormLending.getDepId()).getName();
+    flowFormLending = flowFormLendingMapper.selectByPrimaryKey(flowFormLending.getFlowId());
+
+    setLendingModel(flowFormLending);
+    Map map = new HashMap();
+    map.put("flowFormLending", flowFormLending);
+    map.put("dept", deptName);
+    return map;
+  }
+
+  @Override
+  public Map<String, List<User>> getAskUsers(Long deptId, Long fileDeptId) {
+    List<User> list1= roleService.getUserByRoleAndDept(deptId,6L);
+    List<User> list2= roleService.getUserByRoleAndDept(fileDeptId,3L);
+    List<User> list3= roleService.selectRoles(8L);
+    Map<String, List<User>> map = new HashMap<String, List<User>>();
+    map.put("reel", list1);
+    map.put("file", list2);
+    map.put("lead",list3);
+    return map;
+  }
+
+}

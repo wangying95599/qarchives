@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>档案系统</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-treeview.css"/>
+    <link rel="stylesheet" href="css/fileinput.css"/>
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.css"/>
+    <link rel="stylesheet" href="css/1.css"/>
+    <link rel="stylesheet" href="css/bootstrapValidator.min.css"/>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]-->
+    <!--[endif]-->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-treeview.js"></script>
+    <script src="js/fileinput.js"></script>
+    <script src="js/zh.js"></script>
+    <script src="js/bootstrap-datetimepicker.js"></script>
+    <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="js/bootstrapValidator.min.js"></script>
+    <script src="js/ajax.js"></script>
+    <script src="js/lrtk.js"></script>
+    <script src="js/api.js"></script>
+    <style>
+        .bg{
+            background:url('img/backgrounds/7.jpg') no-repeat;
+            background-size: cover;
+        }
+        .bigBox{
+            position: absolute;
+            top: 40%;
+            left:40%;
+        }
+        .searchText{
+            width: 500px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            display: inline-block;
+        }
+        .searchBut{
+            height: 50px;
+            background:rgba(255,255,255,0.1);
+            color:#f9f9f9;
+            font-size: 18px;
+        }
+        .box_3{
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            width: 500px;
+            color: #fff;
+        }
+        .box_3 label{
+            margin-left: 30px;
+            margin-right: 50px;
+        }
+        .searchImg{
+            position: absolute;
+            top: 0%;
+            left:0%;
+            height: 200px;
+            width: 200px;
+            border-radius: 100%;
+            opacity: 0.8;
+        }
+        .searchTitle{
+            color: #f9f9f9;
+            position: absolute;
+            top: 20%;
+            left:45%;
+        }
+        #div1{height:400px;width:450px; position:relative; margin:10px auto;}
+        #div1 a{position:absolute;top:0px;left:0px;color:#fff;font-weight:bold;padding:3px 6px;}
+        a:hover {
+            text-decoration: none;
+        }
+        /*#div1 a:hover{border:1px solid #eee;background:#000;border-radius:5px;}*/
+        .searchBest{
+            color: #fff;
+            font-size: 18px;
+            margin-left: 50px;
+            cursor: pointer;
+            border-bottom: 2px solid #fff;
+        }
+    </style>
+</head>
+<body class="bg">
+	
+    <h1 class="searchTitle">昆明航空档案搜索</h1>
+    <div class="searchImg">
+        <!--<img src="img/backgrounds/8%20(2).jpg" alt="" class="img-responsive img-circle"/>-->
+        <div id="div1">
+            <a target="_blank">文书档案</a>
+            <a target="_blank">合同档案</a>
+            <a target="_blank">基建档案</a>
+            <a target="_blank">会计档案</a>
+            <a target="_blank">声像档案</a>
+            <a target="_blank">实物档案</a>
+            <a target="_blank">房产档案</a>
+            <a target="_blank">刊物档案</a>
+            <a target="_blank">审计监察档案</a>
+            <a target="_blank">案件档案</a>
+            <a target="_blank">证件档案</a>
+            <a target="_blank">生产安全事故档案</a>
+            <a target="_blank">印信档案</a>
+            <a target="_blank">信息化建设档案</a>
+            <a target="_blank">单机档案</a>
+            <a target="_blank">人事档案</a>
+            <a target="_blank">招投标档案</a>
+        </div>
+    </div>
+    <div class="bigBox">
+        <div style="margin-left: 100px">
+            <label class="radio-inline" style="color: #fff">
+                <input type="radio" name="optionsRadiosinline" id="optionsRadios3" value="option1" checked> 全文检索
+            </label>
+            <label class="radio-inline" style="color: #fff;margin-left: 50px;">
+                <input type="radio" name="optionsRadiosinline" id="optionsRadios4"  value="option2"> 目录检索
+            </label>
+            <span class="searchBest" data-toggle="modal" data-target="#searchAdvance" onclick="hideSelects()">高级搜索</span>
+        </div>
+        <div style="width:100%;margin-top: 20px;">
+        	<!--<form action="" onsubmit="return false;">-->
+            <input type="text" id="searchText"  class="searchText">
+            <button class="btn btn-default searchBut" type="button" onclick="to_search();">
+                <span class="glyphicon glyphicon-search "></span> Search
+            </button>
+            <!--</form>-->
+        </div>
+
+        <div class="box_3">
+            <div style="padding-top: 10px;">
+                <label class="checkbox-inline">
+                    <input id="theadInp" type="checkbox" value="ALL"> 全 选
+                </label>
+            </div>
+            <div id="tbody">
+                <div style="margin-top: 10px;">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="WS"> 文书类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="HT"> 合同类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="JJ"> 基建类档案
+                    </label>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="KJ"> 会计类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="SX"> 声像类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="SW"> 实物类档案
+                    </label>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="FC"> 房产类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="KW"> 刊物类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="SJJC"> 审计监察档案
+                    </label>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="AJ"> 案件类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="ZJ"> 证件类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="SG"> 生产安全事故档案
+                    </label>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="YX"> 印信类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="XX"> 单机类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="DJ"> 信息化建设档案
+                    </label>
+                </div>
+                <div style="margin-top: 10px;padding-bottom: 10px">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="RS"> 人事类档案
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="ZTB"> 招投标档案
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 高级搜索模态框-->
+    <div class="modal fade" id="searchAdvance" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <form name="test" id="F_id">  
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">请填写搜索信息</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="from-group input-group">
+                                <span class="input-group-addon">请选择档案种类</span>
+                                <select class="form-control" id="archiveType" name="archiveType">
+                                    <option value="ALL">全部类型</option>
+                                    <option value="WS">文书档案</option>
+                                    <option value="KJ">会计档案</option>
+                                    <option value="RS">人事档案</option>
+                                    <option value="SW">实物档案</option>
+                                    <option value="HT">合同档案</option>
+                                    <option value="KW">刊物档案</option>
+                                    <option value="YX">印信档案</option>
+                                    <option value="FC">房产档案</option>
+                                    <option value="ZJ">证件档案</option>
+                                    <option value="DJ">单机档案</option>
+                                    <option value="JJ">基建档案</option>
+                                    <option value="SX">声像档案</option>
+                                    <option value="SJJC">审计监察档案</option>
+                                    <option value="AJ">案件档案</option>
+                                    <option value="SG">生产安全事故档案</option>
+                                    <option value="XX">信息化建设档案</option>
+                                    <option value="ZTB">招投标档案</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">档号（包含）</span>
+                                <input type="text" class="form-control" id="fileNum" name="fileNum" />
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="form-group input-group input-group-sm" style="width: 100%">
+                                <span class="input-group-addon">题名（包含）</span>
+                                <input type="text" class="form-control" id="title" name="title"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="from-group input-group input-group-sm">
+                                <span class="input-group-addon">保管期限</span>
+                                <select class="form-control" id="reserveDuration" name="reserveDuration">
+                                    <option>5年</option>
+                                    <option>10年</option>
+                                    <option>30年</option>
+                                    <option>永久</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm date" id='filingAnnualDateSrc'>
+                                  <span class="input-group-addon">归档开始日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' id="startYear" name="startYear" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm date" id='filingAnnualDateSrc'>
+                                  <span class="input-group-addon">归档截止日期
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' id="endYear" name="endYear" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">重要程度</span>
+                                <select class="form-control" id="importance" name="importance">
+                                    <option>一般</option>
+                                    <option>重要</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">文件属性</span>
+                                <select class="form-control" id="docAttr" name="docAttr">
+                                    <option>原件</option>
+                                    <option>复印件</option>
+                                    <option>仿制品</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                                <div class="form-group input-group input-group-sm">
+                                    <span class="input-group-addon">主题词（包含）</span>
+                                    <input type="text" id="themeWord" name="themeWord" class="form-control">
+                                </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">数量</span>
+                                <input type="text" class="form-control" id="saveNum" name="saveNum">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">归档人（包含）</span>
+                                <input type="text" class="form-control" id="userId" name="userId">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">存放位置（包含）</span>
+                                <input type="text" class="form-control" id="reserveLocation" name="reserveLocation">
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">地点（包含）</span>
+                                <input type="text" class="form-control" id="place" name="place">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">人物（包含）</span>
+                                <input type="text" class="form-control" id="figure" name="figure">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">摄影者（包含）</span>
+                                <input type="text" class="form-control" id="photographer" name="photographer">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm date" id='filingAnnualDateSrc'>
+                                  <span class="input-group-addon">摄影时间
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                                   </span>
+                                <input type='text' class="form-control" id="photographyTime" name="photographyTime"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">负责人（包含）</span>
+                                <input type="text" class="form-control" id="leader" name="leader">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="form-group input-group input-group-sm">
+                                <span class="input-group-addon">数量</span>
+                                <input type="text" class="form-control" id="number" name="number">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" onclick="to_search2();">搜索</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                </div>
+            </div><!-- /.modal-content -->
+            </form>
+        </div><!-- /.modal -->
+    </div>
+    <div id="isAssist" style="display:none;"></div>
+</body>
+</html>

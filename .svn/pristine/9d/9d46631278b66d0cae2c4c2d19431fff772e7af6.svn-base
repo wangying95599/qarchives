@@ -1,0 +1,945 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.DocumentsMapper">
+    <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Documents">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+        <result column="file_num" jdbcType="VARCHAR" property="fileNum"/>
+        <result column="dept_id" jdbcType="BIGINT" property="deptId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="doc_attr" jdbcType="VARCHAR" property="docAttr"/>
+        <result column="responsible" jdbcType="VARCHAR" property="responsible"/>
+        <result column="fonds_id" jdbcType="VARCHAR" property="fondsId"/>
+        <result column="importance" jdbcType="VARCHAR" property="importance"/>
+        <result column="appendices" jdbcType="BIGINT" property="appendices"/>
+        <result column="archive_type" jdbcType="VARCHAR" property="archiveType"/>
+        <result column="deliver_user" jdbcType="VARCHAR" property="deliverUser"/>
+        <result column="deliver_dept" jdbcType="VARCHAR" property="deliverDept"/>
+        <result column="archive_year" jdbcType="VARCHAR" property="archiveYear"/>
+        <result column="reserve_duration" jdbcType="VARCHAR" property="reserveDuration"/>
+        <result column="entity_num" jdbcType="BIGINT" property="entityNum"/>
+        <result column="file_createtime" jdbcType="VARCHAR" property="fileCreatetime"/>
+        <result column="reserve_location" jdbcType="VARCHAR" property="reserveLocation"/>
+        <result column="before_num" jdbcType="VARCHAR" property="beforeNum"/>
+        <result column="archive_date" jdbcType="VARCHAR" property="archiveDate"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="record_flag" jdbcType="BIT" property="recordFlag"/>
+        <result column="document_local_id" jdbcType="VARCHAR" property="documentLocalId"/>
+        <result column="document_creatime" jdbcType="VARCHAR" property="documentCreatime"/>
+        <result column="link_files_id" jdbcType="VARCHAR" property="linkFilesId"/>
+        <result column="is_archive" jdbcType="BIT" property="isArchive"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="sava_location" jdbcType="VARCHAR" property="savaLocation"/>
+        <result column="arrange_flag" jdbcType="BIT" property="arrangeFlag"/>
+        <result column="data_source" jdbcType="VARCHAR" property="dataSource"/>
+        <result column="deliver_date" jdbcType="TIMESTAMP" property="deliverDate"/>
+        <result column="paginal_num" jdbcType="INTEGER" property="paginalNum"/>
+    </resultMap>
+
+    <resultMap id="acousticImageMap" type="org.quetzaco.archives.model.Documents">
+        <id column="b_id" jdbcType="BIGINT" property="id"/>
+        <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+        <result column="file_num" jdbcType="VARCHAR" property="fileNum"/>
+        <result column="dept_id" jdbcType="BIGINT" property="deptId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="doc_attr" jdbcType="VARCHAR" property="docAttr"/>
+        <result column="responsible" jdbcType="VARCHAR" property="responsible"/>
+        <result column="fonds_id" jdbcType="VARCHAR" property="fondsId"/>
+        <result column="importance" jdbcType="VARCHAR" property="importance"/>
+        <result column="appendices" jdbcType="BIGINT" property="appendices"/>
+        <result column="archive_type" jdbcType="VARCHAR" property="archiveType"/>
+        <result column="deliver_user" jdbcType="VARCHAR" property="deliverUser"/>
+        <result column="deliver_dept" jdbcType="VARCHAR" property="deliverDept"/>
+        <result column="archive_year" jdbcType="VARCHAR" property="archiveYear"/>
+        <result column="reserve_duration" jdbcType="VARCHAR" property="reserveDuration"/>
+        <result column="entity_num" jdbcType="BIGINT" property="entityNum"/>
+        <result column="file_createtime" jdbcType="VARCHAR" property="fileCreatetime"/>
+        <result column="reserve_location" jdbcType="VARCHAR" property="reserveLocation"/>
+        <result column="before_num" jdbcType="VARCHAR" property="beforeNum"/>
+        <result column="archive_date" jdbcType="VARCHAR" property="archiveDate"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="record_flag" jdbcType="BIT" property="recordFlag"/>
+        <result column="document_local_id" jdbcType="VARCHAR" property="documentLocalId"/>
+        <result column="document_creatime" jdbcType="VARCHAR" property="documentCreatime"/>
+        <result column="link_files_id" jdbcType="VARCHAR" property="linkFilesId"/>
+        <result column="is_archive" jdbcType="BIT" property="isArchive"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="sava_location" jdbcType="VARCHAR" property="savaLocation"/>
+        <result column="arrange_flag" jdbcType="BIT" property="arrangeFlag"/>
+        <result column="data_source" jdbcType="VARCHAR" property="dataSource"/>
+        <result column="inside_num" jdbcType="VARCHAR" property="insideNum"/>
+        <result column="deliver_date" jdbcType="TIMESTAMP" property="deliverDate"/>
+        <result column="paginal_num" jdbcType="INTEGER" property="paginalNum"/>
+        <association property="acousticImage" javaType="AcousticImage">
+            <id column="c_id" jdbcType="INTEGER" property="id"/>
+            <result column="place" jdbcType="VARCHAR" property="place"/>
+            <result column="figure" jdbcType="VARCHAR" property="figure"/>
+            <result column="photographer" jdbcType="VARCHAR" property="photographer"/>
+            <result column="photography_time" jdbcType="TIMESTAMP" property="photographyTime"/>
+            <result column="number" jdbcType="INTEGER" property="number"/>
+            <result column="leader" jdbcType="VARCHAR" property="leader"/>
+            <!--<result column="created_dt" jdbcType="TIMESTAMP" property="createdDt" />
+            <result column="updated_dt" jdbcType="TIMESTAMP" property="updatedDt" />-->
+        </association>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, file_name, file_num, dept_id, title, doc_attr, responsible, fonds_id, importance,
+        appendices, archive_type, deliver_user, deliver_dept, archive_year, reserve_duration,
+        entity_num, file_createtime, reserve_location, before_num, archive_date, remark,
+        record_flag, document_local_id, document_creatime, link_files_id, is_archive, user_id,
+    sava_location, arrange_flag, data_source, deliver_date, paginal_num
+  </sql>
+    <sql id="Acoustic_Column_List">
+        b.id as b_id, file_name, file_num, dept_id, title, doc_attr, responsible, fonds_id, importance,
+        appendices, archive_type, deliver_user, deliver_dept, archive_year, reserve_duration,
+        entity_num, file_createtime, reserve_location, before_num, archive_date, remark,
+        record_flag, document_local_id, document_creatime, link_files_id, is_archive, user_id,
+        sava_location, arrange_flag, data_source, deliver_date, paginal_num
+    </sql>
+    <select id="selectByExample" parameterType="org.quetzaco.archives.model.DocumentsExample" resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from documents
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from documents
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from documents
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.DocumentsExample">
+        delete from documents
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="org.quetzaco.archives.model.Documents">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+            SELECT nextval('documents_id_seq')
+        </selectKey>
+        insert into documents (id, file_name, file_num,
+        dept_id, title, doc_attr,
+        responsible, fonds_id, importance,
+        appendices, archive_type, deliver_user,
+        deliver_dept, archive_year, reserve_duration,
+        entity_num, file_createtime, reserve_location,
+        before_num, archive_date, remark,
+        record_flag, document_local_id, document_creatime,
+        link_files_id, is_archive, user_id,
+        sava_location, arrange_flag, data_source,
+        deliver_date, paginal_num)
+        values (#{id,jdbcType=BIGINT}, #{fileName,jdbcType=VARCHAR}, #{fileNum,jdbcType=VARCHAR},
+        #{deptId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{docAttr,jdbcType=VARCHAR},
+        #{responsible,jdbcType=VARCHAR}, #{fondsId,jdbcType=VARCHAR}, #{importance,jdbcType=VARCHAR},
+        #{appendices,jdbcType=BIGINT}, #{archiveType,jdbcType=VARCHAR}, #{deliverUser,jdbcType=VARCHAR},
+        #{deliverDept,jdbcType=VARCHAR}, #{archiveYear,jdbcType=VARCHAR}, #{reserveDuration,jdbcType=VARCHAR},
+        #{entityNum,jdbcType=BIGINT}, #{fileCreatetime,jdbcType=VARCHAR}, #{reserveLocation,jdbcType=VARCHAR},
+        #{beforeNum,jdbcType=VARCHAR}, #{archiveDate,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR},
+        #{recordFlag,jdbcType=BIT}, #{documentLocalId,jdbcType=VARCHAR}, #{documentCreatime,jdbcType=VARCHAR},
+        #{linkFilesId,jdbcType=VARCHAR}, #{isArchive,jdbcType=BIT}, #{userId,jdbcType=BIGINT},
+        #{savaLocation,jdbcType=VARCHAR}, #{arrangeFlag,jdbcType=BIT}, #{dataSource,jdbcType=VARCHAR},
+        #{deliverDate,jdbcType=TIMESTAMP}, #{paginalNum,jdbcType=INTEGER})
+    </insert>
+    <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Documents">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+            SELECT nextval('documents_id_seq')
+        </selectKey>
+        insert into documents
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="fileName != null">
+                file_name,
+            </if>
+            <if test="fileNum != null">
+                file_num,
+            </if>
+            <if test="deptId != null">
+                dept_id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="docAttr != null">
+                doc_attr,
+            </if>
+            <if test="responsible != null">
+                responsible,
+            </if>
+            <if test="fondsId != null">
+                fonds_id,
+            </if>
+            <if test="importance != null">
+                importance,
+            </if>
+            <if test="appendices != null">
+                appendices,
+            </if>
+            <if test="archiveType != null">
+                archive_type,
+            </if>
+            <if test="deliverUser != null">
+                deliver_user,
+            </if>
+            <if test="deliverDept != null">
+                deliver_dept,
+            </if>
+            <if test="archiveYear != null">
+                archive_year,
+            </if>
+            <if test="reserveDuration != null">
+                reserve_duration,
+            </if>
+            <if test="entityNum != null">
+                entity_num,
+            </if>
+            <if test="fileCreatetime != null">
+                file_createtime,
+            </if>
+            <if test="reserveLocation != null">
+                reserve_location,
+            </if>
+            <if test="beforeNum != null">
+                before_num,
+            </if>
+            <if test="archiveDate != null">
+                archive_date,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="recordFlag != null">
+                record_flag,
+            </if>
+            <if test="documentLocalId != null">
+                document_local_id,
+            </if>
+            <if test="documentCreatime != null">
+                document_creatime,
+            </if>
+            <if test="linkFilesId != null">
+                link_files_id,
+            </if>
+            <if test="isArchive != null">
+                is_archive,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="savaLocation != null">
+                sava_location,
+            </if>
+            <if test="arrangeFlag != null">
+                arrange_flag,
+            </if>
+            <if test="dataSource != null">
+                data_source,
+            </if>
+            <if test="deliverDate != null">
+                deliver_date,
+            </if>
+            <if test="paginalNum != null">
+                paginal_num,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=BIGINT},
+            <if test="fileName != null">
+                #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileNum != null">
+                #{fileNum,jdbcType=VARCHAR},
+            </if>
+            <if test="deptId != null">
+                #{deptId,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="docAttr != null">
+                #{docAttr,jdbcType=VARCHAR},
+            </if>
+            <if test="responsible != null">
+                #{responsible,jdbcType=VARCHAR},
+            </if>
+            <if test="fondsId != null">
+                #{fondsId,jdbcType=VARCHAR},
+            </if>
+            <if test="importance != null">
+                #{importance,jdbcType=VARCHAR},
+            </if>
+            <if test="appendices != null">
+                #{appendices,jdbcType=BIGINT},
+            </if>
+            <if test="archiveType != null">
+                #{archiveType,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverUser != null">
+                #{deliverUser,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverDept != null">
+                #{deliverDept,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveYear != null">
+                #{archiveYear,jdbcType=VARCHAR},
+            </if>
+            <if test="reserveDuration != null">
+                #{reserveDuration,jdbcType=VARCHAR},
+            </if>
+            <if test="entityNum != null">
+                #{entityNum,jdbcType=BIGINT},
+            </if>
+            <if test="fileCreatetime != null">
+                #{fileCreatetime,jdbcType=VARCHAR},
+            </if>
+            <if test="reserveLocation != null">
+                #{reserveLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="beforeNum != null">
+                #{beforeNum,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveDate != null">
+                #{archiveDate,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="recordFlag != null">
+                #{recordFlag,jdbcType=BIT},
+            </if>
+            <if test="documentLocalId != null">
+                #{documentLocalId,jdbcType=VARCHAR},
+            </if>
+            <if test="documentCreatime != null">
+                #{documentCreatime,jdbcType=VARCHAR},
+            </if>
+            <if test="linkFilesId != null">
+                #{linkFilesId,jdbcType=VARCHAR},
+            </if>
+            <if test="isArchive != null">
+                #{isArchive,jdbcType=BIT},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="savaLocation != null">
+                #{savaLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="arrangeFlag != null">
+                #{arrangeFlag,jdbcType=BIT},
+            </if>
+            <if test="dataSource != null">
+                #{dataSource,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverDate != null">
+                #{deliverDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="paginalNum != null">
+                #{paginalNum,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="org.quetzaco.archives.model.DocumentsExample"
+            resultType="java.lang.Long">
+        select count(*) from documents
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update documents
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.fileName != null">
+                file_name = #{record.fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileNum != null">
+                file_num = #{record.fileNum,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deptId != null">
+                dept_id = #{record.deptId,jdbcType=BIGINT},
+            </if>
+            <if test="record.title != null">
+                title = #{record.title,jdbcType=VARCHAR},
+            </if>
+            <if test="record.docAttr != null">
+                doc_attr = #{record.docAttr,jdbcType=VARCHAR},
+            </if>
+            <if test="record.responsible != null">
+                responsible = #{record.responsible,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fondsId != null">
+                fonds_id = #{record.fondsId,jdbcType=VARCHAR},
+            </if>
+            <if test="record.importance != null">
+                importance = #{record.importance,jdbcType=VARCHAR},
+            </if>
+            <if test="record.appendices != null">
+                appendices = #{record.appendices,jdbcType=BIGINT},
+            </if>
+            <if test="record.archiveType != null">
+                archive_type = #{record.archiveType,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deliverUser != null">
+                deliver_user = #{record.deliverUser,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deliverDept != null">
+                deliver_dept = #{record.deliverDept,jdbcType=VARCHAR},
+            </if>
+            <if test="record.archiveYear != null">
+                archive_year = #{record.archiveYear,jdbcType=VARCHAR},
+            </if>
+            <if test="record.reserveDuration != null">
+                reserve_duration = #{record.reserveDuration,jdbcType=VARCHAR},
+            </if>
+            <if test="record.entityNum != null">
+                entity_num = #{record.entityNum,jdbcType=BIGINT},
+            </if>
+            <if test="record.fileCreatetime != null">
+                file_createtime = #{record.fileCreatetime,jdbcType=VARCHAR},
+            </if>
+            <if test="record.reserveLocation != null">
+                reserve_location = #{record.reserveLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="record.beforeNum != null">
+                before_num = #{record.beforeNum,jdbcType=VARCHAR},
+            </if>
+            <if test="record.archiveDate != null">
+                archive_date = #{record.archiveDate,jdbcType=VARCHAR},
+            </if>
+            <if test="record.remark != null">
+                remark = #{record.remark,jdbcType=VARCHAR},
+            </if>
+            <if test="record.recordFlag != null">
+                record_flag = #{record.recordFlag,jdbcType=BIT},
+            </if>
+            <if test="record.documentLocalId != null">
+                document_local_id = #{record.documentLocalId,jdbcType=VARCHAR},
+            </if>
+            <if test="record.documentCreatime != null">
+                document_creatime = #{record.documentCreatime,jdbcType=VARCHAR},
+            </if>
+            <if test="record.linkFilesId != null">
+                link_files_id = #{record.linkFilesId,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isArchive != null">
+                is_archive = #{record.isArchive,jdbcType=BIT},
+            </if>
+            <if test="record.userId != null">
+                user_id = #{record.userId,jdbcType=BIGINT},
+            </if>
+            <if test="record.savaLocation != null">
+                sava_location = #{record.savaLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="record.arrangeFlag != null">
+                arrange_flag = #{record.arrangeFlag,jdbcType=BIT},
+            </if>
+            <if test="record.dataSource != null">
+                data_source = #{record.dataSource,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deliverDate != null">
+                deliver_date = #{record.deliverDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.paginalNum != null">
+                paginal_num = #{record.paginalNum,jdbcType=INTEGER},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update documents
+        set id = #{record.id,jdbcType=BIGINT},
+        file_name = #{record.fileName,jdbcType=VARCHAR},
+        file_num = #{record.fileNum,jdbcType=VARCHAR},
+        dept_id = #{record.deptId,jdbcType=BIGINT},
+        title = #{record.title,jdbcType=VARCHAR},
+        doc_attr = #{record.docAttr,jdbcType=VARCHAR},
+        responsible = #{record.responsible,jdbcType=VARCHAR},
+        fonds_id = #{record.fondsId,jdbcType=VARCHAR},
+        importance = #{record.importance,jdbcType=VARCHAR},
+        appendices = #{record.appendices,jdbcType=BIGINT},
+        archive_type = #{record.archiveType,jdbcType=VARCHAR},
+        deliver_user = #{record.deliverUser,jdbcType=VARCHAR},
+        deliver_dept = #{record.deliverDept,jdbcType=VARCHAR},
+        archive_year = #{record.archiveYear,jdbcType=VARCHAR},
+        reserve_duration = #{record.reserveDuration,jdbcType=VARCHAR},
+        entity_num = #{record.entityNum,jdbcType=BIGINT},
+        file_createtime = #{record.fileCreatetime,jdbcType=VARCHAR},
+        reserve_location = #{record.reserveLocation,jdbcType=VARCHAR},
+        before_num = #{record.beforeNum,jdbcType=VARCHAR},
+        archive_date = #{record.archiveDate,jdbcType=VARCHAR},
+        remark = #{record.remark,jdbcType=VARCHAR},
+        record_flag = #{record.recordFlag,jdbcType=BIT},
+        document_local_id = #{record.documentLocalId,jdbcType=VARCHAR},
+        document_creatime = #{record.documentCreatime,jdbcType=VARCHAR},
+        link_files_id = #{record.linkFilesId,jdbcType=VARCHAR},
+        is_archive = #{record.isArchive,jdbcType=BIT},
+        user_id = #{record.userId,jdbcType=BIGINT},
+        sava_location = #{record.savaLocation,jdbcType=VARCHAR},
+        arrange_flag = #{record.arrangeFlag,jdbcType=BIT},
+        data_source = #{record.dataSource,jdbcType=VARCHAR},
+        deliver_date = #{record.deliverDate,jdbcType=TIMESTAMP},
+        paginal_num = #{record.paginalNum,jdbcType=INTEGER}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.Documents">
+        update documents
+        <set>
+            <if test="fileName != null">
+                file_name = #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileNum != null">
+                file_num = #{fileNum,jdbcType=VARCHAR},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="docAttr != null">
+                doc_attr = #{docAttr,jdbcType=VARCHAR},
+            </if>
+            <if test="responsible != null">
+                responsible = #{responsible,jdbcType=VARCHAR},
+            </if>
+            <if test="fondsId != null">
+                fonds_id = #{fondsId,jdbcType=VARCHAR},
+            </if>
+            <if test="importance != null">
+                importance = #{importance,jdbcType=VARCHAR},
+            </if>
+            <if test="appendices != null">
+                appendices = #{appendices,jdbcType=BIGINT},
+            </if>
+            <if test="archiveType != null">
+                archive_type = #{archiveType,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverUser != null">
+                deliver_user = #{deliverUser,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverDept != null">
+                deliver_dept = #{deliverDept,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveYear != null">
+                archive_year = #{archiveYear,jdbcType=VARCHAR},
+            </if>
+            <if test="reserveDuration != null">
+                reserve_duration = #{reserveDuration,jdbcType=VARCHAR},
+            </if>
+            <if test="entityNum != null">
+                entity_num = #{entityNum,jdbcType=BIGINT},
+            </if>
+            <if test="fileCreatetime != null">
+                file_createtime = #{fileCreatetime,jdbcType=VARCHAR},
+            </if>
+            <if test="reserveLocation != null">
+                reserve_location = #{reserveLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="beforeNum != null">
+                before_num = #{beforeNum,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveDate != null">
+                archive_date = #{archiveDate,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="recordFlag != null">
+                record_flag = #{recordFlag,jdbcType=BIT},
+            </if>
+            <if test="documentLocalId != null">
+                document_local_id = #{documentLocalId,jdbcType=VARCHAR},
+            </if>
+            <if test="documentCreatime != null">
+                document_creatime = #{documentCreatime,jdbcType=VARCHAR},
+            </if>
+            <if test="linkFilesId != null">
+                link_files_id = #{linkFilesId,jdbcType=VARCHAR},
+            </if>
+            <if test="isArchive != null">
+                is_archive = #{isArchive,jdbcType=BIT},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="savaLocation != null">
+                sava_location = #{savaLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="arrangeFlag != null">
+                arrange_flag = #{arrangeFlag,jdbcType=BIT},
+            </if>
+            <if test="dataSource != null">
+                data_source = #{dataSource,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverDate != null">
+                deliver_date = #{deliverDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="paginalNum != null">
+                paginal_num = #{paginalNum,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.Documents">
+    update documents
+    set file_name = #{fileName,jdbcType=VARCHAR},
+      file_num = #{fileNum,jdbcType=VARCHAR},
+      dept_id = #{deptId,jdbcType=BIGINT},
+      title = #{title,jdbcType=VARCHAR},
+      doc_attr = #{docAttr,jdbcType=VARCHAR},
+      responsible = #{responsible,jdbcType=VARCHAR},
+      fonds_id = #{fondsId,jdbcType=VARCHAR},
+      importance = #{importance,jdbcType=VARCHAR},
+      appendices = #{appendices,jdbcType=BIGINT},
+      archive_type = #{archiveType,jdbcType=VARCHAR},
+      deliver_user = #{deliverUser,jdbcType=VARCHAR},
+      deliver_dept = #{deliverDept,jdbcType=VARCHAR},
+      archive_year = #{archiveYear,jdbcType=VARCHAR},
+      reserve_duration = #{reserveDuration,jdbcType=VARCHAR},
+      entity_num = #{entityNum,jdbcType=BIGINT},
+      file_createtime = #{fileCreatetime,jdbcType=VARCHAR},
+      reserve_location = #{reserveLocation,jdbcType=VARCHAR},
+      before_num = #{beforeNum,jdbcType=VARCHAR},
+      archive_date = #{archiveDate,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      record_flag = #{recordFlag,jdbcType=BIT},
+      document_local_id = #{documentLocalId,jdbcType=VARCHAR},
+      document_creatime = #{documentCreatime,jdbcType=VARCHAR},
+      link_files_id = #{linkFilesId,jdbcType=VARCHAR},
+      is_archive = #{isArchive,jdbcType=BIT},
+      user_id = #{userId,jdbcType=BIGINT},
+      sava_location = #{savaLocation,jdbcType=VARCHAR},
+      arrange_flag = #{arrangeFlag,jdbcType=BIT},
+      data_source = #{dataSource,jdbcType=VARCHAR},
+      deliver_date = #{deliverDate,jdbcType=TIMESTAMP},
+      paginal_num = #{paginalNum,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <select id="selectFileList" resultType="org.quetzaco.archives.model.Documents"
+            parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from documents
+        where dept_id = #{deptId,jdbcType=BIGINT} and record_flag = 't' and is_archive='f' ORDER by document_creatime
+        DESC
+    </select>
+
+    <!--<select id="selectDocumentDetail" parameterType="java.lang.Long"-->
+    <!--resultType="org.quetzaco.archives.model.Document">-->
+    <!--SELECT *-->
+    <!--FROM documents-->
+    <!--WHERE file_id = #{fileId,jdbcType=BIGINT};-->
+    <!--</select>-->
+    <update id="deleteDocument" parameterType="java.lang.Long">
+    update documents set record_flag = FALSE
+    where id = #{fileId}
+  </update>
+    <update id="saveDocumentDetailInfo" parameterType="org.quetzaco.archives.model.Documents">
+    UPDATE documents
+    SET file_name       = #{fileName,jdbcType=VARCHAR},
+    file_num          = #{fileNum,jdbcType=VARCHAR},
+    dept_id           = #{deptId,jdbcType=BIGINT},
+    title             = #{title,jdbcType=VARCHAR},
+    file_code         = #{fileCode,jdbcType=VARCHAR},
+    theme_word        = #{themeWord,jdbcType=VARCHAR},
+    responsible       = #{responsible,jdbcType=VARCHAR},
+    fonds_id = #{fondsId,jdbcType=VARCHAR},
+    importance        = #{importance,jdbcType=VARCHAR},
+    appendices        = #{appendices,jdbcType=BIGINT},
+    archive_type      = #{archiveType,jdbcType=VARCHAR},
+    come_office       = #{comeOffice,jdbcType=VARCHAR},
+    beload_department = #{beloadDepartment,jdbcType=VARCHAR},
+    archive_year      = #{archiveYear,jdbcType=VARCHAR},
+    reserve_duration  = #{reserveDuration,jdbcType=VARCHAR},
+    save_num          = #{saveNum,jdbcType=BIGINT},
+    reserve_location  = #{reserveLocation,jdbcType=VARCHAR},
+    before_num = #{beforeNum,jdbcType=VARCHAR},
+    archive_date      = #{archiveDate,jdbcType=VARCHAR},
+    archive_num = #{archiveNum,jdbcType=VARCHAR},
+    remark            = #{remark,jdbcType=VARCHAR},
+    arrange_flag            = #{arrangeFlag,jdbcType=VARCHAR}
+
+    WHERE id = #{id,jdbcType=BIGINT}
+  </update>
+    <insert id="uploadDocument" parameterType="org.quetzaco.archives.model.Documents">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+            SELECT nextval('documents_id_seq')
+        </selectKey>
+        INSERT INTO documents (id,file_name, appendices,file_createTime, sava_location, dept_id,
+        arrange_flag,document_local_id,document_creatime,title,beload_department)
+        VALUES
+        (#{id},#{fileName}, #{appendices}, #{fileCreatetime}, #{savaLocation}, #{deptId},
+        #{arrangeFlag},#{documentLocalId},#{documentCreateTime},#{title},#{beloadDepartment});
+    </insert>
+    <select id="searchDocumentList" resultType="org.quetzaco.archives.model.Documents"
+            parameterType="org.quetzaco.archives.model.Documents">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM documents
+        WHERE
+        <if test="title != null and title !=''">
+            title LIKE '%'||#{title}||'%' and
+        </if>
+        <if test="fileNum !=null and fileNum !=''">
+            file_num LIKE '%'||#{fileNum}||'%' and
+        </if>
+        <if test="deptId !=0 and deptId!=null">
+            dept_id = #{deptId} and record_flag='t'
+        </if>
+        ORDER BY document_creatime DESC
+    </select>
+
+    <select id="searchGlobalDocumentList" resultType="org.quetzaco.archives.model.Documents"
+            parameterType="org.quetzaco.archives.model.Documents">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM documents
+        WHERE 1=1 and record_flag='t'
+        <if test="title != null and title !=''">
+            and title LIKE '%'||#{title}||'%'
+        </if>
+        <if test="fileNum !=null and fileNum !=''">
+            and file_num LIKE '%'||#{fileNum}||'%'
+        </if>
+        ORDER BY document_creatime DESC
+    </select>
+
+    <select id="selectDocumentByFileCode"
+            resultType="org.quetzaco.archives.model.Documents">
+        select
+        <include refid="Base_Column_List"/>
+        from documents
+        where file_code=#{fileCode,jdbcType=VARCHAR} AND record_flag=#{recordFlag,jdbcType=BOOLEAN} ;
+    </select>
+    <select id="selectComplete" resultType="org.quetzaco.archives.model.Documents">
+        select
+        <if test="important !=null and important=='重要'">
+            <include refid="Base_Column_List"/>
+            from documents
+            where dept_id=#{deptId} and arrange_flag='t' and record_flag='t' and is_archive='f'
+            and (importance='重要' OR importance='一般') ORDER BY document_creatime DESC
+        </if>
+        <if test="important !=null and important=='一般'">
+            <include refid="Base_Column_List"/>
+            from documents
+            where dept_id=#{deptId} and arrange_flag='t' and record_flag='t' and is_archive='f'
+            and importance = '一般' ORDER BY document_creatime DESC
+        </if>
+    </select>
+    <select id="selectFromRecord" parameterType="map" resultType="org.quetzaco.archives.model.Documents">
+        select<include refid="Base_Column_List"/>,to_char(a.inside_num,'000')as inside_num from link_records_documents a
+        JOIN documents b on a.record_guid=#{recordId} and b.record_flag = 't' and a.doc_id = b.id
+        <if test="order!=null and order !=''">order by ${order}</if>
+    </select>
+
+    <select id="acousticFromRecord" parameterType="map" resultMap="acousticImageMap">
+        select<include refid="Acoustic_Column_List"/>,to_char(a.inside_num,'000')as inside_num,c.id as c_id, place,
+        figure, photographer, photography_time, number, leader from link_records_documents a
+        JOIN documents b on a.record_guid=#{recordId} and b.record_flag = 't' and a.doc_id = b.id left join
+        acoustic_image c
+        on b.id=c.id
+        <if test="order!=null and order !=''">order by ${order}</if>
+    </select>
+
+    <update id="documentToRecord" parameterType="java.lang.Long">
+        update documents set is_archive = TRUE , arrange_flag= TRUE WHERE id = #{docId};
+  </update>
+
+    <update id="recordToDocument" parameterType="java.lang.Long">
+    update documents set is_archive = FALSE WHERE id = #{docId};
+  </update>
+
+    <update id="destroyReelNumByType">
+    UPDATE ${tableName} set record_flag = false where ${colName} = #{reelNum};
+  </update>
+
+    <select id="getIdByReelNumAndType" resultType="java.lang.Long">
+    select ${colName} from ${tableName} where ${colName}=#{reelNum};
+  </select>
+
+    <update id="deleteFile" parameterType="java.lang.Long">
+    UPDATE files SET record_flag = FALSE WHERE id = #{fileId}
+  </update>
+
+    <select id="isDuplicateFileName" resultType="Files">
+    SELECT file_name,record_flag FROM files WHERE doc_id =#{docId} and (file_name = #{fileName} or file_name like #{dupBaseName}||'%') order by upload_date desc;
+  </select>
+
+    <update id="updateByPrimaryKeySelective1" parameterType="org.quetzaco.archives.model.Documents">
+        update documents
+        <set>
+            <if test="fileName != null">
+                file_name = #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileNum != null">
+                file_num = #{fileNum,jdbcType=VARCHAR},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="docAttr != null">
+                doc_attr = #{docAttr,jdbcType=VARCHAR},
+            </if>
+            <if test="responsible != null">
+                responsible = #{responsible,jdbcType=VARCHAR},
+            </if>
+            <if test="fondsId != null">
+                fonds_id = #{fondsId,jdbcType=VARCHAR},
+            </if>
+            <if test="importance != null">
+                importance = #{importance,jdbcType=VARCHAR},
+            </if>
+
+            <if test="archiveType != null">
+                archive_type = #{archiveType,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverUser != null">
+                deliver_user = #{deliverUser,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverDept != null">
+                deliver_dept = #{deliverDept,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveYear != null">
+                archive_year = #{archiveYear,jdbcType=VARCHAR},
+            </if>
+            <if test="reserveDuration != null">
+                reserve_duration = #{reserveDuration,jdbcType=VARCHAR},
+            </if>
+
+            <if test="fileCreatetime != null">
+                file_createtime = #{fileCreatetime,jdbcType=VARCHAR},
+            </if>
+            <if test="reserveLocation != null">
+                reserve_location = #{reserveLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="beforeNum != null">
+                before_num = #{beforeNum,jdbcType=VARCHAR},
+            </if>
+            <if test="archiveDate != null">
+                archive_date = #{archiveDate,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="recordFlag != null">
+                record_flag = #{recordFlag,jdbcType=BIT},
+            </if>
+            <if test="documentLocalId != null">
+                document_local_id = #{documentLocalId,jdbcType=VARCHAR},
+            </if>
+            <if test="documentCreatime != null">
+                document_creatime = #{documentCreatime,jdbcType=VARCHAR},
+            </if>
+            <if test="linkFilesId != null">
+                link_files_id = #{linkFilesId,jdbcType=VARCHAR},
+            </if>
+            <if test="isArchive != null">
+                is_archive = #{isArchive,jdbcType=BIT},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="savaLocation != null">
+                sava_location = #{savaLocation,jdbcType=VARCHAR},
+            </if>
+            <if test="arrangeFlag != null">
+                arrange_flag = #{arrangeFlag,jdbcType=BIT},
+            </if>
+            <if test="dataSource != null">
+                data_source = #{dataSource,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverDate != null">
+                deliver_date = #{deliverDate,jdbcType=TIMESTAMP},
+            </if>
+
+            appendices = #{appendices,jdbcType=BIGINT},
+
+            entity_num = #{entityNum,jdbcType=BIGINT},
+
+            paginal_num = #{paginalNum,jdbcType=INTEGER}
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

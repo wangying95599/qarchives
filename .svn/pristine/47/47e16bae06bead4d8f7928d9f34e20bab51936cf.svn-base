@@ -1,0 +1,70 @@
+var ARCHIVE_API  = new Object();
+ARCHIVE_API.dept_create = "/depts";
+ARCHIVE_API.dept_list_root = "/depts";
+ARCHIVE_API.dept_list_child = "/depts/{0}";
+ARCHIVE_API.dept_update = "/depts";
+ARCHIVE_API.dept_list_users = "/depts/{0}/users";
+ARCHIVE_API.config_list="/config";
+ARCHIVE_API.user_detail = "/users/detail";
+ARCHIVE_API.dept_byuser = "/depts/{0}/byuser"
+
+
+//退出登录
+function logOut() {
+    $.ajax({
+        type: 'get',
+        url: "logOut/users",
+        data: {},
+        success: function (json) {
+            console.log(json.content);
+            window.location.href = "/";
+        }
+    })
+}
+
+
+//更改密码
+function updatePwd() {
+    var newPassword = $('#newpassword').val();
+    var againPassword = $('#againpassword').val();
+    var oldPwd = $('#oldpassword').val();
+
+    if ($.trim(oldPwd) == "") {
+        $('#setpassword span').html("旧密码不能为空").removeClass("hidden");
+        return;
+    }
+    if ($.trim(newPassword) == "") {
+        $('#setpassword span').html("新密码不能为空").removeClass("hidden");
+        return;
+    }
+    if ($.trim(againPassword) == "") {
+        $('#setpassword span').html("确认密码不能为空").removeClass("hidden");
+        return;
+    }
+    if (newPassword != againPassword) {
+        $('#setpassword span').html("您输入的两次新密码不一致").removeClass("hidden");
+        return;
+    }
+    if (oldPwd == newPassword) {
+        $('#setpassword span').html("新旧密码一样，请重新输入").removeClass("hidden");
+    }
+
+    var data = {oldPwd: oldPwd, newPwd: newPassword, usrId: usrId};
+    $.ajax({
+        type: 'post',
+        url: "/users/updatePwd",
+        data: data,
+        success: function (json) {
+            var bool = json.content;
+            if (bool) {
+                alert('密码修改成功');
+                $('#setpassword').modal('hide');
+            }
+            else
+                alert("旧密码输入错误");
+
+        }
+    })
+}
+
+

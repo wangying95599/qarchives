@@ -1,0 +1,64 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.quetzaco.archives.application.biz.HomePageService;
+import org.quetzaco.archives.application.dao.HomePageMapper;
+import org.quetzaco.archives.model.HomePage;
+import org.quetzaco.archives.model.HomePageExample;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class HomePageServiceImpl implements HomePageService {
+
+  @Autowired
+  HomePageMapper homePageMapper;
+
+
+  public void insert(String textarea, String type) {
+    HomePage homePage = new HomePage();
+    homePage.setContent(textarea);
+    homePage.setType(type);
+      homePage.setUpdateDt(new Date());
+    homePageMapper.insertSelective(homePage);
+
+  }
+
+  @Override
+  public PageInfo getLink(int pageNum, int pageSize) {
+    HomePageExample example = new HomePageExample();
+      example.createCriteria().andTypeEqualTo("link").andRecordFlagEqualTo(true);
+      example.setOrderByClause("update_dt desc");
+      PageHelper.startPage(pageNum, pageSize);
+      return new PageInfo(homePageMapper.selectByExample(example));
+  }
+
+  @Override
+  public PageInfo getInformation(int pageNum, int pageSize) {
+    HomePageExample example = new HomePageExample();
+      example.createCriteria().andTypeEqualTo("information").andRecordFlagEqualTo(true);
+      example.setOrderByClause("update_dt desc");
+      PageHelper.startPage(pageNum, pageSize);
+      return new PageInfo(homePageMapper.selectByExample(example));
+  }
+
+    @Override
+    public void updateContent(HomePage homePage) {
+        homePageMapper.updateByPrimaryKeySelective(homePage);
+    }
+
+    @Override
+    public void deleteHomePage(List<Long> list) {
+        HomePage homePage = new HomePage();
+        homePage.setUpdateDt(new Date());
+        homePage.setRecordFlag(false);
+        HomePageExample homePageExample = new HomePageExample();
+        homePageExample.createCriteria().andIdIn(list);
+        homePageMapper.updateByExampleSelective(homePage, homePageExample);
+  }
+
+}

@@ -1,0 +1,154 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>quetzaco_view_title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width"/>
+    <style type="text/css" media="screen">
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+
+        #flashContent {
+            display: none;
+        }
+    </style>
+
+
+    <link rel="stylesheet" type="text/css" href="css/flexpaper/flexpaper.css"/>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <!--<script type="text/javascript" src="js/jquery.extensions.min.js"></script>-->
+    <script type="text/javascript" src="js/flexpaper/flexpaper.js"></script>
+    <script type="text/javascript" src="js/flexpaper/flexpaper_handlers.js"></script>
+    <!--<script type="text/javascript" src="js/flexpaper/swf_flexpaper.js"></script>-->
+    <!--<script type="text/javascript" src="js/flexpaper/flexpaper_flash.js"></script>-->
+</head>
+</head>
+<body>
+<div id="documentViewer" class="flexpaper_viewer"
+     style="position:absolute;left:5px;top:10px;width:99%;height:97%"></div>
+<script type="text/javascript">
+
+    var url = location.search;
+    var fileId = url.split("&")[0].split("=")[1];
+    var usrId = url.split("&")[1].split("=")[1];
+    document.title = decodeURI(url.split("&")[2]).split("=")[1];
+    window.onload = function () {
+        getPageCount(fileId)
+    }
+
+    function getPageCount(id) {
+        $.ajax({
+            type: 'get',
+            url: "/files/pageCount/" + id,
+            data: {},
+            success: function (json) {
+                var pageCount = json.content.pageCount;
+                var redisId = json.content.uuid;
+//                    var initUrl = escape("{"+window.location.protocol+"//"+window.location.host+"/swfPush/" + id + "/" + usrId + "?pageNum=[*,0],"+pageCount+"}");
+                var initUrl = "/swfPush/" + redisId + "?pageNum={[*,0]," + pageCount + "}";
+                console.log(initUrl);
+                initFlexPaper(initUrl);
+            }
+        })
+    }
+
+    function initFlexPaper(url) {
+        $('#documentViewer').FlexPaperViewer({
+                config: {
+                    SwfFile: url,
+                    Scale: 0.6,
+                    ZoomTransition: 'easeOut',
+                    ZoomTime: 0.5,
+                    ZoomInterval: 0.1,
+                    FitPageOnLoad: false,
+                    FitWidthOnLoad: true,
+                    PrintEnabled: false,
+                    FullScreenAsMaxWindow: false,
+                    ProgressiveLoading: true,
+                    MinZoomSize: 0.2,
+                    MaxZoomSize: 5,
+                    SearchMatchAll: false,
+                    InitViewMode: 'Portrait',//单页
+                    StartAtPage: '',
+                    RenderingOrder: "flash",
+                    ViewModeToolsVisible: true,
+                    ZoomToolsVisible: true,
+                    NavToolsVisible: true,
+                    CursorToolsVisible: false,
+                    SearchToolsVisible: false,
+                    key: "",
+                    jsDirectory: 'js/flexpaper/',
+                    localeDirectory: 'js/locale/',
+                    cssDirectory: 'css/flexpaper/',
+                    JSONDataType: 'jsonp',
+                    WMode: 'window',
+                    localeChain: 'zh_CN'
+                }
+            }
+        );
+
+        /*
+                    $('#documentViewer').FlexPaperViewer({
+                        config: {
+                            SwfFile: url,
+                            Scale: 0.6,
+                            ZoomTransition: 'easeOut',
+                            ZoomTime: 0.5,
+                            ZoomInterval: 0.2,
+                            FitPageOnLoad: true,
+                            FitWidthOnLoad: true,
+                            FullScreenAsMaxWindow: true,
+                            ProgressiveLoading: true,
+                            MinZoomSize: 0.2,
+                            MaxZoomSize: 5,
+                            SearchMatchAll: false,
+                            InitViewMode: 'Portrait',
+                            ViewModeToolsVisible: true,
+                            ZoomToolsVisible: true,
+                            NavToolsVisible: true,
+                            CursorToolsVisible: true,
+                            SearchToolsVisible: true,
+                            localeChain: 'zh_CN',
+                            jsDirectory: 'js/flexpaper/',
+                            cssDirectory:'css/flexpaper/',
+                            localeDirectory: 'js/locale/'
+
+
+                            /!*Scale: 0.6,
+                            ZoomTransition: 'easeOut',
+                            ZoomTime: 0.5,
+                            ZoomInterval: 0.1,
+                            FitPageOnLoad: true,
+                            FitWidthOnLoad: true,
+                            FullScreenAsMaxWindow: true,
+                            ProgressiveLoading: true,
+                            MinZoomSize: 0.2,
+                            MaxZoomSize: 5,
+                            SearchMatchAll: false,
+                            RenderingOrder: "flash,flash",
+                            ViewModeToolsVisible: true,
+                            ZoomToolsVisible: true,
+                            NavToolsVisible: true,
+                            CursorToolsVisible: false,
+                            SearchToolsVisible: false,
+                            key: "",
+                            jsDirectory: 'js/flexpaper/',
+                            localeDirectory: 'js/locale/',
+                            cssDirectory:'css/flexpaper/',
+                            JSONDataType: 'jsonp',
+                            WMode: 'window',
+                            localeChain: 'quetzaco_lang'*!/
+                        }
+                    })
+        */
+    }
+</script>
+</body>
+</html>

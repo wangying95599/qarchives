@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.ArchiveMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Archive">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="importance" jdbcType="VARCHAR" property="importance" />
+    <result column="reel_num" jdbcType="VARCHAR" property="reelNum" />
+    <result column="records_location" jdbcType="VARCHAR" property="recordsLocation" />
+    <result column="file_num" jdbcType="BIGINT" property="fileNum" />
+    <result column="responsible" jdbcType="VARCHAR" property="responsible" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="dept_id" jdbcType="BIGINT" property="deptId" />
+    <result column="create_time" jdbcType="VARCHAR" property="createTime"></result>
+    <result column="dept_name" jdbcType="VARCHAR" property="deptName"></result>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, title, importance, reel_num, records_location, file_num, responsible, remark, 
+    dept_id,create_time,is_archive,dept_name
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from archives
+      where id = #{id,jdbcType=BIGINT} and record_flag= true
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from archives
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.Archive">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('archives_id_seq')
+    </selectKey>
+    insert into archives (id, title, importance, 
+      reel_num, records_location, file_num, 
+      responsible, remark, dept_id
+      )
+    values (#{id,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{importance,jdbcType=VARCHAR}, 
+      #{reelNum,jdbcType=VARCHAR}, #{recordsLocation,jdbcType=VARCHAR}, #{fileNum,jdbcType=BIGINT},
+      #{responsible,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{deptId,jdbcType=BIGINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Archive">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('archives_id_seq')
+    </selectKey>
+    insert into archives
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="title != null">
+        title,
+      </if>
+      <if test="importance != null">
+        importance,
+      </if>
+      <if test="reelNum != null">
+        reel_num,
+      </if>
+      <if test="recordsLocation != null">
+        records_location,
+      </if>
+      <if test="fileNum != null">
+        file_num,
+      </if>
+      <if test="responsible != null">
+        responsible,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="deptId != null">
+        dept_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id,jdbcType=BIGINT},
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="importance != null">
+        #{importance,jdbcType=VARCHAR},
+      </if>
+      <if test="reelNum != null">
+        #{reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="recordsLocation != null">
+        #{recordsLocation,jdbcType=VARCHAR},
+      </if>
+      <if test="fileNum != null">
+        #{fileNum,jdbcType=BIGINT},
+      </if>
+      <if test="responsible != null">
+        #{responsible,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        #{deptId,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.Archive">
+    update archives
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="importance != null">
+        importance = #{importance,jdbcType=VARCHAR},
+      </if>
+      <if test="reelNum != null">
+        reel_num = #{reelNum,jdbcType=VARCHAR},
+      </if>
+      <if test="recordsLocation != null">
+        records_location = #{recordsLocation,jdbcType=VARCHAR},
+      </if>
+      <if test="fileNum != null">
+        file_num = #{fileNum,jdbcType=BIGINT},
+      </if>
+      <if test="responsible != null">
+        responsible = #{responsible,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        dept_id = #{deptId,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.Archive">
+    update archives
+    set title = #{title,jdbcType=VARCHAR},
+      importance = #{importance,jdbcType=VARCHAR},
+      reel_num = #{reelNum,jdbcType=VARCHAR},
+      records_location = #{recordsLocation,jdbcType=VARCHAR},
+      file_num = #{fileNum,jdbcType=BIGINT},
+      responsible = #{responsible,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      dept_id = #{deptId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectArchives" resultType="org.quetzaco.archives.model.Archive" parameterType="java.lang.Long">
+    select
+    <include refid="Base_Column_List"/>
+    from archives
+      where dept_id = #{deptId,jdbcType=BIGINT} and is_archive='f' and record_flag= 't' order by create_time DESC
+  </select>
+  <insert id="createArchive" parameterType="org.quetzaco.archives.model.Archive">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('archives_id_seq')
+    </selectKey>
+      insert into archives ( id,title, importance,
+    reel_num, records_location, file_num,
+    responsible, remark, dept_id,create_time,
+    dept_name
+    )
+      values (#{id}, #{title,jdbcType=VARCHAR}, #{importance,jdbcType=VARCHAR},
+    #{reelNum,jdbcType=VARCHAR}, #{recordsLocation,jdbcType=VARCHAR}, #{fileNum,jdbcType=BIGINT},
+    #{responsible,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{deptId,jdbcType=BIGINT},
+    #{createTime,jdbcType=VARCHAR},#{deptName,jdbcType=VARCHAR}
+    )
+  </insert>
+  <select id="selectArchiveDetial" resultType="org.quetzaco.archives.model.Archive">
+    select <include refid="Base_Column_List"/>
+      from archives where id = #{archiveId} and record_flag=true;
+  </select>
+  <select id="selectRecordFromArchive" resultType="org.quetzaco.archives.model.Record">
+      select *from records where id in (select id from link_achives_records where archive_guid=#{archiveId}) and
+      record_flag=true;
+  </select>
+    <select id="selectByFileCode" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+        from archives WHERE reel_num = #{reelNum,jdbcType=VARCHAR} and record_flag = #{recordFlag} ;--and record_flag
+        =true;
+  </select>
+  <insert id="insertRecordToArchive">
+    insert into link_achives_records(archive_guid,record_id) VALUES (#{archiveId},#{recordId});
+  </insert>
+  <select id="selectArchiveFromBox" resultType="org.quetzaco.archives.model.Archive" parameterType="java.lang.Long">
+    select
+    <include refid="Base_Column_List"/>
+      from archives where id in (select archive_guid from link_box_achives where box_guid=#{boxId}) and record_flag=true
+  </select>
+
+  <update id="archiveToArchive" parameterType="java.lang.Long">
+    update archives set is_archive = TRUE WHERE id = #{archiveId};
+  </update>
+
+  <select id="searchArchiveList" parameterType="org.quetzaco.archives.model.Archive" resultType="org.quetzaco.archives.model.Archive">
+    select
+    <include refid="Base_Column_List"/>
+    from archives
+      WHERE record_flag='t'
+    <if test="title != null and title !=''">
+        and title LIKE '%'||#{title}||'%'
+    </if>
+    <if test="reelNum !=null and reelNum !=''">
+        and reel_num LIKE '%'||#{reelNum}||'%'
+    </if>
+    <if test="deptId !=null and deptId != 0">
+        and dept_id = #{deptId}
+    </if>
+  </select>
+
+  <select id="searchGlobalArchiveList" parameterType="org.quetzaco.archives.model.Archive" resultType="org.quetzaco.archives.model.Archive">
+    select
+    <include refid="Base_Column_List"/>
+    from archives
+      WHERE record_flag ='t'
+    <if test="title != null and title !=''">
+      and  title LIKE   '%'||#{title}||'%'
+    </if>
+    <if test="reelNum !=null and reelNum !=''">
+      and  reel_num  LIKE '%'||#{reelNum}||'%'
+    </if>
+    ORDER BY create_time DESC
+  </select>
+
+
+  <select id="selectArchiveArchive" resultType="org.quetzaco.archives.model.Archive">
+    select
+    <if test="important !=null and important=='重要'">
+      <include refid="Base_Column_List"/>
+      from archives
+        where dept_id = #{deptId,jdbcType=BIGINT} and is_archive='f' and (importance='重要' OR importance='一般') and
+        record_flag='t' order by create_time DESC
+    </if>
+    <if test="important !=null and important=='一般'">
+      <include refid="Base_Column_List"/>
+      from archives
+        where dept_id = #{deptId,jdbcType=BIGINT} and is_archive='f' and importance = '一般' and record_flag='t' order by
+        create_time DESC
+    </if>
+  </select>
+
+    <delete id="removeRecordFromArchive">
+    DELETE FROM link_achives_records WHERE archive_guid = #{archiveId} and record_id = #{recordId};
+  </delete>
+
+    <update id="boxToArchive" parameterType="java.lang.Long">
+       update archives set is_archive = FALSE WHERE id = #{archiveId};
+  </update>
+
+    <select id="isDuplicateTitle" resultType="Record">
+    SELECT id,title FROM records where id IN (SELECT record_id FROM link_achives_records WHERE  archive_guid = #{archiveId}) and title = #{title};
+  </select>
+</mapper>

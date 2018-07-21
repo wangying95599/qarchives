@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.FileMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.Files">
+    <result column="doc_id" jdbcType="VARCHAR" property="docId" />
+    <result column="id" jdbcType="BIGINT" property="id" />
+    <result column="file_type" jdbcType="VARCHAR" property="fileType" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+      <result column="upload_date" jdbcType="TIMESTAMP" property="uploadDate"/>
+    <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+    <result column="file_id" jdbcType="VARCHAR" property="fileId"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    doc_id,id,file_type,location,upload_date,file_name,file_id
+  </sql>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.Files">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('file_id_seq')
+    </selectKey>
+    insert into files (doc_id, id, file_type, 
+      location, upload_date)
+    values (#{docId,jdbcType=VARCHAR}, #{id,jdbcType=BIGINT}, #{fileType,jdbcType=VARCHAR},
+      #{location,jdbcType=VARCHAR}, #{uploadDate,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.Files">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('file_id_seq')
+    </selectKey>
+    insert into files
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="docId != null">
+        doc_id,
+      </if>
+      id,
+      <if test="fileType != null">
+        file_type,
+      </if>
+      <if test="location != null">
+        location,
+      </if>
+      <if test="uploadDate != null">
+        upload_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="docId != null">
+        #{docId,jdbcType=VARCHAR},
+      </if>
+      #{id,jdbcType=BIGINT},
+      <if test="fileType != null">
+        #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="uploadDate != null">
+          #{uploadDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="selectFile"  resultType="org.quetzaco.archives.model.Files" parameterType="java.lang.String">
+    select
+    <include refid="Base_Column_List"/>
+      from files where doc_id = #{docId} and record_flag = true;
+  </select>
+  <insert id="uploadFiles" parameterType="org.quetzaco.archives.model.Files">
+    insert into files (doc_id,file_type,location,upload_date,file_name,file_id)
+    values (#{docId},#{fileType},#{location},#{uploadDate},#{fileName},#{fileId})
+  </insert>
+  <delete id="deleteFile" parameterType="java.lang.Long">
+    DELETE FROM files WHERE file_id = #{fileId}
+  </delete>
+
+    <update id="updateMainByDocId" parameterType="java.lang.String">
+    UPDATE files SET record_flag = FALSE WHERE doc_id = #{docId} and file_type ='main'
+  </update>
+
+    <update id="updateFileType">
+    UPDATE files SET file_type = #{doc} where file_Type = #{oa};
+  </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="Files">
+    SELECT id,location,file_name FROM files WHERE id=#{fileId};
+  </select>
+
+    <update id="updateFile" parameterType="java.lang.String">
+    UPDATE files set record_flag = FALSE where file_id = #{fileId}
+  </update>
+</mapper>

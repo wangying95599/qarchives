@@ -1,0 +1,126 @@
+package org.quetzaco.archives.web.restful;
+
+import com.github.pagehelper.PageInfo;
+import org.apache.ibatis.annotations.Param;
+import org.quetzaco.archives.application.biz.ArchiveService;
+import org.quetzaco.archives.application.message.AccessKey;
+import org.quetzaco.archives.application.message.OptionLogger;
+import org.quetzaco.archives.model.Archive;
+import org.quetzaco.archives.model.Record;
+import org.quetzaco.archives.model.api.APIEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/15.
+ */
+@Deprecated
+@RestController
+public class ArchiveController extends BaseRestContoller{
+    @Autowired
+    ArchiveService archiveService;
+
+    @OptionLogger(objectType = "部门",type = OptionLogger.OpType.DETAIL,description = "查看档案")
+    @RequestMapping(value = "/archives/page/{deptId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>> getArchivesList(@AccessKey@PathVariable("deptId") Long deptId,
+                                                                 @Param("offset") int offset,
+                                                                 @Param("limit") int limit){
+        return buildEntity( APIEntity.create(archiveService.selectArchives(deptId,offset,limit)));
+    }
+
+    @OptionLogger(objectType = "档案", type = OptionLogger.OpType.ADD, description = "新增档案")
+    @RequestMapping(value = "/archives/{deptId}",method = RequestMethod.POST)
+    public HttpEntity<APIEntity<Archive>>createArchive(@PathVariable("deptId") Long deptId,@Param("title")String title,@Param("importance")String importance,
+                                                       @Param("reelNum")String reelNum,@Param("recordsLocation")String recordsLocation,
+                                                       @Param("fileNum")Long fileNum,@Param("responsible")String responsible,
+                                                       @Param("remark")String remark,@Param("deptName")String deptName){
+        Archive archive = new Archive();
+        archive.setTitle(title);
+        archive.setImportance(importance);
+        archive.setReelNum(reelNum);
+        archive.setRecordsLocation(recordsLocation);
+        archive.setFileNum(fileNum);
+        archive.setResponsible(responsible);
+        archive.setDeptId(deptId);
+        archive.setRemark(remark);
+        archive.setDeptName(deptName);
+        Timestamp d = new Timestamp(System.currentTimeMillis());
+        archive.setCreateTime(d.toString());
+        archiveService.createArchive(archive);
+        return buildEntity(APIEntity.create(archive));
+    }
+
+    @OptionLogger(objectType = "档案",type = OptionLogger.OpType.DETAIL,description = "获取档案信息")
+    @RequestMapping(value = "/archives/detail/{archiveId}",method = RequestMethod.GET )
+    public HttpEntity<APIEntity<Archive>>getArchiveIdDetail(@AccessKey@PathVariable("archiveId") Long archiveId){
+        return buildEntity(APIEntity.create(archiveService.selectArchiveDetial(archiveId)));
+    }
+
+  /*  @OptionLogger(objectType = "档案",type = OptionLogger.OpType.DETAIL,description = "获取案卷")
+    @RequestMapping(value = "/archives/records/{archiveId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<List<Record>>>get(@AccessKey@PathVariable("archiveId") Long archiveId){
+        return buildEntity(APIEntity.create(archiveService.selectRecordFromArchive(archiveId)));
+    }*/
+
+    @OptionLogger(objectType = "档案", type = OptionLogger.OpType.UPDATE, description = "修改档案")
+    @RequestMapping(value = "/archives/{id}", method = RequestMethod.PUT)
+    public HttpEntity<APIEntity> modifyRecord(@AccessKey @PathVariable("id") Long id, @RequestBody Archive archive) {
+        archive.setId(id);
+        archiveService.modifyRecord(archive);
+        return buildEntity(APIEntity.create("#archives"), HttpStatus.ACCEPTED);
+    }
+
+    @OptionLogger(objectType = "档案",type = OptionLogger.OpType.UPDATE,description = "添加案卷")
+    @RequestMapping(value = "/archives/records/{archiveId}",method = RequestMethod.POST)
+    public HttpEntity<APIEntity> insertRecordToArchive(@AccessKey @PathVariable("archiveId") Long archiveId, @RequestBody List<Record> records) {
+        return buildEntity(APIEntity.create(archiveService.insertRecordToArchive(archiveId, records)), HttpStatus.ACCEPTED);
+    }
+
+    @OptionLogger(objectType = "档案", type = OptionLogger.OpType.DEL, description = "回退案卷")
+    @RequestMapping(value = "/archives/{archiveId}/remove/{recordId}", method = RequestMethod.GET)
+    public HttpEntity<APIEntity<Archive>> removeRecordFromArchive(@AccessKey @PathVariable("archiveId") Long archiveId, @PathVariable("recordId") Long recordId) {
+        archiveService.removeRecordFromArchive(archiveId, recordId);
+        return buildEntity(APIEntity.create(null));
+    }
+
+    @OptionLogger(objectType = "全宗",type = OptionLogger.OpType.DETAIL,description = "获取档案")
+    @RequestMapping(value = "/archives/boxs/{boxId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>> selectArchiveFromBox(@AccessKey@PathVariable("boxId")Long boxId,
+                                                               @Param("offset") int offset,
+                                                               @Param("limit") int limit){
+        return buildEntity(APIEntity.create(archiveService.selectArchiveFromBox(boxId,offset,limit)));
+    }
+
+    @RequestMapping(value = "/archives/search/{deptId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>> searchArchiveList(@PathVariable("deptId")Long deptId,@Param("title")String title,
+                                                             @Param("reelNum")String reelNum,@Param("offset")int offset,@Param("limit")int limit){
+        Archive archive = new Archive();
+        archive.setTitle(title);
+        archive.setReelNum(reelNum);
+        archive.setDeptId(deptId);
+        return buildEntity(APIEntity.create(archiveService.searchArchiveList(archive,offset,limit)));
+    }
+
+    @RequestMapping(value = "/archives/searchGlobal",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<PageInfo>> searchGlobalArchiveList(
+            @Param("title") String title,
+            @Param("fileCode") String fileCode,
+            @RequestParam(value = "pageNum", required = false, defaultValue = "1") int offset,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10000") int limit) {
+        Archive archive = new Archive();
+        archive.setTitle(title);
+        archive.setReelNum(fileCode);
+      return buildEntity(
+          APIEntity.create(archiveService.searchGlobalArchiveList(archive, offset, limit)));
+    }
+
+    @RequestMapping(value = "archives/archiveto/{deptId}",method = RequestMethod.GET)
+    public HttpEntity<APIEntity<List<Archive>>>selectArchiveArchive(@PathVariable("deptId")Long deptId,@Param("imprortant")String imprortant){
+        return buildEntity(APIEntity.create(archiveService.selectArchiveArchive(deptId,imprortant)));
+    };
+}

@@ -1,0 +1,91 @@
+spring.profiles.active=pro
+#spring.profiles.active=pro
+##if it has more than one server :127.0.0.1:8601+5,192.168.1.39:8601+3,192.168.1.38:8601+3
+spring.task.pool.corePoolSize=5
+spring.task.pool.maxPoolSize=10
+spring.task.pool.keepAliveSeconds=3000
+spring.task.pool.queueCapacity=25
+
+spring.datasource.name:postgres
+spring.datasource.username:postgres
+spring.datasource.password:post
+spring.datasource.type:com.alibaba.druid.pool.DruidDataSource
+spring.datasource.driver-class-name:org.postgresql.Driver
+spring.datasource.filters:stat
+spring.datasource.maxActive:20
+spring.datasource.maxWait:60000
+spring.datasource.minIdle:1
+spring.datasource.timeBetweenEvictionRunsMillis:60000
+spring.datasource.minEvictableIdleTimeMillis:300000
+spring.datasource.validationQuery:select 'x'
+spring.datasource.testWhileIdle:true
+spring.datasource.testOnBorrow:false
+spring.datasource.testOnReturn:false
+spring.datasource.poolPreparedStatements:true
+spring.datasource.maxOpenPreparedStatements:20
+# oa
+spring.oa.datasource.name:oa
+spring.oa.datasource.url:jdbc:oracle:thin:@//11.1.20.243:1521/Personnel_information
+spring.oa.datasource.username:dcdb_Perinfoenter
+spring.oa.datasource.password:qazwsx@95080
+spring.oa.datasource.type:com.alibaba.druid.pool.DruidDataSource
+spring.oa.datasource.driver-class-name:oracle.jdbc.driver.OracleDriver
+# MyBatis
+mybatis.typeAliasesPackage:org.quetzaco.archives.model
+mybatis.mapperLocations:classpath:/org/quetzaco/archives/application/dao/**/*.xml
+mybatis.configLocation:classpath:/mybatis-config.xml
+#mabtis paging
+pagehelper.helper-dialect=postgresql
+pagehelper.offset-as-page-num=false
+pagehelper.row-bounds-with-count=false
+pagehelper.page-size-zero=true
+pagehelper.reasonable=false
+pagehelper.support-methods-arguments=false
+# LOGGING
+logging.level.root=info
+logging.level.org.quetzaco:debug
+logging.level.com.ibatis:info
+logging.level.org.springframework.security.web:info
+
+logging.file=target/logs/qarchive.log
+# Spring
+# http
+spring.http.encoding.force=true
+spring.http.encoding.charset=utf-8
+spring.http.encoding.enabled=true
+server.tomcat.uri-encoding=UTF-8
+#session
+spring.session.store-type=redis
+#mvc
+spring.http.multipart.max-file-size=1024MB
+spring.http.multipart.max-request-size=10240MB
+#spring.mvc.static-path-pattern=/**
+#redis
+spring.redis.host=127.0.0.1
+spring.redis.port=6379
+
+quetzaco.archive.config.oa.base_org_id=1596
+quetzaco.archive.config.password_validitor=NORMAL
+#security
+#security.user.name=admin
+#security.user.password=111111
+#management.security.roles=SUPERUSER
+#security.ignored=/static/**
+#spring.devtools.livereload.enabled=true
+#spring.mvc.view.prefix=/static/
+#spring.mvc.view.suffix=.html
+spring.jackson.date-format=yyyy-MM-dd
+spring.jackson.joda-date-time-format=yyyy-MM-dd
+spring.jackson.time-zone=GMT+8
+server.jsp-servlet.init-parameters.development=true
+spring.devtools.restart.enabled:true
+#spring.devtools.restart.additional-paths: src/main/java
+
+SERVER_CONVIG=127.0.0.1:8601+5
+##the tmp folder in convert
+
+CONVERT_DOCUMENT_FORMAT=doc,xls,ppt,txt,htm,html,docx,xlsx,pptx,jpeg,jpg,png,tif,tiff,bmp,gif,pdf
+cron.docSync=0 5 15 * * ?
+
+kmhk.deptId=174
+kmhk.userId=2221

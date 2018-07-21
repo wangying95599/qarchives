@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.UserMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.User">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="login_name" jdbcType="VARCHAR" property="loginName" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="created_dt" jdbcType="TIMESTAMP" property="createdDt" />
+    <result column="updated_dt" jdbcType="TIMESTAMP" property="updatedDt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, login_name, password, name, state, created_dt, updated_dt
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from users
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from users
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.User">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('permission_id_seq')
+    </selectKey>
+    insert into users (id, login_name, password, 
+      name, state, created_dt, 
+      updated_dt)
+    values (#{id,jdbcType=BIGINT}, #{loginName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR}, #{createdDt,jdbcType=TIMESTAMP}, 
+      #{updatedDt,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.User">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT nextval('users_id_seq')
+    </selectKey>
+    insert into users
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="loginName != null">
+        login_name,
+      </if>
+      <if test="password != null">
+        password,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="createdDt != null">
+        created_dt,
+      </if>
+      <if test="updatedDt != null">
+        updated_dt,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id,jdbcType=BIGINT},
+      <if test="loginName != null">
+        #{loginName,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="createdDt != null">
+        #{createdDt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedDt != null">
+        #{updatedDt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.User">
+    update users
+    <set>
+      <if test="loginName != null">
+        login_name = #{loginName,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="createdDt != null">
+        created_dt = #{createdDt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedDt != null">
+        updated_dt = #{updatedDt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.User">
+    update users
+    set login_name = #{loginName,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      created_dt = #{createdDt,jdbcType=TIMESTAMP},
+      updated_dt = #{updatedDt,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="getUserByLoginName" resultType="User">
+    select * from users where login_name=#{loginName}
+  </select>
+
+  <select id="getUserList" resultType="User">
+    select * from users order by updated_dt;
+  </select>
+
+  <select id="selectUserByLoginName" resultType="user">
+    select id,login_name,password,name from users where login_name = #{loginName}
+  </select>
+
+  <resultMap id="isAdminMap" type="HashMap">
+    <result column="usr_id" property="usrId"/>
+    <result column="role_id" property="roleId"/>
+    <result column="name" property="name"/>
+  </resultMap>
+
+  <select id="isAdmin" resultMap="isAdminMap">
+    select c.usr_id,c.role_id,c.name from
+     (select a.usr_id,a.role_id,b.name from link_users_dept_role a LEFT JOIN role b on a.role_id = b.id)c
+      where c.name in('档案管理员','部门档案管理员') and c.usr_id = #{usrId}
+  </select>
+  <select id="selectDestoryUser" parameterType="org.quetzaco.archives.model.User" resultType="org.quetzaco.archives.model.User">
+    select 
+    <include refid="Base_Column_List"/>
+    from users where name = #{name};
+  </select>
+
+    <select id="loadingUser" resultType="java.util.Map">
+        SELECT a.usr_id,a.dept_id,c.name as deptName,c.description,b.role_id,d.name as roleName FROM (SELECT
+        usr_id,dept_id from link_dept_users WHERE usr_id= #{1})a LEFT JOIN link_users_dept_role b on a.usr_id = b.usr_id
+        JOIN
+dept c on a.dept_id = c.id and c.prt_id is null LEFT JOIN role d on b.role_id = d.id
+  </select>
+</mapper>

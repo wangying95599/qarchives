@@ -1,0 +1,125 @@
+package org.quetzaco.archives.model;
+
+
+public class FlowFormLending {
+
+  private Long flowId;
+
+  private String title;
+
+  private String reelNum;
+
+  private String reelType;
+
+  private Long depId;
+
+  private String lendingUser;
+
+  private String lendingPermission;
+
+  private String description;
+
+  private Boolean recordFlag = true;
+
+  private Flows flows;
+
+  private Object lendingModel;
+
+  public Long getFlowId() {
+    return flowId;
+  }
+
+  public void setFlowId(Long flowId) {
+    this.flowId = flowId;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title == null ? null : title.trim();
+  }
+
+
+  public String getReelNum() {
+    return reelNum;
+  }
+
+
+  public void setReelNum(String reelNum) {
+    this.reelNum = reelNum == null ? null : reelNum.trim();
+  }
+
+  /**
+   * 只接受 document/archive/record/box的值
+   * @return document/archive/record/box
+   */
+  public String getReelType() {
+    return reelType;
+  }
+
+  /**
+   * 只接受 document/archive/record/box的值
+   * @param reelType
+   */
+  public void setReelType(String reelType) {
+    this.reelType = reelType == null ? null : reelType.trim();
+  }
+
+  public Long getDepId() {
+    return depId;
+  }
+
+  public void setDepId(Long depId) {
+    this.depId = depId;
+  }
+
+  public String getLendingUser() {
+    return lendingUser;
+  }
+
+  public void setLendingUser(String lendingUser) {
+    this.lendingUser = lendingUser == null ? null : lendingUser.trim();
+  }
+
+  public String getLendingPermission() {
+    return lendingPermission;
+  }
+
+  public void setLendingPermission(String lendingPermission) {
+    this.lendingPermission = lendingPermission == null ? null : lendingPermission.trim();
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description == null ? null : description.trim();
+  }
+
+  public Boolean getRecordFlag() {
+    return recordFlag;
+  }
+
+  public void setRecordFlag(Boolean recordFlag) {
+    this.recordFlag = recordFlag;
+  }
+
+  public Flows getFlows() {
+    return flows;
+  }
+
+  public void setFlows(Flows flows) {
+    this.flows = flows;
+  }
+
+  public <T> T getLendingModel() {
+    return (T) lendingModel;
+  }
+
+  public <T> void setLendingModel(T lendingModel) {
+    this.lendingModel = lendingModel;
+  }
+}

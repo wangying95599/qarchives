@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>Bootstrap 101 Template</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css"media="screen">
+	<link rel="stylesheet" href="css/bootstrap-table.css">
+	<link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
+    <link rel="stylesheet" href="css/bootstrap-editable.css">
+	<link href="css/experts.css" rel="stylesheet" media="screen">
+	<style type="text/css">
+		.row{
+			padding-top:20px;
+			padding-bottom:10px;
+		}
+	</style>
+  </head>
+  <body>
+   
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+	<script src="js/bootstrap-table.js"></script>
+	<script src="js/bootstrap-table-zh-CN.js"></script>
+	<script src="js/bootstrap-datetimepicker.js"></script>
+    <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="js/bootstrap-editable.js"></script>
+	<script src="js/bootstrap-table-editable.js"></script>	
+	<script src="js/experts.js"></script>
+	<script src="js/udset.js"></script>
+  
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6">
+				<form class=" form-horizontal" align="text-center">
+				<fieldset  disabled>
+				<legend>信息</legend> 
+				
+				  <div class="form-group" >
+					<label for="cgxm" class="col-md-2 control-label">采购项目</label>
+					<div class="col-md-10">
+						<input type="email" class="form-control" id="cgxm"  value="111">
+					</div>
+				  </div>
+				  
+				  <div class="form-group">
+					<label for="cgdw" class="col-md-2 control-label ">采购单位</label>
+					<div class="col-md-10">
+						<input type="password" class="form-control" id="cgdw" >
+					</div>
+				  </div>
+				  
+				  <div class="form-group" >
+					<label for="dljg" class="col-md-2 control-label ">代理机构</label>
+					<div class="col-md-10">
+						<input type="email" class="form-control" id="dljg"  value="111">
+					</div>
+				  </div>
+				  <div class="form-group">
+					<label for="pbsj" class="col-md-2 control-label ">评标时间</label>
+					<div class="col-md-10">
+						<input type="password" class="form-control" id="pbsj" >
+					</div>
+				  </div>
+				   <div class="form-group" >
+					<label for="pbdd" class="col-md-2 control-label ">评标地点</label>
+					<div class="col-md-10">
+						<input type="email" class="form-control" id="pbdd"  value="大连市政府行政服务中心一楼！南石道街动物园入口附近">
+					</div>
+				  </div>
+				  <div class="form-group">
+					<label for="pbsc" class="col-md-2 control-label ">评标时长</label>
+					<div class="col-md-10">
+						<input type="password" class="form-control" id="pbsc" >
+					</div>
+				  </div>
+				  </fieldset>
+				</form>
+			</div>
+			<div class="col-md-6">
+				<fieldset >
+					<legend>区域设置</legend> 
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="">
+					   大连市区及高新园区
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="" >
+					  金州
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="">
+					   瓦房店
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="" >
+					  开发区
+					  </label>
+					</div>					
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="">
+					   庄河
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="" >
+					  普兰店
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="">
+					  旅顺
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="" >
+					  保税区
+					  </label>
+					</div>	
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="">
+					  长海县
+					  </label>
+					</div>
+					<div class="checkbox">
+					  <label>
+						<input type="checkbox" value="" >
+					 外省市
+					  </label>
+					</div>						
+				</fieldset>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<fieldset style="    margin-bottom: 15px;">
+					<legend>回避单位</legend> 
+					<form class="form-inline" style="    margin-bottom: 15px;"> 
+						  <div class="form-group">
+							<label for="exampleInputName2">单位名称</label>
+							<input type="text" class="form-control" id="exam style="    margin-bottom: 15px;"pleInputName2" >
+						  </div>
+						  <button type="submit" class="btn btn-default">添加</button>
+						  <button type="submit" class="btn btn-default">删除</button>
+					</form>
+					
+					<table id="set_table_cor"  data-height="168" class="table table-striped table-bordered table-hover" > </table> 
+				</fieldset>
+				
+				<fieldset >
+					<legend>需要回避的专家</legend> 
+					<form class="form-inline"  style="    margin-bottom: 15px;">
+						  <div class="form-group">
+							<label class="radio-inline">
+							  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 姓名
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> 电话
+							</label>
+							<input type="text" class="form-control" id="exampleInputName2" >
+						  </div>
+						  <button type="submit" class="btn btn-default">添加</button>
+						  <button type="submit" class="btn btn-default">删除</button>
+					</form>
+					
+					
+					<table data-toggle="table" data-height="168" class="table table-striped table-bordered table-hover" id="tableL02">
+						<thead>
+							<tr>
+								<th>专家姓名</th>
+								<th>专家电话</th>
+							
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1</td>
+								<td>Item 1</td>
+								
+							</tr>
+							<tr>
+								<td>2</td>
+								<td>Item 2</td>
+							
+							</tr>
+						</tbody>
+					</table>
+				</fieldset>	
+			</div>
+			<div class="col-md-6">
+				<fieldset style="    margin-bottom: 15px;">
+					<legend>专业情况</legend> 
+					<form class="form-inline" style="    margin-bottom: 15px;">
+						  <div class="form-group">
+							<label class="radio-inline">
+							  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 名称
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> 编号
+							</label>
+							<input type="text" class="form-control" id="exampleInputName2" >
+						  </div>
+						  <button type="submit" class="btn btn-default">查询</button>
+						  <button type="submit" class="btn btn-default">删除</button>
+					</form>
+										
+					<table data-toggle="table" data-height="168" class="table table-striped table-bordered table-hover" id="tableL02">
+						<thead>
+							<tr>
+								<th>编码</th>
+								<th>专业名称</th>
+							
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1</td>
+								<td>Item 1</td>
+								
+							</tr>
+							<tr>
+								<td>2</td>
+								<td>Item 2</td>
+							
+							</tr>
+						</tbody>
+					</table>
+				</fieldset>
+				
+				<fieldset >
+				<legend>选中专业</legend> 
+					<form class="form-inline" style="    margin-bottom: 15px;">
+		
+						<input type="number">
+						  <button type="submit" class="btn btn-default">新增专业</button>
+						  <button type="submit" class="btn btn-default">删除专业</button>
+						  <button type="submit" class="btn btn-default">修改专业</button>
+					</form>
+					
+					
+					<table data-toggle="table" data-height="168" class="table table-striped table-bordered table-hover" id="tableL02">
+						<thead>
+							<tr>
+								<th>专业名称</th>
+								<th>人数</th>
+							
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>001</td>
+								<td>5</td>
+								
+							</tr>
+							<tr>
+								<td>002</td>
+								<td>3</td>
+							
+							</tr>
+						</tbody>
+					</table>
+					
+				</fieldset>				
+			</div>
+		</div>
+		<table id="userTable"> </table> 
+			<div class="col-md-2  pull-right">
+				 <button type="submit" class="btn btn-default">确定</button>
+				<button type="submit" class="btn btn-default">关闭</button>
+			</div>
+	</div>
+
+    </body>
+</html>

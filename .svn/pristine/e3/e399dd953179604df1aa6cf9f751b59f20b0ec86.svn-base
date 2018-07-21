@@ -1,0 +1,16 @@
+package org.quetzaco.archives.application.biz;
+
+import org.quetzaco.archives.model.FlowNodeHistories;
+import org.quetzaco.archives.model.Flows;
+
+public interface FlowService {
+    Long start(Flows flow);
+
+    void proccess(Flows flow, FlowNodeHistories flowNodeHistories);
+
+    void end(Flows flow, FlowNodeHistories flowNodeHistories);
+
+    Flows history(Flows flows);
+
+    Flows detail(Flows flows);
+}

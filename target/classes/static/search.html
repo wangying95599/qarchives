@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>档案系统</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-treeview.css"/>
+    <link rel="stylesheet" href="css/fileinput.css"/>
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.css"/>
+    <link rel="stylesheet" href="css/1.css"/>
+    <link rel="stylesheet" href="css/bootstrapValidator.min.css"/>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]-->
+    <!--[endif]-->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-treeview.js"></script>
+    <script src="js/fileinput.js"></script>
+    <script src="js/zh.js"></script>
+    <script src="js/bootstrap-datetimepicker.js"></script>
+    <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="js/bootstrapValidator.min.js"></script>
+    <style>
+        .bg{
+            background:url('img/backgrounds/7.jpg') no-repeat;
+        }
+        .bigBox{
+            position: absolute;
+            top: 30%;
+            left:20%;
+        }
+        .searchText{
+            width: 500px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: inherit;
+            color: #fff;
+            font-size: 16px;
+            display: inline-block;
+        }
+        .searchBut{
+            height: 50px;
+            background:rgba(255,255,255,0.1);
+            color:#f9f9f9;
+            font-size: 18px;
+        }
+        .box_3{
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            width: 500px;
+            color: #fff;
+        }
+        .box_3 label{
+            margin-left: 30px;
+            margin-right: 50px;
+        }
+    </style>
+</head>
+<body class="bg">
+    <div class="bigBox">
+        <div style="margin-left: 100px">
+            <label class="radio-inline" style="color: #fff">
+                <input type="radio" name="optionsRadiosinline" id="optionsRadios3" value="option1" checked> 全文检索
+            </label>
+            <label class="radio-inline" style="color: #fff;margin-left: 50px;">
+                <input type="radio" name="optionsRadiosinline" id="optionsRadios4"  value="option2"> 目录检索
+            </label>
+        </div>
+        <div style="width: 200%;margin-top: 20px;">
+            <input type="text" class="searchText">
+            <button class="btn btn-default searchBut" type="button">
+                <span class="glyphicon glyphicon-search "></span> Search
+            </button>
+        </div>
+        <div class="box_3">
+            <div style="padding-top: 10px;">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="option1"> 全 选
+                </label>
+            </div>
+            <div style="margin-top: 10px;">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="WS"> 文书类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="HT"> 合同类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="JJ"> 基建类档案
+                </label>
+            </div>
+            <div style="margin-top: 10px;">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="KJ"> 会计类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="SX"> 声像类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="SW"> 实物类档案
+                </label>
+            </div>
+            <div style="margin-top: 10px;">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="FC"> 房产类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="KW"> 刊物类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="SJJC"> 审计监察档案
+                </label>
+            </div>
+            <div style="margin-top: 10px;">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="AJ"> 案件类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="ZJ"> 证件类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="SG"> 生产安全事故档案
+                </label>
+            </div>
+            <div style="margin-top: 10px;">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="YX"> 印信类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="XX"> 单机类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="DJ"> 信息化建设档案
+                </label>
+            </div>
+            <div style="margin-top: 10px;padding-bottom: 10px">
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="RS"> 人事类档案
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="ZTB"> 招投标档案
+                </label>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

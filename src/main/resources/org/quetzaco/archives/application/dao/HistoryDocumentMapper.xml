@@ -1,0 +1,774 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.quetzaco.archives.application.dao.HistoryDocumentMapper">
+  <resultMap id="BaseResultMap" type="org.quetzaco.archives.model.HistoryDocument">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="qzh" jdbcType="VARCHAR" property="qzh" />
+    <result column="dh" jdbcType="VARCHAR" property="dh" />
+    <result column="zrz" jdbcType="VARCHAR" property="zrz" />
+    <result column="bgqx" jdbcType="VARCHAR" property="bgqx" />
+    <result column="mj" jdbcType="VARCHAR" property="mj" />
+    <result column="ztc" jdbcType="VARCHAR" property="ztc" />
+    <result column="bz" jdbcType="VARCHAR" property="bz" />
+    <result column="nd" jdbcType="VARCHAR" property="nd" />
+    <result column="stfs" jdbcType="VARCHAR" property="stfs" />
+    <result column="jh" jdbcType="VARCHAR" property="jh" />
+    <result column="ys" jdbcType="VARCHAR" property="ys" />
+    <result column="wh" jdbcType="VARCHAR" property="wh" />
+    <result column="tm" jdbcType="VARCHAR" property="tm" />
+    <result column="stms" jdbcType="VARCHAR" property="stms" />
+    <result column="lbbh" jdbcType="VARCHAR" property="lbbh" />
+    <result column="ngbm" jdbcType="VARCHAR" property="ngbm" />
+    <result column="wjxcsj" jdbcType="VARCHAR" property="wjxcsj" />
+    <result column="stflh" jdbcType="VARCHAR" property="stflh" />
+    <result column="gdrq" jdbcType="VARCHAR" property="gdrq" />
+    <result column="ssbm" jdbcType="VARCHAR" property="ssbm" />
+    <result column="wjsx" jdbcType="VARCHAR" property="wjsx" />
+    <result column="lrr" jdbcType="VARCHAR" property="lrr" />
+    <result column="wjlx" jdbcType="VARCHAR" property="wjlx" />
+    <result column="yjr" jdbcType="VARCHAR" property="yjr" />
+    <result column="djh" jdbcType="VARCHAR" property="djh" />
+    <result column="sys_file_count" jdbcType="VARCHAR" property="sysFileCount" />
+    <result column="swlx" jdbcType="VARCHAR" property="swlx" />
+    <result column="swsm" jdbcType="VARCHAR" property="swsm" />
+    <result column="xcsj" jdbcType="VARCHAR" property="xcsj" />
+    <result column="fs" jdbcType="VARCHAR" property="fs" />
+    <result column="kh" jdbcType="VARCHAR" property="kh" />
+    <result column="ajh" jdbcType="VARCHAR" property="ajh" />
+    <result column="sl" jdbcType="VARCHAR" property="sl" />
+    <result column="document_type" jdbcType="VARCHAR" property="documentType" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, qzh, dh, zrz, bgqx, mj, ztc, bz, nd, stfs, jh, ys, wh, tm, stms, lbbh, ngbm, 
+    wjxcsj, stflh, gdrq, ssbm, wjsx, lrr, wjlx, yjr, djh, sys_file_count, swlx, swsm, 
+    xcsj, fs, kh, ajh, sl, document_type
+  </sql>
+  <select id="selectAll" parameterType="org.quetzaco.archives.model.HistoryDocumentExample"
+    resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExampleWenShu"
+    parameterType="org.quetzaco.archives.model.HistoryDocumentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExampleWeiGuiDang"
+    parameterType="org.quetzaco.archives.model.HistoryDocumentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExampleShengXiang"
+    parameterType="org.quetzaco.archives.model.HistoryDocumentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExampleShiWu"
+    parameterType="org.quetzaco.archives.model.HistoryDocumentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExampleTiaoMu"
+    parameterType="org.quetzaco.archives.model.HistoryDocumentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="download" parameterType="org.quetzaco.archives.model.HistoryDocumentExample"
+    resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from history_document JOIN history_file
+    ON history_document.id=history_file.entry_id
+    WHERE id='fildId'
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from history_document
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from history_document
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="org.quetzaco.archives.model.HistoryDocumentExample">
+    delete from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="org.quetzaco.archives.model.HistoryDocument">
+    insert into history_document (id, qzh, dh, 
+      zrz, bgqx, mj, ztc, 
+      bz, nd, stfs, jh, 
+      ys, wh, tm, stms, 
+      lbbh, ngbm, wjxcsj, 
+      stflh, gdrq, ssbm, 
+      wjsx, lrr, wjlx, yjr, 
+      djh, sys_file_count, swlx, 
+      swsm, xcsj, fs, kh, 
+      ajh, sl, document_type
+      )
+    values (#{id,jdbcType=VARCHAR}, #{qzh,jdbcType=VARCHAR}, #{dh,jdbcType=VARCHAR}, 
+      #{zrz,jdbcType=VARCHAR}, #{bgqx,jdbcType=VARCHAR}, #{mj,jdbcType=VARCHAR}, #{ztc,jdbcType=VARCHAR}, 
+      #{bz,jdbcType=VARCHAR}, #{nd,jdbcType=VARCHAR}, #{stfs,jdbcType=VARCHAR}, #{jh,jdbcType=VARCHAR}, 
+      #{ys,jdbcType=VARCHAR}, #{wh,jdbcType=VARCHAR}, #{tm,jdbcType=VARCHAR}, #{stms,jdbcType=VARCHAR}, 
+      #{lbbh,jdbcType=VARCHAR}, #{ngbm,jdbcType=VARCHAR}, #{wjxcsj,jdbcType=VARCHAR}, 
+      #{stflh,jdbcType=VARCHAR}, #{gdrq,jdbcType=VARCHAR}, #{ssbm,jdbcType=VARCHAR}, 
+      #{wjsx,jdbcType=VARCHAR}, #{lrr,jdbcType=VARCHAR}, #{wjlx,jdbcType=VARCHAR}, #{yjr,jdbcType=VARCHAR}, 
+      #{djh,jdbcType=VARCHAR}, #{sysFileCount,jdbcType=VARCHAR}, #{swlx,jdbcType=VARCHAR}, 
+      #{swsm,jdbcType=VARCHAR}, #{xcsj,jdbcType=VARCHAR}, #{fs,jdbcType=VARCHAR}, #{kh,jdbcType=VARCHAR}, 
+      #{ajh,jdbcType=VARCHAR}, #{sl,jdbcType=VARCHAR}, #{documentType,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.quetzaco.archives.model.HistoryDocument">
+    insert into history_document
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="qzh != null">
+        qzh,
+      </if>
+      <if test="dh != null">
+        dh,
+      </if>
+      <if test="zrz != null">
+        zrz,
+      </if>
+      <if test="bgqx != null">
+        bgqx,
+      </if>
+      <if test="mj != null">
+        mj,
+      </if>
+      <if test="ztc != null">
+        ztc,
+      </if>
+      <if test="bz != null">
+        bz,
+      </if>
+      <if test="nd != null">
+        nd,
+      </if>
+      <if test="stfs != null">
+        stfs,
+      </if>
+      <if test="jh != null">
+        jh,
+      </if>
+      <if test="ys != null">
+        ys,
+      </if>
+      <if test="wh != null">
+        wh,
+      </if>
+      <if test="tm != null">
+        tm,
+      </if>
+      <if test="stms != null">
+        stms,
+      </if>
+      <if test="lbbh != null">
+        lbbh,
+      </if>
+      <if test="ngbm != null">
+        ngbm,
+      </if>
+      <if test="wjxcsj != null">
+        wjxcsj,
+      </if>
+      <if test="stflh != null">
+        stflh,
+      </if>
+      <if test="gdrq != null">
+        gdrq,
+      </if>
+      <if test="ssbm != null">
+        ssbm,
+      </if>
+      <if test="wjsx != null">
+        wjsx,
+      </if>
+      <if test="lrr != null">
+        lrr,
+      </if>
+      <if test="wjlx != null">
+        wjlx,
+      </if>
+      <if test="yjr != null">
+        yjr,
+      </if>
+      <if test="djh != null">
+        djh,
+      </if>
+      <if test="sysFileCount != null">
+        sys_file_count,
+      </if>
+      <if test="swlx != null">
+        swlx,
+      </if>
+      <if test="swsm != null">
+        swsm,
+      </if>
+      <if test="xcsj != null">
+        xcsj,
+      </if>
+      <if test="fs != null">
+        fs,
+      </if>
+      <if test="kh != null">
+        kh,
+      </if>
+      <if test="ajh != null">
+        ajh,
+      </if>
+      <if test="sl != null">
+        sl,
+      </if>
+      <if test="documentType != null">
+        document_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="qzh != null">
+        #{qzh,jdbcType=VARCHAR},
+      </if>
+      <if test="dh != null">
+        #{dh,jdbcType=VARCHAR},
+      </if>
+      <if test="zrz != null">
+        #{zrz,jdbcType=VARCHAR},
+      </if>
+      <if test="bgqx != null">
+        #{bgqx,jdbcType=VARCHAR},
+      </if>
+      <if test="mj != null">
+        #{mj,jdbcType=VARCHAR},
+      </if>
+      <if test="ztc != null">
+        #{ztc,jdbcType=VARCHAR},
+      </if>
+      <if test="bz != null">
+        #{bz,jdbcType=VARCHAR},
+      </if>
+      <if test="nd != null">
+        #{nd,jdbcType=VARCHAR},
+      </if>
+      <if test="stfs != null">
+        #{stfs,jdbcType=VARCHAR},
+      </if>
+      <if test="jh != null">
+        #{jh,jdbcType=VARCHAR},
+      </if>
+      <if test="ys != null">
+        #{ys,jdbcType=VARCHAR},
+      </if>
+      <if test="wh != null">
+        #{wh,jdbcType=VARCHAR},
+      </if>
+      <if test="tm != null">
+        #{tm,jdbcType=VARCHAR},
+      </if>
+      <if test="stms != null">
+        #{stms,jdbcType=VARCHAR},
+      </if>
+      <if test="lbbh != null">
+        #{lbbh,jdbcType=VARCHAR},
+      </if>
+      <if test="ngbm != null">
+        #{ngbm,jdbcType=VARCHAR},
+      </if>
+      <if test="wjxcsj != null">
+        #{wjxcsj,jdbcType=VARCHAR},
+      </if>
+      <if test="stflh != null">
+        #{stflh,jdbcType=VARCHAR},
+      </if>
+      <if test="gdrq != null">
+        #{gdrq,jdbcType=VARCHAR},
+      </if>
+      <if test="ssbm != null">
+        #{ssbm,jdbcType=VARCHAR},
+      </if>
+      <if test="wjsx != null">
+        #{wjsx,jdbcType=VARCHAR},
+      </if>
+      <if test="lrr != null">
+        #{lrr,jdbcType=VARCHAR},
+      </if>
+      <if test="wjlx != null">
+        #{wjlx,jdbcType=VARCHAR},
+      </if>
+      <if test="yjr != null">
+        #{yjr,jdbcType=VARCHAR},
+      </if>
+      <if test="djh != null">
+        #{djh,jdbcType=VARCHAR},
+      </if>
+      <if test="sysFileCount != null">
+        #{sysFileCount,jdbcType=VARCHAR},
+      </if>
+      <if test="swlx != null">
+        #{swlx,jdbcType=VARCHAR},
+      </if>
+      <if test="swsm != null">
+        #{swsm,jdbcType=VARCHAR},
+      </if>
+      <if test="xcsj != null">
+        #{xcsj,jdbcType=VARCHAR},
+      </if>
+      <if test="fs != null">
+        #{fs,jdbcType=VARCHAR},
+      </if>
+      <if test="kh != null">
+        #{kh,jdbcType=VARCHAR},
+      </if>
+      <if test="ajh != null">
+        #{ajh,jdbcType=VARCHAR},
+      </if>
+      <if test="sl != null">
+        #{sl,jdbcType=VARCHAR},
+      </if>
+      <if test="documentType != null">
+        #{documentType,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="org.quetzaco.archives.model.HistoryDocumentExample" resultType="java.lang.Long">
+    select count(*) from history_document
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update history_document
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=VARCHAR},
+      </if>
+      <if test="record.qzh != null">
+        qzh = #{record.qzh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dh != null">
+        dh = #{record.dh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.zrz != null">
+        zrz = #{record.zrz,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bgqx != null">
+        bgqx = #{record.bgqx,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mj != null">
+        mj = #{record.mj,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ztc != null">
+        ztc = #{record.ztc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bz != null">
+        bz = #{record.bz,jdbcType=VARCHAR},
+      </if>
+      <if test="record.nd != null">
+        nd = #{record.nd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stfs != null">
+        stfs = #{record.stfs,jdbcType=VARCHAR},
+      </if>
+      <if test="record.jh != null">
+        jh = #{record.jh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ys != null">
+        ys = #{record.ys,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wh != null">
+        wh = #{record.wh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tm != null">
+        tm = #{record.tm,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stms != null">
+        stms = #{record.stms,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lbbh != null">
+        lbbh = #{record.lbbh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ngbm != null">
+        ngbm = #{record.ngbm,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wjxcsj != null">
+        wjxcsj = #{record.wjxcsj,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stflh != null">
+        stflh = #{record.stflh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gdrq != null">
+        gdrq = #{record.gdrq,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ssbm != null">
+        ssbm = #{record.ssbm,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wjsx != null">
+        wjsx = #{record.wjsx,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lrr != null">
+        lrr = #{record.lrr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wjlx != null">
+        wjlx = #{record.wjlx,jdbcType=VARCHAR},
+      </if>
+      <if test="record.yjr != null">
+        yjr = #{record.yjr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.djh != null">
+        djh = #{record.djh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sysFileCount != null">
+        sys_file_count = #{record.sysFileCount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.swlx != null">
+        swlx = #{record.swlx,jdbcType=VARCHAR},
+      </if>
+      <if test="record.swsm != null">
+        swsm = #{record.swsm,jdbcType=VARCHAR},
+      </if>
+      <if test="record.xcsj != null">
+        xcsj = #{record.xcsj,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fs != null">
+        fs = #{record.fs,jdbcType=VARCHAR},
+      </if>
+      <if test="record.kh != null">
+        kh = #{record.kh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ajh != null">
+        ajh = #{record.ajh,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sl != null">
+        sl = #{record.sl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.documentType != null">
+        document_type = #{record.documentType,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update history_document
+    set id = #{record.id,jdbcType=VARCHAR},
+      qzh = #{record.qzh,jdbcType=VARCHAR},
+      dh = #{record.dh,jdbcType=VARCHAR},
+      zrz = #{record.zrz,jdbcType=VARCHAR},
+      bgqx = #{record.bgqx,jdbcType=VARCHAR},
+      mj = #{record.mj,jdbcType=VARCHAR},
+      ztc = #{record.ztc,jdbcType=VARCHAR},
+      bz = #{record.bz,jdbcType=VARCHAR},
+      nd = #{record.nd,jdbcType=VARCHAR},
+      stfs = #{record.stfs,jdbcType=VARCHAR},
+      jh = #{record.jh,jdbcType=VARCHAR},
+      ys = #{record.ys,jdbcType=VARCHAR},
+      wh = #{record.wh,jdbcType=VARCHAR},
+      tm = #{record.tm,jdbcType=VARCHAR},
+      stms = #{record.stms,jdbcType=VARCHAR},
+      lbbh = #{record.lbbh,jdbcType=VARCHAR},
+      ngbm = #{record.ngbm,jdbcType=VARCHAR},
+      wjxcsj = #{record.wjxcsj,jdbcType=VARCHAR},
+      stflh = #{record.stflh,jdbcType=VARCHAR},
+      gdrq = #{record.gdrq,jdbcType=VARCHAR},
+      ssbm = #{record.ssbm,jdbcType=VARCHAR},
+      wjsx = #{record.wjsx,jdbcType=VARCHAR},
+      lrr = #{record.lrr,jdbcType=VARCHAR},
+      wjlx = #{record.wjlx,jdbcType=VARCHAR},
+      yjr = #{record.yjr,jdbcType=VARCHAR},
+      djh = #{record.djh,jdbcType=VARCHAR},
+      sys_file_count = #{record.sysFileCount,jdbcType=VARCHAR},
+      swlx = #{record.swlx,jdbcType=VARCHAR},
+      swsm = #{record.swsm,jdbcType=VARCHAR},
+      xcsj = #{record.xcsj,jdbcType=VARCHAR},
+      fs = #{record.fs,jdbcType=VARCHAR},
+      kh = #{record.kh,jdbcType=VARCHAR},
+      ajh = #{record.ajh,jdbcType=VARCHAR},
+      sl = #{record.sl,jdbcType=VARCHAR},
+      document_type = #{record.documentType,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="org.quetzaco.archives.model.HistoryDocument">
+    update history_document
+    <set>
+      <if test="qzh != null">
+        qzh = #{qzh,jdbcType=VARCHAR},
+      </if>
+      <if test="dh != null">
+        dh = #{dh,jdbcType=VARCHAR},
+      </if>
+      <if test="zrz != null">
+        zrz = #{zrz,jdbcType=VARCHAR},
+      </if>
+      <if test="bgqx != null">
+        bgqx = #{bgqx,jdbcType=VARCHAR},
+      </if>
+      <if test="mj != null">
+        mj = #{mj,jdbcType=VARCHAR},
+      </if>
+      <if test="ztc != null">
+        ztc = #{ztc,jdbcType=VARCHAR},
+      </if>
+      <if test="bz != null">
+        bz = #{bz,jdbcType=VARCHAR},
+      </if>
+      <if test="nd != null">
+        nd = #{nd,jdbcType=VARCHAR},
+      </if>
+      <if test="stfs != null">
+        stfs = #{stfs,jdbcType=VARCHAR},
+      </if>
+      <if test="jh != null">
+        jh = #{jh,jdbcType=VARCHAR},
+      </if>
+      <if test="ys != null">
+        ys = #{ys,jdbcType=VARCHAR},
+      </if>
+      <if test="wh != null">
+        wh = #{wh,jdbcType=VARCHAR},
+      </if>
+      <if test="tm != null">
+        tm = #{tm,jdbcType=VARCHAR},
+      </if>
+      <if test="stms != null">
+        stms = #{stms,jdbcType=VARCHAR},
+      </if>
+      <if test="lbbh != null">
+        lbbh = #{lbbh,jdbcType=VARCHAR},
+      </if>
+      <if test="ngbm != null">
+        ngbm = #{ngbm,jdbcType=VARCHAR},
+      </if>
+      <if test="wjxcsj != null">
+        wjxcsj = #{wjxcsj,jdbcType=VARCHAR},
+      </if>
+      <if test="stflh != null">
+        stflh = #{stflh,jdbcType=VARCHAR},
+      </if>
+      <if test="gdrq != null">
+        gdrq = #{gdrq,jdbcType=VARCHAR},
+      </if>
+      <if test="ssbm != null">
+        ssbm = #{ssbm,jdbcType=VARCHAR},
+      </if>
+      <if test="wjsx != null">
+        wjsx = #{wjsx,jdbcType=VARCHAR},
+      </if>
+      <if test="lrr != null">
+        lrr = #{lrr,jdbcType=VARCHAR},
+      </if>
+      <if test="wjlx != null">
+        wjlx = #{wjlx,jdbcType=VARCHAR},
+      </if>
+      <if test="yjr != null">
+        yjr = #{yjr,jdbcType=VARCHAR},
+      </if>
+      <if test="djh != null">
+        djh = #{djh,jdbcType=VARCHAR},
+      </if>
+      <if test="sysFileCount != null">
+        sys_file_count = #{sysFileCount,jdbcType=VARCHAR},
+      </if>
+      <if test="swlx != null">
+        swlx = #{swlx,jdbcType=VARCHAR},
+      </if>
+      <if test="swsm != null">
+        swsm = #{swsm,jdbcType=VARCHAR},
+      </if>
+      <if test="xcsj != null">
+        xcsj = #{xcsj,jdbcType=VARCHAR},
+      </if>
+      <if test="fs != null">
+        fs = #{fs,jdbcType=VARCHAR},
+      </if>
+      <if test="kh != null">
+        kh = #{kh,jdbcType=VARCHAR},
+      </if>
+      <if test="ajh != null">
+        ajh = #{ajh,jdbcType=VARCHAR},
+      </if>
+      <if test="sl != null">
+        sl = #{sl,jdbcType=VARCHAR},
+      </if>
+      <if test="documentType != null">
+        document_type = #{documentType,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.quetzaco.archives.model.HistoryDocument">
+    update history_document
+    set qzh = #{qzh,jdbcType=VARCHAR},
+      dh = #{dh,jdbcType=VARCHAR},
+      zrz = #{zrz,jdbcType=VARCHAR},
+      bgqx = #{bgqx,jdbcType=VARCHAR},
+      mj = #{mj,jdbcType=VARCHAR},
+      ztc = #{ztc,jdbcType=VARCHAR},
+      bz = #{bz,jdbcType=VARCHAR},
+      nd = #{nd,jdbcType=VARCHAR},
+      stfs = #{stfs,jdbcType=VARCHAR},
+      jh = #{jh,jdbcType=VARCHAR},
+      ys = #{ys,jdbcType=VARCHAR},
+      wh = #{wh,jdbcType=VARCHAR},
+      tm = #{tm,jdbcType=VARCHAR},
+      stms = #{stms,jdbcType=VARCHAR},
+      lbbh = #{lbbh,jdbcType=VARCHAR},
+      ngbm = #{ngbm,jdbcType=VARCHAR},
+      wjxcsj = #{wjxcsj,jdbcType=VARCHAR},
+      stflh = #{stflh,jdbcType=VARCHAR},
+      gdrq = #{gdrq,jdbcType=VARCHAR},
+      ssbm = #{ssbm,jdbcType=VARCHAR},
+      wjsx = #{wjsx,jdbcType=VARCHAR},
+      lrr = #{lrr,jdbcType=VARCHAR},
+      wjlx = #{wjlx,jdbcType=VARCHAR},
+      yjr = #{yjr,jdbcType=VARCHAR},
+      djh = #{djh,jdbcType=VARCHAR},
+      sys_file_count = #{sysFileCount,jdbcType=VARCHAR},
+      swlx = #{swlx,jdbcType=VARCHAR},
+      swsm = #{swsm,jdbcType=VARCHAR},
+      xcsj = #{xcsj,jdbcType=VARCHAR},
+      fs = #{fs,jdbcType=VARCHAR},
+      kh = #{kh,jdbcType=VARCHAR},
+      ajh = #{ajh,jdbcType=VARCHAR},
+      sl = #{sl,jdbcType=VARCHAR},
+      document_type = #{documentType,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

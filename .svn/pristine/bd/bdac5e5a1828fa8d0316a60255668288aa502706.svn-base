@@ -1,0 +1,206 @@
+package org.quetzaco.archives.application.biz.Impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.quetzaco.archives.application.biz.RecordService;
+import org.quetzaco.archives.application.biz.SwiftService;
+import org.quetzaco.archives.application.dao.AcousticImageMapper;
+import org.quetzaco.archives.application.dao.DocumentsMapper;
+import org.quetzaco.archives.application.dao.RecordMapper;
+import org.quetzaco.archives.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * Created by deya on 2017/7/14.
+ */
+@Service
+public class RecordServiceImpl implements RecordService {
+
+    @Autowired
+    RecordMapper recordMapper;
+
+    @Autowired
+    DocumentsMapper documentMapper;
+
+    @Autowired
+    SwiftService swiftService;
+
+    @Autowired
+    AcousticImageMapper acousticImageMapper;
+    final static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(RecordServiceImpl.class);
+    @Override
+    public PageInfo selectRecords(Long deptId,int offset, int limit) {
+        PageHelper.startPage(offset, limit);
+        List<Record> list = recordMapper.selectRecords(deptId);
+        //用PageInfo对结果进行包装
+        PageInfo page = new PageInfo(list);
+        return page;
+    }
+
+    @Override
+    public synchronized void createRecord(Record record) {
+        String fondsId = record.getFondsId();
+        String archiveType = record.getArchiveType();
+        String prefix;
+        if ("JJ".equals(archiveType)) {
+            String itemNum = record.getItemNum();
+            prefix = fondsId + "-" + archiveType + "-" + itemNum;
+        } else {
+            String archiveYear = record.getArchiveYear();
+            String reserveDuration = record.getReserveDuration();
+            prefix = fondsId + "-" + archiveType + "-" + archiveYear + "-" + reserveDuration;
+        }
+        int num = swiftService.saveSwiftNumber(prefix);
+        String fileNum = prefix + "-" + new DecimalFormat("000").format(num);
+        record.setFileNum(fileNum);
+        recordMapper.insertSelective(record);
+        // recordMapper.createRecord(record);
+    }
+
+    @Override
+    public Record selectRecordDetial(Long recordId) {
+        return recordMapper.selectRecordDetial(recordId);
+    }
+
+    @Override
+    public List<Documents> selectDocumentFromRecord(Long recordId) {
+        return recordMapper.selectDocumentFromRecord(recordId);
+    }
+
+    @Override
+    public List<String> insertDocumentToRecord(Long recordId, List<Documents> docs, int type) {
+        List<String> dupTitles = new ArrayList<String>();
+
+        if (docs.size() > 1) Collections.sort(docs);
+        for (int i = 0; i < docs.size(); i++) {
+            LOGGER.debug("creattime  :    " + docs.get(i).getDocumentCreatime());
+            Documents document = docs.get(i);
+            Documents dupDoc = recordMapper.isDuplicateTitle(recordId, document.getFileName());
+
+            if (dupDoc == null) {
+                Long docId = document.getId();
+                // Document document1 = documentMapper.selectDocumentDetail(docId);
+                //  Record record = recordMapper.selectRecordDetial(recordId);
+                recordMapper.insertDocumentToRecord(recordId, docId);
+                String importance = type == 1 ? "重要" : "一般";
+                Documents documents = new Documents();
+                documents.setImportance(importance);
+                documents.setArchiveType(document.getArchiveType());
+                documents.setIsArchive(true);
+                documents.setArrangeFlag(true);
+                documents.setArchiveDate((new SimpleDateFormat("yyyy-MM-dd")).format(new Date()));
+                documents.setId(docId);
+                documentMapper.updateByPrimaryKeySelective(documents);
+                if ("SX".equals(document.getArchiveType())) {
+                    AcousticImage acousticImage = new AcousticImage();
+                    acousticImage.setId(new Integer(document.getId().intValue()));
+                    acousticImageMapper.insertSelective(acousticImage);
+                }
+            } else {
+                dupTitles.add(document.getFileName());
+            }
+        }
+
+        return dupTitles;
+    }
+
+
+    @Override
+    public PageInfo selectRecordFromArchive(Long archiveId,int offset, int limit) {
+        PageHelper.startPage(offset, limit);
+        List<Record> list = recordMapper.selectRecordFromArchive(archiveId);
+        //用PageInfo对结果进行包装
+        PageInfo page = new PageInfo(list);
+        return page;
+    }
+
+
+    @Override
+    public PageInfo searchRecordList(Record record, int offset, int limit) {
+        PageHelper.startPage(offset,limit);
+        List<Record> list = recordMapper.searchRecordList(record);
+        PageInfo page = new PageInfo(list);
+        return page;
+    }
+
+    //全局搜索接口
+    @Override
+    public PageInfo searchGlobalRecordList(Record record, int offset, int limit) {
+      PageHelper.startPage(offset, limit);
+      List<Record> list = recordMapper.searchGlobalRecordList(record);
+      PageInfo page = new PageInfo(list);
+      return page;
+    }
+
+    @Override
+    public List<Record> selectArchiveRecords(Long deptId, String important) {
+        return recordMapper.selectArchiveRecords(deptId,important);
+    }
+
+    @Override
+    public Record selectByFileCode(String reelNum) {
+        return recordMapper.selectByFileCode(reelNum,true);
+    }
+
+    @Override
+    public void removeDocumentFromRecord(Long recordId, Long docId) {
+        recordMapper.removeDocumentFromRecord(recordId, docId);
+        documentMapper.recordToDocument(docId);
+    }
+
+    @Override
+    public void modifyRecord(Record record) {
+        recordMapper.updateByPrimaryKey(record);
+    }
+
+    @Override
+    public PageInfo sortSearchRecordList(Record record) {
+        PageSortSearch pageSortSearch = record.getPageSortSearch();
+        int pageNum = pageSortSearch.getPageNum();
+        int pageSize = pageSortSearch.getPageSize();
+        String sortName = pageSortSearch.getSortName();
+        String sortOrder = pageSortSearch.getSortOrder();
+        String startYear = record.getStartYear();
+        String endYear = record.getEndYear();
+        String title = record.getTitle();
+        Long deptId = record.getDeptId();
+        String archiveType = record.getArchiveType();
+        String reserveDuration = record.getReserveDuration();
+
+        RecordExample recordExample = new RecordExample();
+        if (!StringUtils.isEmpty(sortName)) {
+            sortName = "fileNum".equals(sortName) ? "file_num" : "archiveDate".equals(sortName) ? "archive_date" : null;
+            recordExample.setOrderByClause(sortName + " " + sortOrder);
+        } else
+        recordExample.setOrderByClause("updated_dt desc");
+        RecordExample.Criteria criteria = recordExample.createCriteria();
+        if (!"ALL".equals(archiveType)) criteria.andArchiveTypeEqualTo(archiveType);
+        if (!"ALL".equals(reserveDuration)) criteria.andReserveDurationEqualTo(reserveDuration);
+        if (!StringUtils.isEmpty(title)) criteria.andTitleLike("%" + title + "%");
+        if (!StringUtils.isEmpty(startYear)) criteria.andArchiveDateGreaterThanOrEqualTo(startYear);
+        if (!StringUtils.isEmpty(endYear)) criteria.andArchiveDateLessThanOrEqualTo(endYear);
+        criteria.andRecordFlagEqualTo(true);
+        criteria.andDeptIdEqualTo(deptId);
+        PageHelper.startPage(pageNum, pageSize);
+        List<Record> list = recordMapper.selectByExample(recordExample);
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
+
+    @Override
+    public List<Record> getRecordsByIds(List<Long> ids) {
+        RecordExample recordExample =  new RecordExample();
+        recordExample.createCriteria().andIdIn(ids).andRecordFlagEqualTo(true);
+        List<Record> list = recordMapper.selectByExample(recordExample);
+        return list;
+    }
+}

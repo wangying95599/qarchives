@@ -1,0 +1,48 @@
+package org.quetzaco.archives.application.dao;
+
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+import org.quetzaco.archives.model.Role;
+import org.quetzaco.archives.model.User;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface RoleMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(Role record);
+
+    int insertSelective(Role record);
+
+    Role selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(Role record);
+
+    int updateByPrimaryKey(Role record);
+
+//    int insertRoleWithUser(Map map);
+
+    List<Role> getRoleList();
+
+    void insertRoleWithUser(@Param("roleId") Long roleId,@Param("usrId") Long usrId,@Param("deptId") Long deptId);
+
+    Role getRoleByDeptAndUser(@Param("deptId") Long deptId,@Param("usrId") Long usrId);
+
+    void assignDefaultRole(@Param("usrId") Long usrId,@Param("deptId") Long deptId);
+
+    List<User> getUserByRoleAndDept(@Param("deptId") Long deptId,@Param("roleId") Long roleId);
+
+    void removeUserByRoleAndDept(@Param("usrId") Long usrId,@Param("deptId") Long deptId,@Param("roleId") Long roleId);
+
+    int updateRoleByDeptAndUser(@Param("roleId")Long roleId,@Param("deptId")Long deptId,@Param("usrId") Long usrId);
+
+    int deleteRoleByDeptAndUser(@Param("deptId") Long deptId,@Param("usrId") Long usrId);
+
+    int isSiteAdmin(Long usrId);
+
+    void deleteRoleByUser(Long usrId);
+
+    void deleteBySiteDeptId(@Param("usrId") Long usrId,@Param("siteDeptId") Long siteDeptId);
+
+    List<User>selectRoles(Long roleId);
+}
